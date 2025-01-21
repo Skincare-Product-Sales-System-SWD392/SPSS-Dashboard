@@ -1,20 +1,48 @@
-# Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+## Minimal UI ([Free version](https://free.minimals.cc/))
 
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+![license](https://img.shields.io/badge/license-MIT-blue.svg)
 
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+![preview](public/assets/images/minimal-free-preview.jpg)
 
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
+> Free React Admin Dashboard made with Material-UI components and React + Vite.js.
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+## Pages
+
+- [Dashboard](https://free.minimals.cc/)
+- [Users](https://free.minimals.cc/user)
+- [Products](https://free.minimals.cc/products)
+- [Blog](https://free.minimals.cc/blog)
+- [Sign in](https://free.minimals.cc/sign-in)
+- [Not found](https://free.minimals.cc/404)
+
+## Quick start
+
+- Clone the repo: `git clone https://github.com/minimal-ui-kit/material-kit-react.git`
+- Recommended: `Node.js v20.x`
+- **Install:** `npm i` or `yarn install`
+- **Start:** `npm run dev` or `yarn dev`
+- **Build:** `npm run build` or `yarn build`
+- Open browser: `http://localhost:3039`
+
+## Upgrade to PRO Version
+
+| Minimal Free                | [Minimal Pro](https://material-ui.com/store/items/minimal-dashboard/)                                   |
+| :-------------------------- | :------------------------------------------------------------------------------------------------------ |
+| **6** Pages                 | **70+** Pages                                                                                           |
+| **Partial** theme customize | **Fully** theme customize                                                                               |
+| -                           | **Next.js** version                                                                                     |
+| -                           | **TypeScript** version (Standard Plus and Extended license)                                             |
+| -                           | Design **Figma** file (Standard Plus and Extended license)                                              |
+| -                           | Authentication with **Amplify**, **Auth0**, **JWT**, **Firebase** and **Supabase**                      |
+| -                           | Light/dark mode, right-to-left, form validation... ([+more components](https://minimals.cc/components)) |
+| -                           | Complete users flows                                                                                    |
+| -                           | 1 year of free updates / 6 months of technical support                                                  |
+| -                           | Learn more: [Package & license](https://docs.minimals.cc/package)                                       |
+
+## License
+
+Distributed under the [MIT](https://github.com/minimal-ui-kit/minimal.free/blob/main/LICENSE.md) license.
+
+## Contact us
+
+Email: support@minimals.cc
