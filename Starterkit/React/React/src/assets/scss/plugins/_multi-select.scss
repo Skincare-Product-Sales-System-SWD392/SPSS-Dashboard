@@ -1,0 +1,20 @@
+
+.rdl-filter, .rdl-control {
+    @apply bg-white dark:bg-zink-700 text-slate-800 dark:text-zink-50 border-slate-200 dark:border-zink-500 #{!important};
+}
+
+.react-dual-listbox * {
+    @apply py-2;
+}
+
+.rdl-btn {
+    @apply bg-white dark:bg-zink-700 text-slate-800 dark:text-zink-50 border-slate-200 dark:border-zink-500 #{!important};
+    
+    &:hover:not(:disabled) {
+        @apply border-slate-200 dark:border-zink-500 #{!important};
+    }
+}
+
+:is(.twitter-picker, .sketch-picker, .chrome-picker, .compact-picker, .github-picker){
+    @apply bg-white dark:bg-zink-600 #{!important};
+}
