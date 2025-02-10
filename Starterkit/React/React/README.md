@@ -1,2 +1,0 @@
-# tailwick-react
-tailwick-react
