@@ -39,6 +39,8 @@ import InvoiceReducer from "./invoice/reducer"
 // Users
 import UsersReducer from "./users/reducer";
 
+import promotionReducer from "./promotion/reducer";
+
 const rootReducer = combineReducers({
     Layout: LayoutReducer,
     Login: LoginReducer,
@@ -53,6 +55,7 @@ const rootReducer = combineReducers({
     Social: SocialReducer,
     Invoice: InvoiceReducer,
     Users: UsersReducer,
+    Promotion: promotionReducer,
 });
 
 

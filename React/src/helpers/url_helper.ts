@@ -36,6 +36,13 @@ export const GET_CATEGORY = "/get-category";
 export const DELETE_CATEGORY = "/delete-category";
 
 // Ecommerce
+
+// Promotion 
+export const GET_ALL_PROMOTIONS = "/api/v1/Promotion/all";
+export const CREATE_PROMOTION = "/api/v1/Promotion";
+export const UPDATE_PROMOTION = "/api/v1/Promotion";
+export const DELETE_PROMOTION = "/api/v1/Promotion";
+
 // Orders
 export const GET_ORDERS = "/get-orders";
 export const ADD_ORDERS = "/add-orders";
@@ -156,6 +163,8 @@ export const GET_USER_GRID = "/get-usergrid";
 export const ADD_USER_GRID = "/add-usergrid";
 export const UPDATE_USER_GRID = "/edit-usergrid";
 export const DELETE_USER_GRID = "/delete-usergrid";
+
+
 
 
 

@@ -89,21 +89,25 @@ export const getCategory = () => api.get(url.GET_CATEGORY, null);
 export const deleteCategory = (data: any) => api.delete(url.DELETE_CATEGORY, { headers: { data } });
 
 // Ecommerce
+
+// Promotion
+export const getAllPromotions = (params: { Page: number; PageSize: number }) => 
+  api.get(url.GET_ALL_PROMOTIONS, params);
+
+export const createPromotion = (data: any) => 
+  api.create(url.CREATE_PROMOTION, data);
+
+export const updatePromotion = (id: string, data: any) => 
+  api.update(`${url.UPDATE_PROMOTION}/${id}`, data);
+
+export const deletePromotion = (id: string) => 
+  api.delete(`${url.DELETE_PROMOTION}/${id}`, { headers: { data: id } });
+
 // Orders
 export const getOrders = () => api.get(url.GET_ORDERS, null);
 export const addOrders = (data: any) => api.create(url.ADD_ORDERS, data);
 export const updateOrders = (data: any) => api.update(url.UPDATE_ORDERS, data);
 export const deleteOrders = (data: any) => api.delete(url.DELETE_ORDERS, { headers: { data } });
-
-// Promotions
-export const getPromotions = (params = { Page: 1, PageSize: 10 }) => 
-    api.get(url.GET_PROMOTIONS, { params });
-export const addPromotion = (data: any) => 
-    api.create(url.ADD_PROMOTIONS, data);
-export const updatePromotion = (data: any) => 
-    api.update(`${url.UPDATE_PROMOTIONS}/${data.id}`, data);
-export const deletePromotion = (id: string) => 
-    api.delete(`${url.DELETE_PROMOTIONS}/${id}`,{ headers: { data } } );
 
 // Sellers
 export const getSellers = () => api.get(url.GET_SELLERS, null);
@@ -221,3 +225,4 @@ export const getUserGrid = () => api.get(url.GET_USER_GRID, null);
 export const addUserGrid = (data: any) => api.create(url.ADD_USER_GRID, data);
 export const updateUserGrid = (data: any) => api.update(url.UPDATE_USER_GRID, data);
 export const deleteUserGrid = (user: any) => api.delete(url.DELETE_USER_GRID, { headers: { user } });
+

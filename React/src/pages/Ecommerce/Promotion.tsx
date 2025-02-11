@@ -20,37 +20,45 @@ import DeleteModal from "Common/DeleteModal";
 // react-redux
 import { useDispatch, useSelector } from "react-redux";
 import { createSelector } from "reselect";
-
-import {
-  getProductList as onGetProductList,
-  deleteProductList as onDeleteProductList,
-} from "slices/thunk";
+import { getPromotions } from "slices/promotion/thunk";
 import { ToastContainer } from "react-toastify";
 import filterDataBySearch from "Common/filterDataBySearch";
 
+// Add this helper function at the top of your component or in a separate utils file
+const formatDateTime = (dateTimeOffset: string) => {
+  if (!dateTimeOffset) return "";
+  const date = new Date(dateTimeOffset);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+};
+
 const Promotion = () => {
   const dispatch = useDispatch<any>();
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
-  const selectDataList = createSelector(
-    (state: any) => state.Ecommerce,
-    (state) => ({
-      dataList: state.productList,
+  const promotionSelector = createSelector(
+    (state: any) => state.Promotion,
+    (promotion) => ({
+      promotions: promotion.promotions.results,
+      pageCount: promotion.promotions.pageCount,
+      loading: promotion.loading,
+      error: promotion.error,
     })
   );
 
-  const { dataList } = useSelector(selectDataList);
+  const { promotions, pageCount, loading, error } = useSelector(promotionSelector);
 
   const [data, setData] = useState<any>([]);
   const [eventData, setEventData] = useState<any>();
 
   // Get Data
   useEffect(() => {
-    dispatch(onGetProductList());
-  }, [dispatch]);
+    dispatch(getPromotions({ page: currentPage, pageSize }));
+  }, [dispatch, currentPage]);
 
   useEffect(() => {
-    setData(dataList);
-  }, [dataList]);
+    setData(promotions);
+  }, [promotions]);
 
   // Delete Modal
   const [deleteModal, setDeleteModal] = useState<boolean>(false);
@@ -64,18 +72,18 @@ const Promotion = () => {
     }
   };
 
-  const handleDelete = () => {
-    if (eventData) {
-      dispatch(onDeleteProductList(eventData.id));
-      setDeleteModal(false);
-    }
-  };
+//   const handleDelete = () => {
+//     if (eventData) {
+//       dispatch(onDeleteProductList(eventData.id));
+//       setDeleteModal(false);
+//     }
+//   };
 
   // Search Data
   const filterSearchData = (e: any) => {
     const search = e.target.value;
     const keysToSearch = ["productCode", "productName", "category", "status"];
-    filterDataBySearch(dataList, search, keysToSearch, setData);
+    filterDataBySearch(promotions, search, keysToSearch, setData);
   };
 
   const Status = ({ item }: any) => {
@@ -110,21 +118,8 @@ const Promotion = () => {
   const columns = useMemo(
     () => [
       {
-        header: "Promotion Code",
-        accessorKey: "promotionCode",
-        enableColumnFilter: false,
-        cell: (cell: any) => (
-          <Link
-            to="#"
-            className="transition-all duration-150 ease-linear product_code text-custom-500 hover:text-custom-600"
-          >
-            {cell.getValue()}
-          </Link>
-        ),
-      },
-      {
         header: "Promotion Name",
-        accessorKey: "promotionName",
+        accessorKey: "name",
         enableColumnFilter: false,
         enableSorting: true,
         cell: (cell: any) => (
@@ -132,42 +127,42 @@ const Promotion = () => {
             to="/apps-ecommerce-product-overview"
             className="flex items-center gap-2"
           >
-            <img
-              src={cell.row.original.img}
-              alt="Product images"
-              className="h-6"
-            />
-            <h6 className="product_name">{cell.getValue()}</h6>
+            {cell.getValue()}
           </Link>
         ),
       },
       {
         header: "Type",
-        accessorKey: "category",
+        accessorKey: "type",
         enableColumnFilter: false,
         cell: (cell: any) => (
-          <span className="category px-2.5 py-0.5 text-xs inline-block font-medium rounded border bg-slate-100 border-slate-200 text-slate-500 dark:bg-slate-500/20 dark:border-slate-500/20 dark:text-zink-200">
+            <Link
+            to="/apps-ecommerce-product-overview"
+            className="flex items-center gap-2"
+          >
             {cell.getValue()}
-          </span>
+          </Link>
         ),
       },
       {
         header: "Description",
-        accessorKey: "price",
+        accessorKey: "description",
         enableColumnFilter: false,
         enableSorting: true,
       },
       {
         header: "Start Date",
-        accessorKey: "stock",
+        accessorKey: "startDate",
         enableColumnFilter: false,
         enableSorting: true,
+        cell: (cell: any) => formatDateTime(cell.getValue())
       },
       {
         header: "End Date",
-        accessorKey: "revenue",
+        accessorKey: "endDate",
         enableColumnFilter: false,
         enableSorting: true,
+        cell: (cell: any) => formatDateTime(cell.getValue())
       },
       {
         header: "Action",
@@ -229,11 +224,11 @@ const Promotion = () => {
   return (
     <React.Fragment>
       <BreadCrumb title="Promotion" pageTitle="Promotion" />
-      <DeleteModal
+      {/* <DeleteModal
         show={deleteModal}
         onHide={deleteToggle}
-        onDelete={handleDelete}
-      />
+        // onDelete={handleDelete}
+      /> */}
       <ToastContainer closeButton={false} limit={1} />
       <div className="card" id="productListTable">
         <div className="card-body">

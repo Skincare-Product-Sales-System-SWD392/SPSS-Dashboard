@@ -1,7 +1,10 @@
 import axios from "axios";
-// import { api } from "../config";
 
-axios.defaults.baseURL = "";
+// Set base URL for all API calls
+console.log('API URL:', process.env.REACT_APP_API_URL);
+const API_URL = "https://localhost:44398";
+axios.defaults.baseURL = process.env.REACT_APP_API_URL;
+
 // content type
 axios.defaults.headers.post["Content-Type"] = "application/json";
 
@@ -35,72 +38,31 @@ axios.interceptors.response.use(
     return Promise.reject(message);
   }
 );
-/**
- * Sets the default authorization
- * @param {*} token
- */
+
+class APIClient {
+  get = (url: string, params?: any) => {
+    return axios.get(url, { params });
+  };
+
+  create = (url: string, data: any) => {
+    return axios.post(url, data);
+  };
+
+  update = (url: string, data: any) => {
+    return axios.patch(url, data);
+  };
+
+  put = (url: string, data: any) => {
+    return axios.put(url, data);
+  };
+
+  delete = (url: string, config?: any) => {
+    return axios.delete(url, config);
+  };
+}
+
 const setAuthorization = (token: any) => {
   axios.defaults.headers.common["Authorization"] = "Bearer " + token;
 };
 
-class APIClient {
-  /**
-   * Fetches data from given url
-   */
-
-  //  get = (url, params) => {
-  //   return axios.get(url, params);
-  // };
-  get = (url: any, params: any) => {
-    let response;
-
-    let paramKeys: any = [];
-
-    if (params) {
-      Object.keys(params).map(key => {
-        paramKeys.push(key + '=' + params[key]);
-        return paramKeys;
-      });
-
-      const queryString = paramKeys && paramKeys.length ? paramKeys.join('&') : "";
-      response = axios.get(`${url}?${queryString}`, params);
-    } else {
-      response = axios.get(`${url}`, params);
-    }
-
-    return response;
-  };
-  /**
-   * post given data to url
-   */
-  create = (url: any, data: any) => {
-    return axios.post(url, data);
-  };
-  /**
-   * Updates data
-   */
-  update = (url: any, data: any) => {
-    return axios.patch(url, data);
-  };
-
-  put = (url: any, data: any) => {
-    return axios.put(url, data);
-  };
-  /**
-   * Delete
-   */
-  delete = (url: any, config: any) => {
-    return axios.delete(url, { ...config });
-  };
-}
-const getLoggedUser = () => {
-
-  const user = localStorage.getItem("authUser");
-  if (!user) {
-    return null;
-  } else {
-    return JSON.parse(user);
-  }
-};
-
-export { APIClient, setAuthorization, getLoggedUser };
+export { APIClient, setAuthorization };

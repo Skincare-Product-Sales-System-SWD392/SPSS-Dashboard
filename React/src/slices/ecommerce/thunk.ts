@@ -107,50 +107,6 @@ export const deleteSellers = createAsyncThunk("ecommerce/deleteSellers", async (
     }
 });
 
-export const getPromotions = createAsyncThunk("ecommerce/getPromotions", async () => {
-    try {
-        const response = await getPromotionsApi();
-        return response;
-    } catch (error) {
-        return error;
-    }
-});
-
-export const addPromotion = createAsyncThunk("ecommerce/addPromotion", async (data: any) => {
-    try {
-        const response = await addPromotionApi(data);
-        toast.success("Promotion Added Successfully", { autoClose: 2000 });
-        return response;
-    } catch (error) {
-        toast.error("Promotion Added Failed", { autoClose: 2000 });
-        return error;
-    }
-});
-
-export const updatePromotion = createAsyncThunk("ecommerce/updatePromotion", async (data: any) => {
-    try {
-        const response = await updatePromotionApi(data);
-        toast.success("Promotion Updated Successfully", { autoClose: 2000 });
-        return response;
-    } catch (error) {
-        toast.error("Promotion Update Failed", { autoClose: 2000 });
-        return error;
-    }
-});
-
-export const deletePromotion = createAsyncThunk("ecommerce/deletePromotion", async (id: string) => {
-    try {
-        const response = await deletePromotionApi(id);
-        toast.success("Promotion Deleted Successfully", { autoClose: 2000 });
-        return id; // Return the GUID for removing from state
-    } catch (error) {
-        toast.error("Promotion Delete Failed", { autoClose: 2000 });
-        return error;
-    }
-});
-
-
-
 export const getProductList = createAsyncThunk("ecommerce/getProductList", async () => {
     try {
         const response = getProductListApi();
