@@ -1,8 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import BreadCrumb from "Common/BreadCrumb";
 import Flatpickr from "react-flatpickr";
 import { Link } from "react-router-dom";
 import { Dropdown } from "Common/Components/Dropdown";
+import Modal from "Common/Components/Modal";
+import { useFormik } from "formik";
+import moment from "moment";
 
 // Icon
 import {
@@ -17,6 +20,9 @@ import {
 import TableContainer from "Common/TableContainer";
 import DeleteModal from "Common/DeleteModal";
 
+// Formik
+import * as Yup from "yup";
+
 // react-redux
 import { useDispatch, useSelector } from "react-redux";
 import { createSelector } from "reselect";
@@ -28,13 +34,20 @@ import filterDataBySearch from "Common/filterDataBySearch";
 const formatDateTime = (dateTimeOffset: string) => {
   if (!dateTimeOffset) return "";
   const date = new Date(dateTimeOffset);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}-${String(date.getDate()).padStart(2, "0")} ${String(
+    date.getHours()
+  ).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 };
 
 const Promotion = () => {
   const dispatch = useDispatch<any>();
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
+  const pageSize = 5;
+  const [show, setShow] = useState<boolean>(false);
+  const [isEdit, setIsEdit] = useState<boolean>(false);
 
   const promotionSelector = createSelector(
     (state: any) => state.Promotion,
@@ -46,7 +59,8 @@ const Promotion = () => {
     })
   );
 
-  const { promotions, pageCount, loading, error } = useSelector(promotionSelector);
+  const { promotions, pageCount, loading, error } =
+    useSelector(promotionSelector);
 
   const [data, setData] = useState<any>([]);
   const [eventData, setEventData] = useState<any>();
@@ -72,12 +86,12 @@ const Promotion = () => {
     }
   };
 
-//   const handleDelete = () => {
-//     if (eventData) {
-//       dispatch(onDeleteProductList(eventData.id));
-//       setDeleteModal(false);
-//     }
-//   };
+  //   const handleDelete = () => {
+  //     if (eventData) {
+  //       dispatch(onDeleteProductList(eventData.id));
+  //       setDeleteModal(false);
+  //     }
+  //   };
 
   // Search Data
   const filterSearchData = (e: any) => {
@@ -115,10 +129,50 @@ const Promotion = () => {
     }
   };
 
+  const validation: any = useFormik({
+    enableReinitialize: true,
+    initialValues: {
+      orderId: (eventData && eventData.orderId) || "",
+      orderDate: (eventData && eventData.orderDate) || "",
+      deliveryDate: (eventData && eventData.deliveryDate) || "",
+      customerName: (eventData && eventData.customerName) || "",
+      paymentMethod: (eventData && eventData.paymentMethod) || "",
+      amount: (eventData && eventData.amount) || "",
+      deliveryStatus: (eventData && eventData.deliveryStatus) || "",
+      startDate: eventData?.startDate || "",
+      endDate: eventData?.endDate || "",
+    },
+    validationSchema: Yup.object({
+      orderDate: Yup.string().required("Please Enter Date"),
+      deliveryDate: Yup.string().required("Please Enter Date"),
+      customerName: Yup.string().required("Please Enter Name"),
+      paymentMethod: Yup.string().required("Please Enter Payment Method"),
+      amount: Yup.string().required("Please Enter Amount"),
+      deliveryStatus: Yup.string().required("Please Enter Status"),
+      startDate: Yup.date().required("Start Date is required"),
+      endDate: Yup.date().required("End Date is required"),
+    }),
+    onSubmit: (values) => {
+      // Add your submit logic here
+    },
+  });
+
+  const toggle = useCallback(() => {
+    if (show) {
+      setShow(false);
+      setEventData("");
+      setIsEdit(false);
+    } else {
+      setShow(true);
+      setEventData("");
+      validation.resetForm();
+    }
+  }, [show, validation]);
+
   const columns = useMemo(
     () => [
       {
-        header: "Promotion Name",
+        header: "Name",
         accessorKey: "name",
         enableColumnFilter: false,
         enableSorting: true,
@@ -136,7 +190,7 @@ const Promotion = () => {
         accessorKey: "type",
         enableColumnFilter: false,
         cell: (cell: any) => (
-            <Link
+          <Link
             to="/apps-ecommerce-product-overview"
             className="flex items-center gap-2"
           >
@@ -155,14 +209,14 @@ const Promotion = () => {
         accessorKey: "startDate",
         enableColumnFilter: false,
         enableSorting: true,
-        cell: (cell: any) => formatDateTime(cell.getValue())
+        cell: (cell: any) => formatDateTime(cell.getValue()),
       },
       {
         header: "End Date",
         accessorKey: "endDate",
         enableColumnFilter: false,
         enableSorting: true,
-        cell: (cell: any) => formatDateTime(cell.getValue())
+        cell: (cell: any) => formatDateTime(cell.getValue()),
       },
       {
         header: "Action",
@@ -267,9 +321,11 @@ const Promotion = () => {
             </div>
             <div className="lg:col-span-2 ltr:lg:text-right rtl:lg:text-left xl:col-span-2 xl:col-start-11">
               <Link
-                to="/apps-ecommerce-product-create"
+                to="#!"
+                data-modal-target="addPromotionModal"
                 type="button"
                 className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
+                onClick={toggle}
               >
                 <Plus className="inline-block size-4" />{" "}
                 <span className="align-middle">Add Promotion</span>
@@ -283,7 +339,7 @@ const Promotion = () => {
               isPagination={true}
               columns={columns || []}
               data={data || []}
-              customPageSize={7}
+              customPageSize={5}
               divclassName="overflow-x-auto"
               tableclassName="w-full whitespace-nowrap"
               theadclassName="ltr:text-left rtl:text-right bg-slate-100 dark:bg-zink-600"
@@ -305,6 +361,149 @@ const Promotion = () => {
           )}
         </div>
       </div>
+
+    
+      <Modal
+        show={show}
+        onHide={toggle}
+        modal-center="true"
+        className="fixed flex flex-col transition-all duration-300 ease-in-out left-2/4 z-drawer -translate-x-2/4 -translate-y-2/4"
+        dialogClassName="w-screen md:w-[30rem] lg:w-[40rem] bg-white shadow rounded-md dark:bg-zink-600"
+      >
+        <Modal.Header
+          className="flex items-center justify-between p-4 border-b dark:border-zink-500"
+          closeButtonClass="transition-all duration-200 ease-linear text-slate-400 hover:text-red-500"
+        >
+          <Modal.Title className="text-16">
+            {!!isEdit ? "Edit Promotion" : "Add Promotion"}
+          </Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body className="p-4">
+          <div className="grid grid-cols-1 gap-x-5 xl:grid-cols-2">
+            <div className="mb-4">
+              <label
+                htmlFor="firstNameInput"
+                className="inline-block mb-2 text-base font-medium"
+              >
+                Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="firstName"
+                className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
+                placeholder="Enter Name"
+                value={validation.values.firstName}
+                onChange={validation.handleChange}
+                onBlur={validation.handleBlur}
+              />
+              {validation.touched.firstName && validation.errors.firstName ? (
+                <p id="firstName" className="mt-1 text-sm text-red-500">
+                  {validation.errors.firstName}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="mb-4">
+              <label
+                htmlFor="lastNameInput"
+                className="inline-block mb-2 text-base font-medium"
+              >
+                Type <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="lastName"
+                className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
+                placeholder="Enter Type"
+                value={validation.values.lastName}
+                onChange={validation.handleChange}
+                onBlur={validation.handleBlur}
+              />
+              {validation.touched.lastName && validation.errors.lastName ? (
+                <p id="lastName" className="mt-1 text-sm text-red-500">
+                  {validation.errors.lastName}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="mb-4 xl:col-span-2">
+              <label
+                htmlFor="descriptionInput"
+                className="inline-block mb-2 text-base font-medium"
+              >
+                Description 
+              </label>
+              <textarea
+                name="description"
+                className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
+                placeholder="Enter description"
+                value={validation.values.description}
+                onChange={validation.handleChange}
+                onBlur={validation.handleBlur}
+              ></textarea>
+              {validation.touched.description &&
+              validation.errors.description ? (
+                <p id="description" className="mt-1 text-sm text-red-500">
+                  {validation.errors.description}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+              <label
+                htmlFor="descriptionInput"
+                className="inline-block mb-2 text-base font-medium"
+              >
+                Start Date <span className="text-red-500">*</span>
+              </label>
+                <Flatpickr
+                  options={{
+                    enableTime: true,
+                    dateFormat: "d.m.y H:i",
+                  }}
+                  placeholder="Select start date"
+                  className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
+                />
+              </div>
+
+              <div>
+              <label
+                htmlFor="descriptionInput"
+                className="inline-block mb-2 text-base font-medium"
+              >
+               End Date <span className="text-red-500">*</span>
+              </label>
+                <Flatpickr
+                  options={{
+                    enableTime: true,
+                    dateFormat: "d.m.y H:i",
+                  }}
+                  placeholder="Select end date"
+                  className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="reset"
+                className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10"
+                onClick={toggle}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
+              >
+                {!!isEdit ? "Update" : "Add Promotion"}
+              </button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
     </React.Fragment>
   );
 };
