@@ -95,6 +95,16 @@ export const addOrders = (data: any) => api.create(url.ADD_ORDERS, data);
 export const updateOrders = (data: any) => api.update(url.UPDATE_ORDERS, data);
 export const deleteOrders = (data: any) => api.delete(url.DELETE_ORDERS, { headers: { data } });
 
+// Promotions
+export const getPromotions = (params = { Page: 1, PageSize: 10 }) => 
+    api.get(url.GET_PROMOTIONS, { params });
+export const addPromotion = (data: any) => 
+    api.create(url.ADD_PROMOTIONS, data);
+export const updatePromotion = (data: any) => 
+    api.update(`${url.UPDATE_PROMOTIONS}/${data.id}`, data);
+export const deletePromotion = (id: string) => 
+    api.delete(`${url.DELETE_PROMOTIONS}/${id}`,{ headers: { data } } );
+
 // Sellers
 export const getSellers = () => api.get(url.GET_SELLERS, null);
 export const addSellers = (data: any) => api.create(url.ADD_SELLERS, data);

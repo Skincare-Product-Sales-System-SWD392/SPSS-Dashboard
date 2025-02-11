@@ -26,6 +26,7 @@ import Checkout from "pages/Ecommerce/Checkout";
 import Orders from "pages/Ecommerce/Orders";
 import OrderOverview from "pages/Ecommerce/OrderOverview";
 import Sellers from "pages/Ecommerce/Sellers";
+import Promotion from "pages/Ecommerce/Promotion";
 
 // HR Management
 import EmployeeList from "pages/HRManagement/EmployeeList";
@@ -273,7 +274,6 @@ const authProtectedRoutes: Array<RouteObject> = [
   { path: "/maps-google", component: MapsGoogle },
   { path: "/maps-leaflet", component: MapsLeaflet },
 
-
   //Charts
   { path: "/charts-apex-area", component: AreaCharts },
   { path: "/charts-apex-bar", component: BarCharts },
@@ -315,6 +315,7 @@ const authProtectedRoutes: Array<RouteObject> = [
   { path: "/apps-ecommerce-orders", component: Orders },
   { path: "/apps-ecommerce-order-overview", component: OrderOverview },
   { path: "/apps-ecommerce-sellers", component: Sellers },
+  { path: "/apps-ecommerce-promotion", component: Promotion },
 
   // HR Management
   { path: "/apps-hr-employee", component: EmployeeList },
@@ -418,12 +419,10 @@ const publicRoutes = [
   // Maintenance
   { path: "/pages-maintenance", component: Maintenance },
 
-
   // authentication
   { path: "/login", component: Login },
   { path: "/logout", component: Logout },
   { path: "/register", component: Register },
-
-]
+];
 
 export { authProtectedRoutes, publicRoutes };
