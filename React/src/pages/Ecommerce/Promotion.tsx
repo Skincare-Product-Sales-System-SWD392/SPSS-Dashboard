@@ -450,56 +450,58 @@ const Promotion = () => {
               ) : null}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-              <label
-                htmlFor="descriptionInput"
-                className="inline-block mb-2 text-base font-medium"
-              >
-                Start Date <span className="text-red-500">*</span>
-              </label>
-                <Flatpickr
-                  options={{
-                    enableTime: true,
-                    dateFormat: "d.m.y H:i",
-                  }}
-                  placeholder="Select start date"
-                  className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                />
+            <div className="xl:col-span-2">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor="descriptionInput"
+                    className="inline-block mb-2 text-base font-medium"
+                  >
+                    Start Date <span className="text-red-500">*</span>
+                  </label>
+                  <Flatpickr
+                    options={{
+                      enableTime: true,
+                      dateFormat: "d.m.y H:i",
+                    }}
+                    placeholder="Select start date"
+                    className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="descriptionInput"
+                    className="inline-block mb-2 text-base font-medium"
+                  >
+                    End Date <span className="text-red-500">*</span>
+                  </label>
+                  <Flatpickr
+                    options={{
+                      enableTime: true,
+                      dateFormat: "d.m.y H:i",
+                    }}
+                    placeholder="Select end date"
+                    className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
+                  />
+                </div>
               </div>
 
-              <div>
-              <label
-                htmlFor="descriptionInput"
-                className="inline-block mb-2 text-base font-medium"
-              >
-               End Date <span className="text-red-500">*</span>
-              </label>
-                <Flatpickr
-                  options={{
-                    enableTime: true,
-                    dateFormat: "d.m.y H:i",
-                  }}
-                  placeholder="Select end date"
-                  className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                />
+              <div className="flex justify-end gap-2 mt-4">
+                <button
+                  type="reset"
+                  className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10"
+                  onClick={toggle}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
+                >
+                  {!!isEdit ? "Update" : "Add Promotion"}
+                </button>
               </div>
-            </div>
-
-            <div className="mt-6 flex justify-end gap-2">
-              <button
-                type="reset"
-                className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10"
-                onClick={toggle}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
-              >
-                {!!isEdit ? "Update" : "Add Promotion"}
-              </button>
             </div>
           </div>
         </Modal.Body>
