@@ -303,19 +303,22 @@ const Promotion = () => {
 
   const handleDelete = () => {
     if (eventData) {
-      dispatch(deletePromotion(eventData.id));
-      setDeleteModal(false);
+      dispatch(deletePromotion(eventData.id))
+        .then(() => {
+          setDeleteModal(false);
+          setRefreshFlag(prev => !prev);
+        });
     }
   };
 
   return (
     <React.Fragment>
       <BreadCrumb title="Promotion" pageTitle="Promotion" />
-      {/* <DeleteModal
-        show={deleteModal}
+      <DeleteModal 
+        show={deleteModal} 
         onHide={deleteToggle}
-        // onDelete={handleDelete}
-      /> */}
+        onDelete={handleDelete}
+      />
       <ToastContainer closeButton={false} limit={1} />
       <div className="card" id="productListTable">
         <div className="card-body">
