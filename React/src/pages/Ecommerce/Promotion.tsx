@@ -157,6 +157,7 @@ const Promotion = () => {
       discountRate: Yup.number()
         .required("Discount rate is required")
         .min(0, "Discount rate cannot be negative")
+        .max(100, "Discount rate cannot exceed 100%")
     }),
     onSubmit: (values) => {
       if (isEdit) {
