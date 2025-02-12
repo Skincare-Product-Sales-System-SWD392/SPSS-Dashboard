@@ -5,7 +5,6 @@ import { Link } from "react-router-dom";
 import { Dropdown } from "Common/Components/Dropdown";
 import Modal from "Common/Components/Modal";
 import { useFormik } from "formik";
-import moment from "moment";
 
 // Icon
 import {
@@ -28,7 +27,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { createSelector } from "reselect";
 import { getPromotions, addPromotion, updatePromotion, deletePromotion } from "slices/promotion/thunk";
 import { ToastContainer } from "react-toastify";
-import filterDataBySearch from "Common/filterDataBySearch";
+
 
 // Function to format date and time for display in the UI
 // Takes a dateTimeOffset string and returns formatted date-time string (YYYY-MM-DD HH:mm)
@@ -63,7 +62,7 @@ const Promotion = () => {
     })
   );
 
-  const { promotions, pageCount, firstRowOnPage, rowCount, loading, error } =
+  const { promotions, pageCount } =
     useSelector(promotionSelector);
 
   const [data, setData] = useState<any>([]);
@@ -166,35 +165,6 @@ const Promotion = () => {
     }
 
     setData(filteredData);
-  };
-
-  const Status = ({ item }: any) => {
-    switch (item) {
-      case "Publish":
-        return (
-          <span className="status px-2.5 py-0.5 inline-block text-xs font-medium rounded border bg-green-100 border-transparent text-green-500 dark:bg-green-500/20 dark:border-transparent">
-            {item}
-          </span>
-        );
-      case "Scheduled":
-        return (
-          <span className="status px-2.5 py-0.5 inline-block text-xs font-medium rounded border bg-orange-100 border-transparent text-orange-500 dark:bg-orange-500/20 dark:border-transparent">
-            {item}
-          </span>
-        );
-      case "Inactive":
-        return (
-          <span className="status px-2.5 py-0.5 inline-block text-xs font-medium rounded border bg-red-100 border-transparent text-red-500 dark:bg-red-500/20 dark:border-transparent">
-            {item}
-          </span>
-        );
-      default:
-        return (
-          <span className="status px-2.5 py-0.5 inline-block text-xs font-medium rounded border bg-green-100 border-transparent text-green-500 dark:bg-green-500/20 dark:border-transparent">
-            {item}
-          </span>
-        );
-    }
   };
 
   // Delete handler: Processes the deletion of a promotion
