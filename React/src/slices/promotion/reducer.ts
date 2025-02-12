@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getPromotions } from "./thunk";
+import { getPromotions, addPromotion, updatePromotion, deletePromotion } from "./thunk";
 
 interface PromotionState {
   loading: boolean;
@@ -37,17 +37,66 @@ const promotionSlice = createSlice({
     // Get Promotions
     builder.addCase(getPromotions.pending, (state) => {
       state.loading = true;
+      state.error = null;
     });
     builder.addCase(getPromotions.fulfilled, (state, action) => {
       state.loading = false;
       state.promotions = action.payload.data;
+      state.error = null;
     });
     builder.addCase(getPromotions.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message || null;
     });
 
-    // Add similar cases for create, update, and delete
+    // Add Promotion
+    builder.addCase(addPromotion.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(addPromotion.fulfilled, (state, action) => {
+      state.loading = false;
+      state.promotions.results.unshift(action.payload.data);
+      state.error = null;
+    });
+    builder.addCase(addPromotion.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || null;
+    });
+
+    // Update Promotion
+    builder.addCase(updatePromotion.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(updatePromotion.fulfilled, (state, action) => {
+      state.loading = false;
+      state.promotions.results = state.promotions.results.map(promotion =>
+        promotion.id === action.payload.data.id ? action.payload.data : promotion
+      );
+      state.error = null;
+    });
+    builder.addCase(updatePromotion.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || null;
+    });
+
+    // Delete Promotion
+    builder.addCase(deletePromotion.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(deletePromotion.fulfilled, (state, action) => {
+      state.loading = false;
+      state.promotions.results = state.promotions.results.filter(
+        promotion => promotion.id !== action.payload.data
+      );
+      state.error = null;
+    });
+    builder.addCase(deletePromotion.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || null;
+    });
   },
 });
 
