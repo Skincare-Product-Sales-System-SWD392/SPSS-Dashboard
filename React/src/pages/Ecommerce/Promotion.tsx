@@ -30,7 +30,8 @@ import { getPromotions, addPromotion, updatePromotion, deletePromotion } from "s
 import { ToastContainer } from "react-toastify";
 import filterDataBySearch from "Common/filterDataBySearch";
 
-// Hàm dùng để format ngày tháng, hiển thị lên UI cho đẹp
+// Function to format date and time for display in the UI
+// Takes a dateTimeOffset string and returns formatted date-time string (YYYY-MM-DD HH:mm)
 const formatDateTime = (dateTimeOffset: string) => {
   if (!dateTimeOffset) return "";
   const date = new Date(dateTimeOffset);
@@ -101,7 +102,8 @@ const Promotion = () => {
     }
   };
 
-  // Search Data
+  // Search functionality: Filters promotions based on user input
+  // Searches across name, type, description, and discount rate fields
   const filterSearchData = (e: any) => {
     const search = e.target.value;
     const keysToSearch = ['name', 'type', 'description', 'discountRate'];
@@ -114,7 +116,8 @@ const Promotion = () => {
     setData(filteredData);
   };
 
-  // Add new function for date filtering
+  // Date filtering function: Handles filtering promotions by date range
+  // Can filter by start date only, end date only, or date range
   const handleDateFilter = (dates: any, dateType: 'start' | 'end') => {
     if (!dates || dates.length === 0) {
       setData(promotions); // Reset to all data if date is cleared
@@ -129,14 +132,14 @@ const Promotion = () => {
       const endDate = endDatePicker?.value ? new Date(endDatePicker.value) : null;
 
       if (endDate) {
-        // Filter for date range
+        // Filter for date range: shows promotions between start and end dates
         filteredData = promotions.filter((item: any) => {
           const promoStartDate = new Date(item.startDate);
           const promoEndDate = new Date(item.endDate);
           return promoStartDate >= selectedDate && promoEndDate <= endDate;
         });
       } else {
-        // Filter for start date only
+        // Filter for start date only: shows promotions starting from selected date
         filteredData = promotions.filter((item: any) => {
           const promoStartDate = new Date(item.startDate);
           return promoStartDate >= selectedDate;
@@ -194,6 +197,20 @@ const Promotion = () => {
     }
   };
 
+  // Delete handler: Processes the deletion of a promotion
+  // Called when user confirms deletion in the modal
+  const handleDelete = () => {
+    if (eventData) {
+      dispatch(deletePromotion(eventData.id))
+        .then(() => {
+          setDeleteModal(false);
+          setRefreshFlag(prev => !prev); // Trigger data refresh after deletion
+        });
+    }
+  };
+
+  // Form validation schema using Yup
+  // Defines validation rules for all promotion fields
   const validation: any = useFormik({
     enableReinitialize: true,
     initialValues: {
@@ -358,16 +375,6 @@ const Promotion = () => {
     ],
     []
   );
-
-  const handleDelete = () => {
-    if (eventData) {
-      dispatch(deletePromotion(eventData.id))
-        .then(() => {
-          setDeleteModal(false);
-          setRefreshFlag(prev => !prev);
-        });
-    }
-  };
 
   return (
     <React.Fragment>
