@@ -104,8 +104,65 @@ const Promotion = () => {
   // Search Data
   const filterSearchData = (e: any) => {
     const search = e.target.value;
-    const keysToSearch = ["productCode", "productName", "category", "status"];
-    filterDataBySearch(promotions, search, keysToSearch, setData);
+    const keysToSearch = ['name', 'type', 'description', 'discountRate'];
+    const filteredData = promotions.filter((item: any) => {
+      return keysToSearch.some((key) => {
+        const value = item[key]?.toString().toLowerCase() || '';
+        return value.includes(search.toLowerCase());
+      });
+    });
+    setData(filteredData);
+  };
+
+  // Add new function for date filtering
+  const handleDateFilter = (dates: any, dateType: 'start' | 'end') => {
+    if (!dates || dates.length === 0) {
+      setData(promotions); // Reset to all data if date is cleared
+      return;
+    }
+
+    const selectedDate = new Date(dates[0]);
+    let filteredData = [...promotions];
+
+    if (dateType === 'start') {
+      const endDatePicker = document.querySelector('#endDateFilter') as any;
+      const endDate = endDatePicker?.value ? new Date(endDatePicker.value) : null;
+
+      if (endDate) {
+        // Filter for date range
+        filteredData = promotions.filter((item: any) => {
+          const promoStartDate = new Date(item.startDate);
+          const promoEndDate = new Date(item.endDate);
+          return promoStartDate >= selectedDate && promoEndDate <= endDate;
+        });
+      } else {
+        // Filter for start date only
+        filteredData = promotions.filter((item: any) => {
+          const promoStartDate = new Date(item.startDate);
+          return promoStartDate >= selectedDate;
+        });
+      }
+    } else {
+      const startDatePicker = document.querySelector('#startDateFilter') as any;
+      const startDate = startDatePicker?.value ? new Date(startDatePicker.value) : null;
+
+      if (startDate) {
+        // Filter for date range
+        filteredData = promotions.filter((item: any) => {
+          const promoStartDate = new Date(item.startDate);
+          const promoEndDate = new Date(item.endDate);
+          return promoStartDate >= startDate && promoEndDate <= selectedDate;
+        });
+      } else {
+        // Filter for end date only
+        filteredData = promotions.filter((item: any) => {
+          const promoEndDate = new Date(item.endDate);
+          return promoEndDate <= selectedDate;
+        });
+      }
+    }
+
+    setData(filteredData);
   };
 
   const Status = ({ item }: any) => {
@@ -329,7 +386,7 @@ const Promotion = () => {
                 <input
                   type="text"
                   className="ltr:pl-8 rtl:pr-8 search form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Search for ..."
+                  placeholder="Search for name, type, description..."
                   autoComplete="off"
                   onChange={(e) => filterSearchData(e)}
                 />
@@ -339,18 +396,22 @@ const Promotion = () => {
             <div className="xl:col-span-4 flex gap-4">
               <div className="flex-1">
                 <Flatpickr
+                  id="startDateFilter"
                   className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
                   options={{
-                    dateFormat: "d M, Y",
+                    dateFormat: "Y-m-d",
+                    onChange: (dates) => handleDateFilter(dates, 'start')
                   }}
                   placeholder="Start date"
                 />
               </div>
               <div className="flex-1">
                 <Flatpickr
+                  id="endDateFilter"
                   className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
                   options={{
-                    dateFormat: "d M, Y",
+                    dateFormat: "Y-m-d",
+                    onChange: (dates) => handleDateFilter(dates, 'end')
                   }}
                   placeholder="End date"
                 />
