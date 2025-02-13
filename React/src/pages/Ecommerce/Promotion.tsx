@@ -49,6 +49,7 @@ const Promotion = () => {
   const [show, setShow] = useState<boolean>(false);
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [refreshFlag, setRefreshFlag] = useState(false);
+  const [isOverview, setIsOverview] = useState<boolean>(false);
 
   const promotionSelector = createSelector(
     (state: any) => state.Promotion,
@@ -246,11 +247,20 @@ const Promotion = () => {
     setShow(true);
   };
 
+  // Add handler for overview click
+  const handleOverviewClick = (ele: any) => {
+    setEventData({ ...ele });
+    setIsOverview(true);
+    setShow(true);
+  };
+
+  // Modify toggle to reset overview mode
   const toggle = useCallback(() => {
     if (show) {
       setShow(false);
       setEventData("");
       setIsEdit(false);
+      setIsOverview(false); // Reset overview mode
     } else {
       setShow(true);
       setEventData("");
@@ -323,7 +333,17 @@ const Promotion = () => {
                 <Dropdown.Trigger id="orderAction1" data-bs-toggle="dropdown" className="flex items-center justify-center size-[30px] p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400 dark:hover:bg-slate-500 dark:hover:text-white dark:focus:bg-slate-500 dark:focus:text-white dark:active:bg-slate-500 dark:active:text-white dark:ring-slate-400/20"><MoreHorizontal className="size-3" /></Dropdown.Trigger>
                 <Dropdown.Content placement={cell.row.index ? "top-end" : "right-end"} className="absolute z-50 py-2 mt-1 ltr:text-left rtl:text-right list-none bg-white rounded-md shadow-md min-w-[10rem] dark:bg-zink-600" aria-labelledby="orderAction1">
                     <li>
-                        <Link to="/apps-ecommerce-order-overview" className="block px-4 py-1.5 text-base transition-all duration-200 ease-linear text-slate-600 hover:bg-slate-100 hover:text-slate-500 focus:bg-slate-100 focus:text-slate-500 dark:text-zink-100 dark:hover:bg-zink-500 dark:hover:text-zink-200 dark:focus:bg-zink-500 dark:focus:text-zink-200"><Eye className="inline-block size-3 ltr:mr-1 rtl:ml-1" /> <span className="align-middle">Overview</span></Link>
+                        <Link
+                          to="#!"
+                          className="block px-4 py-1.5 text-base transition-all duration-200 ease-linear text-slate-600 hover:bg-slate-100 hover:text-slate-500 focus:bg-slate-100 focus:text-slate-500 dark:text-zink-100 dark:hover:bg-zink-500 dark:hover:text-zink-200 dark:focus:bg-zink-500 dark:focus:text-zink-200"
+                          onClick={() => {
+                            const data = cell.row.original;
+                            handleOverviewClick(data);
+                          }}
+                        >
+                          <Eye className="inline-block size-3 ltr:mr-1 rtl:ml-1" />{" "}
+                          <span className="align-middle">Overview</span>
+                        </Link>
                     </li>
                     <li>
                         <Link to="#!" data-modal-target="addOrderModal" className="block px-4 py-1.5 text-base transition-all duration-200 ease-linear text-slate-600 hover:bg-slate-100 hover:text-slate-500 focus:bg-slate-100 focus:text-slate-500 dark:text-zink-100 dark:hover:bg-zink-500 dark:hover:text-zink-200 dark:focus:bg-zink-500 dark:focus:text-zink-200" onClick={() => {
@@ -457,7 +477,7 @@ const Promotion = () => {
           closeButtonClass="transition-all duration-200 ease-linear text-slate-400 hover:text-red-500"
         >
           <Modal.Title className="text-16">
-            {!!isEdit ? "Edit Promotion" : "Add Promotion"}
+            {isOverview ? "Promotion Details" : isEdit ? "Edit Promotion" : "Add Promotion"}
           </Modal.Title>
         </Modal.Header>
 
@@ -481,6 +501,7 @@ const Promotion = () => {
                     onChange={validation.handleChange}
                     onBlur={validation.handleBlur}
                     value={validation.values.name || ""}
+                    disabled={isOverview}
                 />
                 {validation.touched.name && validation.errors.name && (
                     <p className="text-red-400">{validation.errors.name}</p>
@@ -500,6 +521,7 @@ const Promotion = () => {
                     onChange={validation.handleChange}
                     onBlur={validation.handleBlur}
                     value={validation.values.type || ""}
+                    disabled={isOverview}
                 />
                 {validation.touched.type && validation.errors.type && (
                     <p className="text-red-400">{validation.errors.type}</p>
@@ -520,6 +542,7 @@ const Promotion = () => {
                     onChange={validation.handleChange}
                     onBlur={validation.handleBlur}
                     value={validation.values.discountRate || ""}
+                    disabled={isOverview}
                 />
                 {validation.touched.discountRate && validation.errors.discountRate && (
                     <p className="text-red-400">{validation.errors.discountRate}</p>
@@ -537,6 +560,7 @@ const Promotion = () => {
                   onBlur={validation.handleBlur}
                   value={validation.values.description || ""}
                   rows={3}
+                  disabled={isOverview}
                 />
               </div>
 
@@ -555,6 +579,7 @@ const Promotion = () => {
                     name="startDate"
                     onChange={(date: any) => validation.setFieldValue("startDate", date[0])}
                     value={validation.values.startDate || ''}
+                    disabled={isOverview}
                 />
                 {validation.touched.startDate && validation.errors.startDate && (
                     <p className="text-red-400">{validation.errors.startDate}</p>
@@ -576,6 +601,7 @@ const Promotion = () => {
                     name="endDate"
                     onChange={(date: any) => validation.setFieldValue("endDate", date[0])}
                     value={validation.values.endDate || ''}
+                    disabled={isOverview}
                 />
                 {validation.touched.endDate && validation.errors.endDate && (
                     <p className="text-red-400">{validation.errors.endDate}</p>
@@ -584,10 +610,21 @@ const Promotion = () => {
             </div>
 
             <div className="flex justify-end gap-2 mt-4">
-              <button type="reset" className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10" onClick={toggle}>Cancel</button>
-              <button type="submit" className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20">
-                {!!isEdit ? "Update" : "Add Promotion"}
+              <button 
+                type="button" 
+                className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10" 
+                onClick={toggle}
+              >
+                {isOverview ? "Close" : "Cancel"}
               </button>
+              {!isOverview && (
+                <button 
+                  type="submit" 
+                  className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
+                >
+                  {!!isEdit ? "Update" : "Add Promotion"}
+                </button>
+              )}
             </div>
           </form>
         </Modal.Body>
