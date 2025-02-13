@@ -43,6 +43,12 @@ export const CREATE_PROMOTION = "/api/v1/Promotion";
 export const UPDATE_PROMOTION = "/api/v1/Promotion";
 export const DELETE_PROMOTION = "/api/v1/Promotion";
 
+// Brand
+export const GET_ALL_BRANDS = "/api/v1/Brand/all";
+export const CREATE_BRAND = "/api/v1/Brand";
+export const UPDATE_BRAND = "/api/v1/Brand";
+export const DELETE_BRAND = "/api/v1/Brand";
+
 // Orders
 export const GET_ORDERS = "/get-orders";
 export const ADD_ORDERS = "/add-orders";

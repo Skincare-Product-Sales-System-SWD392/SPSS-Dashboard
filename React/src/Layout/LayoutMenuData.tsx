@@ -175,9 +175,9 @@ const menuData: any = [
                 parentId: 'ecommerce'
             },
             {
-                id: 'sellers',
-                label: 'Sellers',
-                link: '/apps-ecommerce-sellers',
+                id: 'brand',
+                label: 'Brand',
+                link: '/apps-ecommerce-brand',
                 parentId: 'ecommerce'
             },
         ]

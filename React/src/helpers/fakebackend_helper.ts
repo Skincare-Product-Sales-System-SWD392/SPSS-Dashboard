@@ -103,6 +103,19 @@ export const updatePromotion = (id: string, data: any) =>
 export const deletePromotion = (id: string) => 
   api.delete(`${url.DELETE_PROMOTION}/${id}`, { headers: { data: id } });
 
+// Brand
+export const getAllBrands = (params: { Page: number; PageSize: number }) => 
+  api.get(url.GET_ALL_BRANDS, params);
+
+export const createBrand = (data: any) => 
+  api.create(url.CREATE_BRAND, data);
+
+export const updateBrand = (id: string, data: any) => 
+  api.update(`${url.UPDATE_BRAND}/${id}`, data);
+
+export const deleteBrand = (id: string) => 
+  api.delete(`${url.DELETE_BRAND}/${id}`, { headers: { data: id } });
+
 // Orders
 export const getOrders = () => api.get(url.GET_ORDERS, null);
 export const addOrders = (data: any) => api.create(url.ADD_ORDERS, data);

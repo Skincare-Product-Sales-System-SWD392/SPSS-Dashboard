@@ -25,7 +25,7 @@ import ShoppingCart from "pages/Ecommerce/ShoppingCart";
 import Checkout from "pages/Ecommerce/Checkout";
 import Orders from "pages/Ecommerce/Orders";
 import OrderOverview from "pages/Ecommerce/OrderOverview";
-import Sellers from "pages/Ecommerce/Sellers";
+import Brand from "pages/Ecommerce/Brand";
 import Promotion from "pages/Ecommerce/Promotion";
 
 // HR Management
@@ -314,7 +314,7 @@ const authProtectedRoutes: Array<RouteObject> = [
   { path: "/apps-ecommerce-checkout", component: Checkout },
   { path: "/apps-ecommerce-orders", component: Orders },
   { path: "/apps-ecommerce-order-overview", component: OrderOverview },
-  { path: "/apps-ecommerce-sellers", component: Sellers },
+  { path: "/apps-ecommerce-brand", component: Brand },
   { path: "/apps-ecommerce-promotion", component: Promotion },
 
   // HR Management
