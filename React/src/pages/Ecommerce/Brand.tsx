@@ -35,7 +35,18 @@ import {
 import Dropzone from "react-dropzone";
 import { ToastContainer } from "react-toastify";
 import filterDataBySearch from "Common/filterDataBySearch";
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import Select from 'react-select';
 
+// Add this before the Brand component
+const brandOptions = [
+  { value: 'electronics', label: 'Electronics' },
+  { value: 'fashion', label: 'Fashion' },
+  { value: 'food', label: 'Food & Beverages' },
+  { value: 'automotive', label: 'Automotive' },
+  { value: 'sports', label: 'Sports' },
+];
 
 const Brand = () => {
   const dispatch = useDispatch<any>();
@@ -99,10 +110,16 @@ const Brand = () => {
     initialValues: {
       logo: (eventData && eventData.logo) || "",
       name: (eventData && eventData.name) || "",
+      title: (eventData && eventData.title) || "",
+      description: (eventData && eventData.description) || "",
+      category: (eventData && eventData.category) || null,
     },
     validationSchema: Yup.object({
       logo: Yup.string().required("Please Add Logo"),
       name: Yup.string().required("Please Enter Name"),
+      title: Yup.string().required("Please Enter Title"),
+      description: Yup.string().required("Please Enter Description"),
+      category: Yup.object().required("Please Select Category"),
     }),
     onSubmit: (values) => {
       if (isEdit) {
@@ -285,10 +302,11 @@ const Brand = () => {
                     <img src={item.logo} alt="" className="h-10 rounded-full" />
                   </div>
 
-                  <div className="mt-4 mb-5 text-center">
+                  <div className="mt-4 mb-4 text-center">
                     <h6 className="text-16">
                       <Link to="#!">{item.name}</Link>
                     </h6>
+                    <p className="mt-2 text-slate-500 dark:text-zink-200 text-13">Canada</p>
                   </div>
 
                   <div className="grid grid-cols-3 gap-4 pt-3 border-t border-slate-200 dark:border-zink-500">
@@ -351,17 +369,17 @@ const Brand = () => {
         onHide={toggle}
         modal-center="true"
         className="fixed flex flex-col transition-all duration-300 ease-in-out left-2/4 z-drawer -translate-x-2/4 -translate-y-2/4"
-        dialogClassName="w-screen md:w-[30rem] bg-white shadow rounded-md dark:bg-zink-600"
+        dialogClassName="w-screen md:w-[50rem] bg-white shadow rounded-md dark:bg-zink-600"
       >
         <Modal.Header
           className="flex items-center justify-between p-5 border-b dark:border-zink-500"
           closeButtonClass="transition-all duration-200 ease-linear text-slate-400 hover:text-red-500"
         >
           <Modal.Title className="text-16">
-            {!!isEdit ? "Edit Seller" : "Add Seller"}
+            {!!isEdit ? "Edit Brand" : "Add Brand"}
           </Modal.Title>
         </Modal.Header>
-        <Modal.Body className="max-h-[calc(theme('height.screen')_-_180px)] p-4 overflow-y-auto">
+        <Modal.Body className="max-h-[calc(theme('height.screen')_-_100px)] p-4 overflow-y-auto">
           <form
             action="#!"
             onSubmit={(e) => {
@@ -375,7 +393,7 @@ const Brand = () => {
                 htmlFor="companyLogo"
                 className="inline-block mb-2 text-base font-medium"
               >
-                Company Logo
+                Brand Logo
               </label>
               <Dropzone
                 onDrop={(acceptfiles: any) => {
@@ -459,27 +477,80 @@ const Brand = () => {
             </div>
             <div className="mb-3">
               <label
-                htmlFor="companyNameInput"
+                htmlFor="brandNameInput"
                 className="inline-block mb-2 text-base font-medium"
               >
-                Company Name
+                Brand Name
               </label>
               <input
                 type="text"
-                id="companyNameInput"
+                id="brandNameInput"
                 className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                placeholder="Seller name"
-                name="name"
+                placeholder="Enter brand name"
+                value={validation.values.name}
                 onChange={validation.handleChange}
-                value={validation.values.name || ""}
+                name="name"
               />
               {validation.touched.name && validation.errors.name ? (
-                <p className="text-red-400">
-                  {validation.errors.name as string}
-                </p>
+                <p className="text-red-400">{validation.errors.name as string}</p>
               ) : null}
             </div>
-            <div className="flex justify-end gap-2 mt-4">
+            <div className="mb-3">
+              <label className="inline-block mb-2 text-base font-medium">
+                Country
+              </label>
+              <Select
+                value={validation.values.category}
+                onChange={(option) => validation.setFieldValue('category', option)}
+                options={brandOptions}
+                className="react-select"
+                classNamePrefix="select"
+                styles={{
+                  menu: (provided) => ({
+                    ...provided,
+                    zIndex: 9999
+                  })
+                }}
+              />
+              {validation.touched.category && validation.errors.category ? (
+                <p className="text-red-400">{validation.errors.category as string}</p>
+              ) : null}
+            </div>
+            <div className="mb-3">
+              <label className="inline-block mb-2 text-base font-medium">
+                Title
+              </label>
+              <CKEditor
+                editor={ClassicEditor}
+                data={validation.values.title}
+                onChange={(event: any, editor: any) => {
+                  const data = editor.getData();
+                  validation.setFieldValue('title', data);
+                }}
+               />
+              {validation.touched.title && validation.errors.title ? (
+                <p className="text-red-400">{validation.errors.title as string}</p>
+              ) : null}
+            </div>
+            <div className="mb-3">
+              <label className="inline-block mb-2 text-base font-medium">
+                Description
+              </label>
+              <div className="ck-editor__height">
+                <CKEditor
+                  editor={ClassicEditor}
+                  data={validation.values.description}
+                  onChange={(event: any, editor: any) => {
+                    const data = editor.getData();
+                    validation.setFieldValue('description', data);
+                  }}
+                />
+              </div>
+              {validation.touched.description && validation.errors.description ? (
+                <p className="text-red-400">{validation.errors.description as string}</p>
+              ) : null}
+            </div>
+           <div className="flex justify-end gap-2 mt-4">
               <button
                 type="reset"
                 data-modal-close="addSellerModal"
@@ -492,12 +563,56 @@ const Brand = () => {
                 type="submit"
                 className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
               >
-                {!!isEdit ? "Update" : "Add Seller"}
+                {!!isEdit ? "Update Brand" : "Add Brand"}
               </button>
             </div>
           </form>
         </Modal.Body>
       </Modal>
+
+      <style>
+        {`
+          .ck-editor__height .ck-editor__editable_inline {
+            min-height: 400px;
+            resize: vertical;
+            overflow: auto;
+          }
+          .ck-editor__editable_inline {
+            resize: vertical;
+            overflow: auto;
+          }
+          
+          /* Dark mode styles */
+          .dark .ck.ck-editor__main > .ck-editor__editable {
+            background-color: #1f2937;
+            color: #e5e7eb;
+          }
+          .dark .ck.ck-toolbar {
+            background-color: #374151;
+            border-color: #4b5563;
+          }
+          .dark .ck.ck-button {
+            color: #e5e7eb;
+          }
+          .dark .ck.ck-toolbar__separator {
+            background-color: #4b5563;
+          }
+          .dark .ck.ck-editor__editable:not(.ck-editor__nested-editable).ck-focused {
+            border-color: #4b5563;
+          }
+          .dark .ck.ck-editor__editable:not(.ck-editor__nested-editable) {
+            background-color: #1f2937;
+            border-color: #4b5563;
+          }
+          .dark .ck.ck-editor {
+            color: #e5e7eb;
+          }
+          .dark .ck.ck-content {
+            background-color: #1f2937;
+            color: #e5e7eb;
+          }
+        `}
+      </style>
     </React.Fragment>
   );
 };
