@@ -6,6 +6,7 @@ import {
   updateBrand as updateBrandApi,
   deleteBrand as deleteBrandApi,
 } from "../../helpers/fakebackend_helper";
+import axios from "axios";
 
 export const getBrands = createAsyncThunk(
   "brand/getBrands",
@@ -31,6 +32,7 @@ export const getBrands = createAsyncThunk(
   }
 );
 
+// Add similar thunks for create, update, and delete 
 export const addBrand = createAsyncThunk(
   "brand/addBrand",
   async (brand: any) => {
@@ -38,6 +40,12 @@ export const addBrand = createAsyncThunk(
       console.log('Adding brand with data:', brand);
       const response = await createBrandApi(brand);
       console.log('Add brand API response:', response);
+      
+      // Make sure we're returning the correct data structure
+      if (!response.data) {
+        throw new Error('Invalid response format');
+      }
+      
       toast.success("Brand added successfully");
       return response;
     } catch (error: any) {
@@ -51,6 +59,7 @@ export const addBrand = createAsyncThunk(
     }
   }
 );
+
 
 export const updateBrand = createAsyncThunk(
   "brand/updateBrand",

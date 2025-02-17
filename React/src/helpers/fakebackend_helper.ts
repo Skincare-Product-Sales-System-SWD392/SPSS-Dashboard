@@ -103,6 +103,10 @@ export const updatePromotion = (id: string, data: any) =>
 export const deletePromotion = (id: string) => 
   api.delete(`${url.DELETE_PROMOTION}/${id}`, { headers: { data: id } });
 
+// Country
+export const getAllCountries = (params: { Page: number; PageSize: number }) => 
+  api.get(url.GET_ALL_COUNTRIES, params);
+
 // Brand
 export const getAllBrands = (params: { Page: number; PageSize: number }) => 
   api.get(url.GET_ALL_BRANDS, params);

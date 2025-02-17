@@ -43,6 +43,9 @@ export const CREATE_PROMOTION = "/api/v1/Promotion";
 export const UPDATE_PROMOTION = "/api/v1/Promotion";
 export const DELETE_PROMOTION = "/api/v1/Promotion";
 
+// Country
+export const GET_ALL_COUNTRIES = "/api/v1/Country/all";
+
 // Brand
 export const GET_ALL_BRANDS = "/api/v1/Brand/all";
 export const CREATE_BRAND = "/api/v1/Brand";

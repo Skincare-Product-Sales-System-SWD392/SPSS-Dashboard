@@ -41,6 +41,8 @@ import UsersReducer from "./users/reducer";
 
 import promotionReducer from "./promotion/reducer";
 
+import CountryReducer from "./country/reducer";
+
 const rootReducer = combineReducers({
     Layout: LayoutReducer,
     Login: LoginReducer,
@@ -56,6 +58,7 @@ const rootReducer = combineReducers({
     Invoice: InvoiceReducer,
     Users: UsersReducer,
     Promotion: promotionReducer,
+    Country: CountryReducer,
 });
 
 

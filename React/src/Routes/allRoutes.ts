@@ -205,7 +205,6 @@ interface RouteObject {
 
 const authProtectedRoutes: Array<RouteObject> = [
   // Dashboard
-  { path: "/", component: Ecommerce },
   { path: "/dashboard", component: Ecommerce },
   { path: "/dashboards-analytics", component: Analytics },
   { path: "/dashboards-email", component: Email },
@@ -364,6 +363,9 @@ const authProtectedRoutes: Array<RouteObject> = [
 ];
 
 const publicRoutes = [
+  // Move login to the top and add it as the root path
+  { path: "/", component: Login },
+  { path: "/login", component: Login },
   // Landing
   { path: "/onepage-landing", component: OnePage },
   { path: "/product-landing", component: Product },
@@ -420,7 +422,6 @@ const publicRoutes = [
   { path: "/pages-maintenance", component: Maintenance },
 
   // authentication
-  { path: "/login", component: Login },
   { path: "/logout", component: Logout },
   { path: "/register", component: Register },
 ];

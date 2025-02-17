@@ -56,7 +56,15 @@ const brandSlice = createSlice({
       });
       builder.addCase(addBrand.fulfilled, (state, action) => {
         state.loading = false;
-        state.brands.results.unshift(action.payload.data);
+        const newBrand = action.payload.data;
+        if (newBrand) {
+          state.brands.results = [newBrand, ...state.brands.results];
+          state.brands.rowCount += 1;
+          state.brands.lastRowOnPage = Math.min(
+            state.brands.firstRowOnPage + state.brands.pageSize - 1,
+            state.brands.rowCount
+          );
+        }
         state.error = null;
       });
       builder.addCase(addBrand.rejected, (state, action) => {
