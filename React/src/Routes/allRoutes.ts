@@ -18,15 +18,15 @@ import MultiMonthStack from "pages/Calendar/MultiMonthStack";
 
 // Ecommerce
 import ListView from "pages/Ecommerce/Products/ListView";
-import GridView from "pages/Ecommerce/Products/GridView";
 import Overview from "pages/Ecommerce/Products/Overview";
 import AddNew from "pages/Ecommerce/Products/AddNew";
 import ShoppingCart from "pages/Ecommerce/ShoppingCart";
 import Checkout from "pages/Ecommerce/Checkout";
 import Orders from "pages/Ecommerce/Orders";
 import OrderOverview from "pages/Ecommerce/OrderOverview";
-import Sellers from "pages/Ecommerce/Sellers";
+import Brand from "pages/Ecommerce/Brand";
 import Promotion from "pages/Ecommerce/Promotion";
+import Voucher from "pages/Ecommerce/Voucher";
 
 // HR Management
 import EmployeeList from "pages/HRManagement/EmployeeList";
@@ -205,7 +205,6 @@ interface RouteObject {
 
 const authProtectedRoutes: Array<RouteObject> = [
   // Dashboard
-  { path: "/", component: Ecommerce },
   { path: "/dashboard", component: Ecommerce },
   { path: "/dashboards-analytics", component: Analytics },
   { path: "/dashboards-email", component: Email },
@@ -307,15 +306,15 @@ const authProtectedRoutes: Array<RouteObject> = [
 
   // Ecommerce
   { path: "/apps-ecommerce-product-list", component: ListView },
-  { path: "/apps-ecommerce-product-grid", component: GridView },
   { path: "/apps-ecommerce-product-overview", component: Overview },
   { path: "/apps-ecommerce-product-create", component: AddNew },
   { path: "/apps-ecommerce-cart", component: ShoppingCart },
   { path: "/apps-ecommerce-checkout", component: Checkout },
   { path: "/apps-ecommerce-orders", component: Orders },
   { path: "/apps-ecommerce-order-overview", component: OrderOverview },
-  { path: "/apps-ecommerce-sellers", component: Sellers },
+  { path: "/apps-ecommerce-brand", component: Brand },
   { path: "/apps-ecommerce-promotion", component: Promotion },
+  { path: "/apps-ecommerce-voucher", component: Voucher },
 
   // HR Management
   { path: "/apps-hr-employee", component: EmployeeList },
@@ -364,6 +363,9 @@ const authProtectedRoutes: Array<RouteObject> = [
 ];
 
 const publicRoutes = [
+  // Move login to the top and add it as the root path
+  { path: "/", component: Login },
+  { path: "/login", component: Login },
   // Landing
   { path: "/onepage-landing", component: OnePage },
   { path: "/product-landing", component: Product },
@@ -420,7 +422,6 @@ const publicRoutes = [
   { path: "/pages-maintenance", component: Maintenance },
 
   // authentication
-  { path: "/login", component: Login },
   { path: "/logout", component: Logout },
   { path: "/register", component: Register },
 ];

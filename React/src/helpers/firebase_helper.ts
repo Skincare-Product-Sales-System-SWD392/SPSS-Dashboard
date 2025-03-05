@@ -3,6 +3,7 @@ import firebase from 'firebase/compat/app'
 // Add the Firebase products that you want to use
 import "firebase/compat/auth";
 import "firebase/compat/firestore";
+import "firebase/compat/storage";
 
 class FirebaseAuthBackend {
   constructor(firebaseConfig: any) {
@@ -190,6 +191,28 @@ class FirebaseAuthBackend {
     var errorMessage = error.message;
     return errorMessage;
   }
+
+  /**
+   * Upload file to Firebase Storage
+   */
+  uploadFile = async (file: File, path: string) => {
+    try {
+      const storageRef = firebase.storage().ref();
+      // Use the specific path: SPSS/Brand-Image
+      const fileRef = storageRef.child(`SPSS/Brand-Image/${Date.now()}_${file.name}`);
+      
+      // Upload the file
+      const snapshot = await fileRef.put(file);
+      
+      // Get the download URL
+      const downloadURL = await snapshot.ref.getDownloadURL();
+      
+      return downloadURL;
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      throw error;
+    }
+  };
 }
 
 let _fireBaseBackend: any = null;

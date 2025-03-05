@@ -25,7 +25,7 @@ import * as Yup from "yup";
 // react-redux
 import { useDispatch, useSelector } from "react-redux";
 import { createSelector } from "reselect";
-import { getPromotions, addPromotion, updatePromotion, deletePromotion } from "slices/promotion/thunk";
+import { getVouchers, addVoucher, updateVoucher, deleteVoucher } from "slices/voucher/thunk";
 import { ToastContainer } from "react-toastify";
 
 
@@ -42,7 +42,7 @@ const formatDateTime = (dateTimeOffset: string) => {
   ).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 };
 
-const Promotion = () => {
+const Voucher = () => {
   const dispatch = useDispatch<any>();
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 7;
@@ -51,20 +51,20 @@ const Promotion = () => {
   const [refreshFlag, setRefreshFlag] = useState(false);
   const [isOverview, setIsOverview] = useState<boolean>(false);
 
-  const promotionSelector = createSelector(
-    (state: any) => state.Promotion,
-    (promotion) => ({
-      promotions: promotion.promotions.results,
-      pageCount: Math.ceil(promotion.promotions.rowCount / pageSize),
-      firstRowOnPage: promotion.promotions.firstRowOnPage,
-      rowCount: promotion.promotions.rowCount,
-      loading: promotion.loading,
-      error: promotion.error,
+  const voucherSelector = createSelector(
+    (state: any) => state.Voucher,
+    (voucher) => ({
+      vouchers: voucher.vouchers.results,
+      pageCount: Math.ceil(voucher.vouchers.rowCount / pageSize),
+      firstRowOnPage: voucher.vouchers.firstRowOnPage,
+      rowCount: voucher.vouchers.rowCount,
+      loading: voucher.loading,
+      error: voucher.error,
     })
   );
 
-  const { promotions, pageCount } =
-    useSelector(promotionSelector);
+  const { vouchers, pageCount } =
+    useSelector(voucherSelector);
 
   const [data, setData] = useState<any>([]);
   const [eventData, setEventData] = useState<any>();
@@ -76,19 +76,19 @@ const Promotion = () => {
       setCurrentPage(1); // Reset to first page
       return;
     }
-    dispatch(getPromotions({ page: currentPage, pageSize }));
+    dispatch(getVouchers({ page: currentPage, pageSize }));
   }, [dispatch, currentPage, refreshFlag, pageCount]);
 
   useEffect(() => {
-    if (promotions) {
-      if (promotions.length === 0 && currentPage > 1) {
+    if (vouchers) {
+      if (vouchers.length === 0 && currentPage > 1) {
         // If no data and not on first page, go back one page
         setCurrentPage(prev => prev - 1);
       } else {
-        setData(promotions);
+        setData(vouchers);
       }
     }
-  }, [promotions, currentPage]);
+  }, [vouchers, currentPage]);
 
   // Delete Modal
   const [deleteModal, setDeleteModal] = useState<boolean>(false);
@@ -107,7 +107,7 @@ const Promotion = () => {
   const filterSearchData = (e: any) => {
     const search = e.target.value;
     const keysToSearch = ['name', 'type', 'description', 'discountRate'];
-    const filteredData = promotions.filter((item: any) => {
+    const filteredData = vouchers.filter((item: any) => {
       return keysToSearch.some((key) => {
         const value = item[key]?.toString().toLowerCase() || '';
         return value.includes(search.toLowerCase());
@@ -120,12 +120,12 @@ const Promotion = () => {
   // Can filter by start date only, end date only, or date range
   const handleDateFilter = (dates: any, dateType: 'start' | 'end') => {
     if (!dates || dates.length === 0) {
-      setData(promotions); // Reset to all data if date is cleared
+      setData(vouchers); // Reset to all data if date is cleared
       return;
     }
 
     const selectedDate = new Date(dates[0]);
-    let filteredData = [...promotions];
+    let filteredData = [...vouchers];
 
     if (dateType === 'start') {
       const endDatePicker = document.querySelector('#endDateFilter') as any;
@@ -133,14 +133,14 @@ const Promotion = () => {
 
       if (endDate) {
         // Filter for date range: shows promotions between start and end dates
-        filteredData = promotions.filter((item: any) => {
+        filteredData = vouchers.filter((item: any) => {
           const promoStartDate = new Date(item.startDate);
           const promoEndDate = new Date(item.endDate);
           return promoStartDate >= selectedDate && promoEndDate <= endDate;
         });
       } else {
         // Filter for start date only: shows promotions starting from selected date
-        filteredData = promotions.filter((item: any) => {
+        filteredData = vouchers.filter((item: any) => {
           const promoStartDate = new Date(item.startDate);
           return promoStartDate >= selectedDate;
         });
@@ -151,14 +151,14 @@ const Promotion = () => {
 
       if (startDate) {
         // Filter for date range
-        filteredData = promotions.filter((item: any) => {
+        filteredData = vouchers.filter((item: any) => {
           const promoStartDate = new Date(item.startDate);
           const promoEndDate = new Date(item.endDate);
           return promoStartDate >= startDate && promoEndDate <= selectedDate;
         });
       } else {
         // Filter for end date only
-        filteredData = promotions.filter((item: any) => {
+        filteredData = vouchers.filter((item: any) => {
           const promoEndDate = new Date(item.endDate);
           return promoEndDate <= selectedDate;
         });
@@ -172,7 +172,7 @@ const Promotion = () => {
   // Called when user confirms deletion in the modal
   const handleDelete = () => {
     if (eventData) {
-      dispatch(deletePromotion(eventData.id))
+      dispatch(deleteVoucher(eventData.id))
         .then(() => {
           setDeleteModal(false);
           setRefreshFlag(prev => !prev); // Trigger data refresh after deletion
@@ -186,23 +186,31 @@ const Promotion = () => {
     enableReinitialize: true,
     initialValues: {
       name: (eventData && eventData.name) || '',
-      type: (eventData && eventData.type) || '',
+      code: (eventData && eventData.code) || '',
       description: (eventData && eventData.description) || '',
+      status: (eventData && eventData.status) || '',
+      discountRate: (eventData && eventData.discountRate) || '',
+      usageLimit: (eventData && eventData.usageLimit) || '',
+      minimumOrderValue: (eventData && eventData.minimumOrderValue) || '',
       startDate: (eventData && eventData.startDate) || '',
-      endDate: (eventData && eventData.endDate) || '',
-      discountRate: (eventData && eventData.discountRate) || ''
+      endDate: (eventData && eventData.endDate) || ''
     },
     validationSchema: Yup.object({
       name: Yup.string().required("Name is required"),
-      type: Yup.string().required("Type is required"),
+      code: Yup.string(),
       description: Yup.string(),
-      startDate: Yup.date().required("Start Date is required"),
-      endDate: Yup.date().required("End Date is required")
-        .min(Yup.ref('startDate'), "End date must be after start date"),
+      status: Yup.string().required("Status is required"),
       discountRate: Yup.number()
         .required("Discount rate is required")
         .min(0, "Discount rate cannot be negative")
-        .max(100, "Discount rate cannot exceed 100%")
+        .max(100, "Discount rate cannot exceed 100%"),
+      usageLimit: Yup.string().required("Usage limit is required"),
+      minimumOrderValue: Yup.number()
+        .required("Minimum order value is required")
+        .min(0, "Minimum order value cannot be negative"),
+      startDate: Yup.date().required("Start Date is required"),
+      endDate: Yup.date().required("End Date is required")
+        .min(Yup.ref('startDate'), "End date must be after start date"),
     }),
     onSubmit: (values) => {
       if (isEdit) {
@@ -210,14 +218,17 @@ const Promotion = () => {
           id: eventData.id,
           data: {
             name: values.name,
-            type: values.type,
+            code: values.code,
             description: values.description,
+            status: values.status,
+            discountRate: values.discountRate,
+            usageLimit: values.usageLimit,
+            minimumOrderValue: values.minimumOrderValue,
             startDate: values.startDate,
-            endDate: values.endDate,
-            discountRate: values.discountRate
+            endDate: values.endDate
           }
         };
-        dispatch(updatePromotion(updateData))
+        dispatch(updateVoucher(updateData))
           .then(() => {
             toggle();
             setRefreshFlag(prev => !prev);
@@ -225,13 +236,16 @@ const Promotion = () => {
       } else {
         const newData = {
           name: values.name,
-          type: values.type,
+          code: values.code,
           description: values.description,
+          status: values.status,
+          discountRate: values.discountRate,
+          usageLimit: values.usageLimit,
+          minimumOrderValue: values.minimumOrderValue,
           startDate: values.startDate,
-          endDate: values.endDate,
-          discountRate: values.discountRate
+          endDate: values.endDate
         };
-        dispatch(addPromotion(newData))
+        dispatch(addVoucher(newData))
           .then(() => {
             toggle();
             setRefreshFlag(prev => !prev);
@@ -280,8 +294,19 @@ const Promotion = () => {
             to="/apps-ecommerce-product-overview"
             className="flex items-center gap-2"
           >
-            {cell.getValue()}
+            {cell.getValue() || "N/A"}
           </Link>
+        ),
+      },
+      {
+        header: "Code",
+        accessorKey: "code",
+        enableColumnFilter: false,
+        enableSorting: true,
+        cell: (cell: any) => (
+          <span className="font-medium">
+            {cell.getValue()}
+          </span>
         ),
       },
       {
@@ -439,7 +464,7 @@ const Promotion = () => {
               currentPage={currentPage}
               onPageChange={(page: number) => {
                 setCurrentPage(page);
-                dispatch(getPromotions({ page, pageSize }));
+                dispatch(getVouchers({ page, pageSize }));
               }}
               divclassName="overflow-x-auto"
               tableclassName="w-full whitespace-nowrap"
@@ -488,7 +513,7 @@ const Promotion = () => {
             return false;
           }}>
             <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
-              <div className="xl:col-span-12">
+              <div className="xl:col-span-6">
                 <label htmlFor="nameInput" className="inline-block mb-2 text-base font-medium">
                     Name <span className="text-red-500 ml-1">*</span>
                 </label>
@@ -496,7 +521,7 @@ const Promotion = () => {
                     type="text"
                     id="nameInput"
                     className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                    placeholder="Enter promotion name"
+                    placeholder="Enter voucher name"
                     name="name"
                     onChange={validation.handleChange}
                     onBlur={validation.handleBlur}
@@ -508,29 +533,46 @@ const Promotion = () => {
                 )}
               </div>
 
-              <div className="xl:col-span-12">
-                <label htmlFor="typeInput" className="inline-block mb-2 text-base font-medium">
-                    Type <span className="text-red-500 ml-1">*</span>
+              <div className="xl:col-span-6">
+                <label htmlFor="codeInput" className="inline-block mb-2 text-base font-medium">
+                    Code
                 </label>
                 <input
                     type="text"
-                    id="typeInput"
+                    id="codeInput"
                     className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                    placeholder="Enter promotion type"
-                    name="type"
+                    placeholder="Voucher code"
+                    name="code"
                     onChange={validation.handleChange}
                     onBlur={validation.handleBlur}
-                    value={validation.values.type || ""}
-                    disabled={isOverview}
+                    value={validation.values.code || ""}
+                    disabled={isOverview || isEdit} // Code is typically system-generated
                 />
-                {validation.touched.type && validation.errors.type && (
-                    <p className="text-red-400">{validation.errors.type}</p>
-                )}
               </div>
 
               <div className="xl:col-span-12">
+                <label htmlFor="statusInput" className="inline-block mb-2 text-base font-medium">
+                    Status <span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                    type="text"
+                    id="statusInput"
+                    className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
+                    placeholder="Enter voucher status"
+                    name="status"
+                    onChange={validation.handleChange}
+                    onBlur={validation.handleBlur}
+                    value={validation.values.status || ""}
+                    disabled={isOverview}
+                />
+                {validation.touched.status && validation.errors.status && (
+                    <p className="text-red-400">{validation.errors.status}</p>
+                )}
+              </div>
+
+              <div className="xl:col-span-6">
                 <label htmlFor="discountRateInput" className="inline-block mb-2 text-base font-medium">
-                    Discount Rate <span className="text-red-500 ml-1">*</span>
+                    Discount Rate (%) <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
                     type="number"
@@ -539,6 +581,7 @@ const Promotion = () => {
                     placeholder="Enter discount rate"
                     name="discountRate"
                     min="0"
+                    max="100"
                     onChange={validation.handleChange}
                     onBlur={validation.handleBlur}
                     value={validation.values.discountRate || ""}
@@ -546,6 +589,47 @@ const Promotion = () => {
                 />
                 {validation.touched.discountRate && validation.errors.discountRate && (
                     <p className="text-red-400">{validation.errors.discountRate}</p>
+                )}
+              </div>
+
+              <div className="xl:col-span-6">
+                <label htmlFor="minimumOrderValueInput" className="inline-block mb-2 text-base font-medium">
+                    Minimum Order Value <span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                    type="number"
+                    id="minimumOrderValueInput"
+                    className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
+                    placeholder="Enter minimum order value"
+                    name="minimumOrderValue"
+                    min="0"
+                    onChange={validation.handleChange}
+                    onBlur={validation.handleBlur}
+                    value={validation.values.minimumOrderValue || ""}
+                    disabled={isOverview}
+                />
+                {validation.touched.minimumOrderValue && validation.errors.minimumOrderValue && (
+                    <p className="text-red-400">{validation.errors.minimumOrderValue}</p>
+                )}
+              </div>
+
+              <div className="xl:col-span-12">
+                <label htmlFor="usageLimitInput" className="inline-block mb-2 text-base font-medium">
+                    Usage Limit <span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                    type="text"
+                    id="usageLimitInput"
+                    className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
+                    placeholder="Enter usage limit"
+                    name="usageLimit"
+                    onChange={validation.handleChange}
+                    onBlur={validation.handleBlur}
+                    value={validation.values.usageLimit || ""}
+                    disabled={isOverview}
+                />
+                {validation.touched.usageLimit && validation.errors.usageLimit && (
+                    <p className="text-red-400">{validation.errors.usageLimit}</p>
                 )}
               </div>
 
@@ -622,7 +706,7 @@ const Promotion = () => {
                   type="submit" 
                   className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
                 >
-                  {!!isEdit ? "Update" : "Add Promotion"}
+                  {!!isEdit ? "Update" : "Add Voucher"}
                 </button>
               )}
             </div>
@@ -633,4 +717,4 @@ const Promotion = () => {
   );
 };
 
-export default Promotion;
+export default Voucher;

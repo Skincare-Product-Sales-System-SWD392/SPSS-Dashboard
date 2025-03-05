@@ -10,16 +10,16 @@ import logoLight from "assets/images/logo-light.png";
 import logoDark from "assets/images/logo-dark.png";
 import { loginUser, socialLogin } from "slices/thunk";
 import { useDispatch, useSelector } from "react-redux";
-import withRouter from "Common/withRouter";
+import { Link, useNavigate } from "react-router-dom";
 import { createSelector } from 'reselect';
 import AuthIcon from "pages/AuthenticationInner/AuthIcon";
-import { Link } from "react-router-dom";
 
-const Login = (props: any) => {
+const Login = () => {
 
     document.title = "Login | Tailwick - React Admin & Dashboard Template";
 
     const dispatch = useDispatch<any>();
+    const navigate = useNavigate();
 
     const selectLogin = createSelector(
         (state: any) => state.Register,
@@ -46,12 +46,12 @@ const Login = (props: any) => {
             password: Yup.string().required("Please Enter Your Password"),
         }),
         onSubmit: (values: any) => {
-            dispatch(loginUser(values, props.router.navigate));
+            dispatch(loginUser(values, navigate));
         }
     });
 
     const signIn = (type: any) => {
-        dispatch(socialLogin(type, props.router.navigate))
+        dispatch(socialLogin(type, navigate))
     }
 
     const socialResponse = (type: any) => {
@@ -180,4 +180,4 @@ const Login = (props: any) => {
     );
 }
 
-export default withRouter(Login);
+export default Login;
