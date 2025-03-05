@@ -103,6 +103,20 @@ export const updatePromotion = (id: string, data: any) =>
 export const deletePromotion = (id: string) => 
   api.delete(`${url.DELETE_PROMOTION}/${id}`, { headers: { data: id } });
 
+// Product
+export const getAllProducts = (params: { Page: number; PageSize: number }) => 
+  api.get(url.GET_ALL_PRODUCTS, params);
+
+export const createProduct = (data: any) => 
+  api.create(url.CREATE_PRODUCT, data);
+
+export const updateProduct = (id: string, data: any) => 
+  api.update(`${url.UPDATE_PRODUCT}/${id}`, data);
+
+export const deleteProduct = (id: string) => 
+  api.delete(`${url.DELETE_PRODUCT}/${id}`, { headers: { data: id } });
+
+
 // Country
 export const getAllCountries = (params: { Page: number; PageSize: number }) => 
   api.get(url.GET_ALL_COUNTRIES, params);
@@ -120,6 +134,19 @@ export const updateBrand = (id: string, data: any) =>
 export const deleteBrand = (id: string) => 
   api.delete(`${url.DELETE_BRAND}/${id}`, { headers: { data: id } });
 
+// Voucher
+export const getAllVouchers = (params: { Page: number; PageSize: number }) => 
+  api.get(url.GET_ALL_VOUCHERS, params);
+
+export const createVoucher = (data: any) => 
+  api.create(url.CREATE_VOUCHER, data);
+
+export const updateVoucher = (id: string, data: any) => 
+  api.update(`${url.UPDATE_VOUCHER}/${id}`, data);
+
+export const deleteVoucher = (id: string) => 
+  api.delete(`${url.DELETE_VOUCHER}/${id}`);
+
 // Orders
 export const getOrders = () => api.get(url.GET_ORDERS, null);
 export const addOrders = (data: any) => api.create(url.ADD_ORDERS, data);
@@ -131,19 +158,6 @@ export const getSellers = () => api.get(url.GET_SELLERS, null);
 export const addSellers = (data: any) => api.create(url.ADD_SELLERS, data);
 export const updateSellers = (data: any) => api.update(url.UPDATE_SELLERS, data);
 export const deleteSellers = (data: any) => api.delete(url.DELETE_SELLERS, { headers: { data } });
-
-// Products
-// List View
-export const getProductList = () => api.get(url.GET_PRODUCT_LIST, null);
-export const addProductList = (data: any) => api.create(url.ADD_PRODUCT_LIST, data);
-export const updateProductList = (data: any) => api.update(url.UPDATE_PRODUCT_LIST, data);
-export const deleteProductList = (data: any) => api.delete(url.DELETE_PRODUCT_LIST, { headers: { data } });
-
-// Grid View
-export const getProductGrid = () => api.get(url.GET_PRODUCT_GRID, null);
-export const addProductGrid = (data: any) => api.create(url.ADD_PRODUCT_GRID, data);
-export const updateProductGrid = (data: any) => api.update(url.UPDATE_PRODUCT_GRID, data);
-export const deleteProductGrid = (data: any) => api.delete(url.DELETE_PRODUCT_GRID, { headers: { data } });
 
 // Overview
 export const getReview = () => api.get(url.GET_REVIEW, null);

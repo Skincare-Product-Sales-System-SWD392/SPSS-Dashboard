@@ -117,37 +117,24 @@ const menuData: any = [
                 id: 'product',
                 label: 'Products',
                 parentId: 'ecommerce',
-                subItems: [
-                    {
-                        id: 'listview',
-                        label: 'List View',
-                        link: '/apps-ecommerce-product-list',
-                        parentId: 'product'
-                    },
-                    {
-                        id: 'gridview',
-                        label: 'Grid View',
-                        link: '/apps-ecommerce-product-grid',
-                        parentId: 'product'
-                    },
-                    {
-                        id: 'overview',
-                        label: 'Overview',
-                        link: '/apps-ecommerce-product-overview',
-                        parentId: 'product'
-                    },
-                    {
-                        id: 'addnew',
-                        label: 'Add New',
-                        link: '/apps-ecommerce-product-create',
-                        parentId: 'product'
-                    },
-                ]
+                link: "/apps-ecommerce-product-list",
             },
             {
                 id: 'promotion',
                 label: 'Promotion',
                 link: '/apps-ecommerce-promotion',
+                parentId: 'ecommerce'
+            },
+            {
+                id: 'category',
+                label: 'Category',
+                link: '/apps-ecommerce-category',
+                parentId: 'ecommerce'
+            },
+            {
+                id: 'account',
+                label: 'Account',
+                link: '/apps-ecommerce-account',
                 parentId: 'ecommerce'
             },
             {
@@ -178,6 +165,48 @@ const menuData: any = [
                 id: 'brand',
                 label: 'Brand',
                 link: '/apps-ecommerce-brand',
+                parentId: 'ecommerce'
+            },
+            {
+                id: 'variation',
+                label: 'Variation',
+                link: '/apps-ecommerce-variation',
+                parentId: 'ecommerce'
+            },
+            {
+                id: 'skin-type',
+                label: 'Skin Type',
+                link: '/apps-ecommerce-skin-type',
+                parentId: 'ecommerce'
+            },
+            {
+                id: 'cancel reason',
+                label: 'Cancel Reason',
+                link: '/apps-ecommerce-cancel-reason',
+                parentId: 'ecommerce'
+            },
+            {
+                id: 'reviews',
+                label: 'Reviews',
+                link: '/apps-ecommerce-reviews',
+                parentId: 'ecommerce'
+            },
+            {
+                id: 'survey-question',
+                label: 'Survey Question',
+                link: '/apps-ecommerce-survey-question',
+                parentId: 'ecommerce'
+            },
+            {
+                id: 'payment-method',
+                label: 'Payment Method',
+                link: '/apps-ecommerce-payment-method',
+                parentId: 'ecommerce'
+            },
+            {
+                id: 'voucher',
+                label: 'Voucher',
+                link: '/apps-ecommerce-voucher',
                 parentId: 'ecommerce'
             },
         ]
