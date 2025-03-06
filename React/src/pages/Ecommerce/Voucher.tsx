@@ -121,7 +121,7 @@ const Voucher = () => {
   // Search functionality: Filters skin types based on user input
   const filterSearchData = (e: any) => {
     const search = e.target.value;
-    const keysToSearch = ['name', 'description', 'routine'];
+    const keysToSearch = ['name', 'code', 'description', 'status', 'discountRate', 'usageLimit', 'minimumOrderValue', 'startDate', 'endDate'];
     const filteredData = vouchers.filter((item: any) => {
       return keysToSearch.some((key) => {
         const value = item[key]?.toString().toLowerCase() || '';

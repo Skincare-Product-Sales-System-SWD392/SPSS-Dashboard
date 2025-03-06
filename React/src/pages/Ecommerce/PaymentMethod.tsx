@@ -126,10 +126,15 @@ const PaymentMethod = () => {
   // Delete handler
   const handleDelete = () => {
     if (eventData) {
+      console.log("Deleting payment method with ID:", eventData.id);
       dispatch(deletePaymentMethod(eventData.id))
         .then(() => {
           setDeleteModal(false);
           setRefreshFlag(prev => !prev);
+        })
+        .catch((error: any) => {
+          console.error("Error deleting payment method:", error);
+          setDeleteModal(false);
         });
     }
   };
@@ -248,18 +253,18 @@ const PaymentMethod = () => {
             className="flex items-center gap-2"
             onClick={() => handleOverviewClick(cell.row.original)}
           >
-            {cell.getValue() || "N/A"}
+            {cell.getValue()}
           </Link>
         ),
         size: 200,
       },
       {
-        header: "Image",
+        header: () => <div className="text-center">Image</div>,
         accessorKey: "imageUrl",
         enableColumnFilter: false,
         enableSorting: false,
         cell: (cell: any) => (
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center px-4">
             {cell.getValue() ? (
               <img 
                 src={cell.getValue()} 

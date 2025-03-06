@@ -71,8 +71,11 @@ const paymentMethodSlice = createSlice({
     });
     builder.addCase(updatePaymentMethod.fulfilled, (state, action) => {
       state.loading = false;
-      state.paymentMethods.results = state.paymentMethods.results.map(paymentMethod =>
-        paymentMethod.name === action.payload.data.name ? action.payload.data : paymentMethod
+      state.paymentMethods.results = state.paymentMethods.results.map(
+        paymentMethod => 
+          paymentMethod.id === action.payload.data.id
+            ? { ...paymentMethod, ...action.payload.data }
+            : paymentMethod
       );
       state.error = null;
     });
@@ -89,7 +92,7 @@ const paymentMethodSlice = createSlice({
     builder.addCase(deletePaymentMethod.fulfilled, (state, action) => {
       state.loading = false;
       state.paymentMethods.results = state.paymentMethods.results.filter(
-        paymentMethod => paymentMethod.name !== action.payload.data
+        paymentMethod => paymentMethod.id !== action.payload.data
       );
       state.error = null;
     });

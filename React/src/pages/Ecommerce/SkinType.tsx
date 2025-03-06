@@ -29,7 +29,7 @@ import { ToastContainer } from "react-toastify";
 const SkinType = () => {
   const dispatch = useDispatch<any>();
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 7;
+  const pageSize = 5;
   const [show, setShow] = useState<boolean>(false);
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [refreshFlag, setRefreshFlag] = useState(false);
@@ -105,7 +105,7 @@ const SkinType = () => {
   // Called when user confirms deletion in the modal
   const handleDelete = () => {
     if (eventData) {
-      dispatch(deleteSkinType(eventData.name))
+      dispatch(deleteSkinType(eventData.id))
         .then(() => {
           setDeleteModal(false);
           setRefreshFlag(prev => !prev); // Trigger data refresh after deletion
@@ -130,7 +130,7 @@ const SkinType = () => {
     onSubmit: (values) => {
       if (isEdit) {
         const updateData = {
-          id: eventData.name,
+          id: eventData.id,
           data: {
             name: values.name,
             description: values.description,
