@@ -274,7 +274,7 @@ const PaymentMethod = () => {
         size: 150,
       },
       {
-        header: () => <div className="text-right pr-4">Action</div>,
+        header: () => <div className="text-right pr-16">Action</div>,
         accessorKey: "action",
         enableColumnFilter: false,
         enableSorting: false,
