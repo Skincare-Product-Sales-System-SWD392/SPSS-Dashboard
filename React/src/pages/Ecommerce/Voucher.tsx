@@ -29,7 +29,7 @@ import { ToastContainer } from "react-toastify";
 const Voucher = () => {
   const dispatch = useDispatch<any>();
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 7;
+  const pageSize = 5;
   const [show, setShow] = useState<boolean>(false);
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [refreshFlag, setRefreshFlag] = useState(false);
@@ -98,6 +98,7 @@ const Voucher = () => {
         // If no data and not on first page, go back one page
         setCurrentPage(prev => prev - 1);
       } else {
+        console.log("Setting data from vouchers:", vouchers);
         setData(vouchers);
       }
     } else {
@@ -112,7 +113,7 @@ const Voucher = () => {
   // Delete Data
   const onClickDelete = (cell: any) => {
     setDeleteModal(true);
-    if (cell.name) {
+    if (cell.id) {
       setEventData(cell);
     }
   };
@@ -135,12 +136,19 @@ const Voucher = () => {
   // Delete handler: Processes the deletion of a skin type
   // Called when user confirms deletion in the modal
   const handleDelete = () => {
-    if (eventData) {
-      dispatch(deleteVoucher(eventData.name))
+    if (eventData && eventData.id) {
+      console.log("Attempting to delete voucher with ID:", eventData.id);
+      
+      dispatch(deleteVoucher(eventData.id))
         .then(() => {
           setDeleteModal(false);
           setRefreshFlag(prev => !prev); // Trigger data refresh after deletion
+        })
+        .catch((error: any) => {
+          console.error("Delete error:", error);
         });
+    } else {
+      console.error("Cannot delete: No valid ID found in eventData", eventData);
     }
   };
 
@@ -156,8 +164,8 @@ const Voucher = () => {
       discountRate: (eventData && eventData.discountRate) || 0,
       usageLimit: (eventData && eventData.usageLimit) || '',
       minimumOrderValue: (eventData && eventData.minimumOrderValue) || 0,
-      startDate: (eventData && eventData.startDate) ? new Date(eventData.startDate).toISOString().split('T')[0] : '',
-      endDate: (eventData && eventData.endDate) ? new Date(eventData.endDate).toISOString().split('T')[0] : ''
+      startDate: (eventData && eventData.startDate) ? new Date(eventData.startDate).toISOString().slice(0, 16) : '',
+      endDate: (eventData && eventData.endDate) ? new Date(eventData.endDate).toISOString().slice(0, 16) : ''
     },
     validationSchema: Yup.object({
       name: Yup.string().required("Name is required"),
@@ -172,10 +180,16 @@ const Voucher = () => {
     }),
     onSubmit: (values) => {
       if (isEdit) {
+        if (!eventData.id) {
+          console.error("Cannot update: No valid ID found in eventData", eventData);
+          return;
+        }
+        
         const updateData = {
           id: eventData.id,
           data: {
             name: values.name,
+            code: eventData.code,
             description: values.description,
             status: values.status,
             discountRate: values.discountRate,
@@ -185,13 +199,20 @@ const Voucher = () => {
             endDate: new Date(values.endDate).toISOString()
           }
         };
-        console.log("Updating voucher:", updateData);
+        
+        console.log("Updating voucher with ID:", eventData.id, updateData);
+        
         dispatch(updateVoucher(updateData))
           .then((response: any) => {
             console.log("Update response:", response);
             toggle();
+            console.log("Triggering refresh after update");
             setRefreshFlag(prev => !prev);
+          })
+          .catch((error: any) => {
+            console.error("Update error:", error);
           });
+         
       } else {
         const newData = {
           name: values.name,
@@ -214,6 +235,7 @@ const Voucher = () => {
 
   // Update Data
   const handleUpdateDataClick = (ele: any) => {
+    console.log("Update clicked, data before setting:", ele);
     setEventData({ ...ele });
     setIsEdit(true);
     setShow(true);
@@ -253,7 +275,7 @@ const Voucher = () => {
             className="flex items-center gap-2"
             onClick={() => handleOverviewClick(cell.row.original)}
           >
-            {cell.getValue() || "N/A"}
+            {cell.getValue()}
           </Link>
         ),
         size: 150,
@@ -312,7 +334,7 @@ const Voucher = () => {
         enableSorting: true,
         size: 120,
         cell: (cell: any) => {
-          const startDate = cell.getValue() ? new Date(cell.getValue()).toLocaleDateString() : "N/A";
+          const startDate = cell.getValue() ? new Date(cell.getValue()).toLocaleString() : "N/A";
           return <span>{startDate}</span>;
         },
       },
@@ -323,7 +345,7 @@ const Voucher = () => {
         enableSorting: true,
         size: 120,
         cell: (cell: any) => {
-          const endDate = cell.getValue() ? new Date(cell.getValue()).toLocaleDateString() : "N/A";
+          const endDate = cell.getValue() ? new Date(cell.getValue()).toLocaleString() : "N/A";
           return <span>{endDate}</span>;
         },
       },
@@ -598,10 +620,10 @@ const Voucher = () => {
 
               <div className="xl:col-span-6">
                 <label htmlFor="startDateInput" className="inline-block mb-2 text-base font-medium">
-                  Start Date <span className="text-red-500 ml-1">*</span>
+                  Start Date & Time <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   id="startDateInput"
                   className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
                   name="startDate"
@@ -617,10 +639,10 @@ const Voucher = () => {
 
               <div className="xl:col-span-6">
                 <label htmlFor="endDateInput" className="inline-block mb-2 text-base font-medium">
-                  End Date <span className="text-red-500 ml-1">*</span>
+                  End Date & Time <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   id="endDateInput"
                   className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
                   name="endDate"

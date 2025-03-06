@@ -71,7 +71,7 @@ const voucherSlice = createSlice({
     builder.addCase(updateVoucher.fulfilled, (state, action) => {
       state.loading = false;
       state.vouchers.results = state.vouchers.results.map(voucher =>
-        voucher.name === action.payload.data.name ? action.payload.data : voucher
+        voucher.id === action.payload.data.id ? action.payload.data : voucher
       );
       state.error = null;
     });
@@ -88,7 +88,7 @@ const voucherSlice = createSlice({
     builder.addCase(deleteVoucher.fulfilled, (state, action) => {
       state.loading = false;
       state.vouchers.results = state.vouchers.results.filter(
-        voucher => voucher.name !== action.payload.data
+        voucher => voucher.id !== action.payload.data
       );
       state.error = null;
     });
