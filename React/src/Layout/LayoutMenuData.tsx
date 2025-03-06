@@ -138,12 +138,6 @@ const menuData: any = [
                 parentId: 'ecommerce'
             },
             {
-                id: 'shoppingcart',
-                label: 'Shopping Cart',
-                link: '/apps-ecommerce-cart',
-                parentId: 'ecommerce'
-            },
-            {
                 id: 'checkout',
                 label: 'Checkout',
                 link: '/apps-ecommerce-checkout',
@@ -153,12 +147,6 @@ const menuData: any = [
                 id: 'order',
                 label: 'Orders',
                 link: '/apps-ecommerce-orders',
-                parentId: 'ecommerce'
-            },
-            {
-                id: 'orderoverview',
-                label: 'Order Overview',
-                link: '/apps-ecommerce-order-overview',
                 parentId: 'ecommerce'
             },
             {

@@ -7,18 +7,21 @@ import {
   deleteVoucher as deleteVoucherApi,
 } from "../../helpers/fakebackend_helper";
 
-export const getVouchers = createAsyncThunk(
-  "voucher/getVouchers",
-  async ({ page, pageSize }: { page: number; pageSize: number }) => {
+export const getAllVouchers = createAsyncThunk(
+  "voucher/getAllVouchers",
+  async (params: { page: number, pageSize: number }) => {
     try {
-      const response = await getAllVouchersApi({ Page: page, PageSize: pageSize });
+      console.log("Calling API with params:", params);
+      const response = await getAllVouchersApi({ Page: params.page, PageSize: params.pageSize });
+      console.log("API response:", response);
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to fetch vouchers");
+        toast.error("Failed to fetch skin types");
       }
+      console.error("API error:", error);
       throw error;
     }
   }
@@ -29,13 +32,10 @@ export const addVoucher = createAsyncThunk(
   "voucher/addVoucher",
   async (voucher: any) => {
     try {
-      console.log('Adding voucher with data:', voucher);
       const response = await createVoucherApi(voucher);
-      console.log('Add voucher API response:', response);
       toast.success("Voucher added successfully");
       return response;
     } catch (error: any) {
-      console.error('Add voucher error:', error);
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
@@ -50,13 +50,10 @@ export const updateVoucher = createAsyncThunk(
   "voucher/updateVoucher",
   async (voucher: { id: string, data: any }) => {
     try {
-      console.log('Updating voucher with data:', voucher);
       const response = await updateVoucherApi(voucher.id, voucher.data);
-      console.log('Update voucher API response:', response);
       toast.success("Voucher updated successfully");
       return response;
     } catch (error: any) {
-      console.error('Update voucher error:', error);
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {

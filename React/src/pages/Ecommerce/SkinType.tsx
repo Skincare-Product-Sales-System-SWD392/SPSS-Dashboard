@@ -24,9 +24,9 @@ import * as Yup from "yup";
 // react-redux
 import { useDispatch, useSelector } from "react-redux";
 import { createSelector } from "reselect";
-import { getAllVouchers, addVoucher, updateVoucher, deleteVoucher } from "slices/voucher/thunk";
-import { ToastContainer } from "react-toastify";  
-const Voucher = () => {
+import { getAllSkinTypes, addSkinType, updateSkinType, deleteSkinType } from "slices/skintype/thunk";
+import { ToastContainer } from "react-toastify";
+const SkinType = () => {
   const dispatch = useDispatch<any>();
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 7;
@@ -35,35 +35,20 @@ const Voucher = () => {
   const [refreshFlag, setRefreshFlag] = useState(false);
   const [isOverview, setIsOverview] = useState<boolean>(false);
 
-  const voucherState = useSelector((state: any) => state.Voucher);
-  useEffect(() => {
-    console.log("Full Voucher Redux state:", voucherState);
-  }, [voucherState]);
-
-  const voucherSelector = createSelector(
-    (state: any) => state.Voucher,
-    (Voucher) => {
-      console.log("Selector received state:", Voucher);
-      return {
-        vouchers: Voucher?.vouchers?.results || [],
-        pageCount: Math.ceil((Voucher?.vouchers?.rowCount || 0) / pageSize),
-        firstRowOnPage: Voucher?.vouchers?.firstRowOnPage || 0,
-        rowCount: Voucher?.vouchers?.rowCount || 0,
-        loading: Voucher?.loading || false,
-        error: Voucher?.error || null,
-      };
-    }
+  const skinTypeSelector = createSelector(
+    (state: any) => state.SkinType,
+    (SkinType) => ({
+      skinTypes: SkinType?.skinTypes?.results || [],
+      pageCount: Math.ceil((SkinType?.skinTypes?.rowCount || 0) / pageSize),
+      firstRowOnPage: SkinType?.skinTypes?.firstRowOnPage || 0,
+      rowCount: SkinType?.skinTypes?.rowCount || 0,
+      loading: SkinType?.loading || false,
+      error: SkinType?.error || null,
+    })
   );
 
-  const { vouchers, pageCount, loading, error } =
-    useSelector(voucherSelector);
-
-  // Add this for debugging
-  useEffect(() => {
-    console.log("Voucher state:", vouchers);
-    console.log("Loading state:", loading);
-    console.log("Error state:", error);
-  }, [vouchers, loading, error]);
+  const { skinTypes, pageCount } =
+    useSelector(skinTypeSelector);
 
   const [data, setData] = useState<any>([]);
   const [eventData, setEventData] = useState<any>();
@@ -75,35 +60,19 @@ const Voucher = () => {
       setCurrentPage(1); // Reset to first page
       return;
     }
-    
-    console.log("Fetching vouchers with page:", currentPage, "pageSize:", pageSize);
-    
-    dispatch(getAllVouchers({ page: currentPage, pageSize }))
-      .then((response: any) => {
-        console.log("Voucher API response:", response);
-        // Check if the response has the expected structure
-        if (response && response.payload && response.payload.results) {
-          console.log("Voucher results:", response.payload.results);
-        }
-      })
-      .catch((error: any) => {
-        console.error("Error fetching vouchers:", error);
-      });
+    dispatch(getAllSkinTypes({ page: currentPage, pageSize }));
   }, [dispatch, currentPage, refreshFlag, pageCount]);
 
   useEffect(() => {
-    console.log("Vouchers from state:", vouchers);
-    if (vouchers && Array.isArray(vouchers)) {
-      if (vouchers.length === 0 && currentPage > 1) {
+    if (skinTypes) {
+      if (skinTypes.length === 0 && currentPage > 1) {
         // If no data and not on first page, go back one page
         setCurrentPage(prev => prev - 1);
       } else {
-        setData(vouchers);
+        setData(skinTypes);
       }
-    } else {
-      console.error("Vouchers is not an array:", vouchers);
     }
-  }, [vouchers, currentPage]);
+  }, [skinTypes, currentPage]);
 
   // Delete Modal
   const [deleteModal, setDeleteModal] = useState<boolean>(false);
@@ -121,7 +90,7 @@ const Voucher = () => {
   const filterSearchData = (e: any) => {
     const search = e.target.value;
     const keysToSearch = ['name', 'description', 'routine'];
-    const filteredData = vouchers.filter((item: any) => {
+    const filteredData = skinTypes.filter((item: any) => {
       return keysToSearch.some((key) => {
         const value = item[key]?.toString().toLowerCase() || '';
         return value.includes(search.toLowerCase());
@@ -136,7 +105,7 @@ const Voucher = () => {
   // Called when user confirms deletion in the modal
   const handleDelete = () => {
     if (eventData) {
-      dispatch(deleteVoucher(eventData.name))
+      dispatch(deleteSkinType(eventData.name))
         .then(() => {
           setDeleteModal(false);
           setRefreshFlag(prev => !prev); // Trigger data refresh after deletion
@@ -150,45 +119,26 @@ const Voucher = () => {
     enableReinitialize: true,
     initialValues: {
       name: (eventData && eventData.name) || '',
-      code: (eventData && eventData.code) || '',
       description: (eventData && eventData.description) || '',
-      status: (eventData && eventData.status) || 'Active',
-      discountRate: (eventData && eventData.discountRate) || 0,
-      usageLimit: (eventData && eventData.usageLimit) || '',
-      minimumOrderValue: (eventData && eventData.minimumOrderValue) || 0,
-      startDate: (eventData && eventData.startDate) ? new Date(eventData.startDate).toISOString().split('T')[0] : '',
-      endDate: (eventData && eventData.endDate) ? new Date(eventData.endDate).toISOString().split('T')[0] : ''
+      routine: (eventData && eventData.routine) || ''
     },
     validationSchema: Yup.object({
       name: Yup.string().required("Name is required"),
       description: Yup.string(),
-      status: Yup.string().required("Status is required"),
-      discountRate: Yup.number().required("Discount rate is required").min(0, "Must be at least 0"),
-      usageLimit: Yup.string(),
-      minimumOrderValue: Yup.number().required("Minimum order value is required").min(0, "Must be at least 0"),
-      startDate: Yup.date().required("Start date is required"),
-      endDate: Yup.date().required("End date is required")
-        .min(Yup.ref('startDate'), "End date must be after start date")
+      routine: Yup.string()
     }),
     onSubmit: (values) => {
       if (isEdit) {
         const updateData = {
-          id: eventData.id,
+          id: eventData.name,
           data: {
             name: values.name,
             description: values.description,
-            status: values.status,
-            discountRate: values.discountRate,
-            usageLimit: values.usageLimit,
-            minimumOrderValue: values.minimumOrderValue,
-            startDate: new Date(values.startDate).toISOString(),
-            endDate: new Date(values.endDate).toISOString()
+            routine: values.routine
           }
         };
-        console.log("Updating voucher:", updateData);
-        dispatch(updateVoucher(updateData))
-          .then((response: any) => {
-            console.log("Update response:", response);
+        dispatch(updateSkinType(updateData))
+          .then(() => {
             toggle();
             setRefreshFlag(prev => !prev);
           });
@@ -196,14 +146,9 @@ const Voucher = () => {
         const newData = {
           name: values.name,
           description: values.description,
-          status: values.status,
-          discountRate: values.discountRate,
-          usageLimit: values.usageLimit,
-          minimumOrderValue: values.minimumOrderValue,
-          startDate: new Date(values.startDate).toISOString(),
-          endDate: new Date(values.endDate).toISOString()
+          routine: values.routine
         };
-        dispatch(addVoucher(newData))
+        dispatch(addSkinType(newData))
           .then(() => {
             toggle();
             setRefreshFlag(prev => !prev);
@@ -253,79 +198,24 @@ const Voucher = () => {
             className="flex items-center gap-2"
             onClick={() => handleOverviewClick(cell.row.original)}
           >
-            {cell.getValue() || "N/A"}
+            {cell.getValue()}
           </Link>
         ),
         size: 150,
-      },
-      {
-        header: "Code",
-        accessorKey: "code",
-        enableColumnFilter: false,
-        enableSorting: true,
-        size: 120,
       },
       {
         header: "Description",
         accessorKey: "description",
         enableColumnFilter: false,
         enableSorting: true,
-        size: 200,
+        size: 350,
       },
       {
-        header: "Status",
-        accessorKey: "status",
+        header: "Routine",
+        accessorKey: "routine",
         enableColumnFilter: false,
         enableSorting: true,
-        cell: (cell: any) => (
-          <span className={`px-2.5 py-0.5 text-xs inline-block font-medium rounded border ${
-            cell.getValue() === 'Active' 
-              ? 'text-green-500 bg-green-100 border-green-200 dark:text-green-400 dark:bg-green-500/20 dark:border-green-500/20' 
-              : 'text-yellow-500 bg-yellow-100 border-yellow-200 dark:text-yellow-400 dark:bg-yellow-500/20 dark:border-yellow-500/20'
-          }`}>
-            {cell.getValue()}
-          </span>
-        ),
-        size: 100,
-      },
-      {
-        header: "Discount Rate",
-        accessorKey: "discountRate",
-        enableColumnFilter: false,
-        enableSorting: true,
-        cell: (cell: any) => (
-          <span>{cell.getValue()}%</span>
-        ),
-        size: 120,
-      },
-      {
-        header: "Min. Order Value",
-        accessorKey: "minimumOrderValue",
-        enableColumnFilter: false,
-        enableSorting: true,
-        size: 150,
-      },
-      {
-        header: "Start Date",
-        accessorKey: "startDate",
-        enableColumnFilter: false,
-        enableSorting: true,
-        size: 120,
-        cell: (cell: any) => {
-          const startDate = cell.getValue() ? new Date(cell.getValue()).toLocaleDateString() : "N/A";
-          return <span>{startDate}</span>;
-        },
-      },
-      {
-        header: "End Date",
-        accessorKey: "endDate",
-        enableColumnFilter: false,
-        enableSorting: true,
-        size: 120,
-        cell: (cell: any) => {
-          const endDate = cell.getValue() ? new Date(cell.getValue()).toLocaleDateString() : "N/A";
-          return <span>{endDate}</span>;
-        },
+        size: 300,
       },
       {
         header: "Action",
@@ -372,7 +262,7 @@ const Voucher = () => {
 
   return (
     <React.Fragment>
-      <BreadCrumb title="Vouchers" pageTitle="Vouchers" />
+      <BreadCrumb title="Skin Types" pageTitle="Skin Types" />
       <DeleteModal 
         show={deleteModal} 
         onHide={deleteToggle}
@@ -397,13 +287,13 @@ const Voucher = () => {
             <div className="lg:col-span-2 ltr:lg:text-right rtl:lg:text-left xl:col-span-2 xl:col-start-11">
               <Link
                 to="#!"
-                data-modal-target="addVoucherModal"
+                data-modal-target="addSkinTypeModal"
                 type="button"
                 className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
                 onClick={toggle}
               >
                 <Plus className="inline-block size-4" />{" "}
-                <span className="align-middle">Add Voucher</span>
+                <span className="align-middle">Add Skin Type</span>
               </Link>
             </div>
           </div>
@@ -419,7 +309,7 @@ const Voucher = () => {
               currentPage={currentPage}
               onPageChange={(page: number) => {
                 setCurrentPage(page);
-                dispatch(getAllVouchers({ page, pageSize }));
+                dispatch(getAllSkinTypes({ page, pageSize }));
               }}
               divclassName="overflow-x-auto"
               tableclassName="w-full whitespace-nowrap"
@@ -435,8 +325,8 @@ const Voucher = () => {
                 <Search className="size-6 mx-auto mb-3 text-sky-500 fill-sky-100 dark:fill-sky-500/20" />
                 <h5 className="mt-2 mb-1">Sorry! No Result Found</h5>
                 <p className="mb-0 text-slate-500 dark:text-zink-200">
-                  We've searched more than 199+ vouchers. We did not find any
-                  voucher for your search.
+                  We've searched more than 199+ skin types We did not find any
+                  product for you search.
                 </p>
               </div>
             </div>
@@ -457,7 +347,7 @@ const Voucher = () => {
           closeButtonClass="transition-all duration-200 ease-linear text-slate-400 hover:text-red-500"
         >
           <Modal.Title className="text-16">
-            {isOverview ? "Voucher Details" : isEdit ? "Edit Voucher" : "Add Voucher"}
+            {isOverview ? "Skin Type Details" : isEdit ? "Edit Skin Type" : "Add Skin Type"}
           </Modal.Title>
         </Modal.Header>
 
@@ -476,7 +366,7 @@ const Voucher = () => {
                     type="text"
                     id="nameInput"
                     className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                    placeholder="Enter voucher name"
+                    placeholder="Enter skin type name"
                     name="name"
                     onChange={validation.handleChange}
                     onBlur={validation.handleBlur}
@@ -487,21 +377,6 @@ const Voucher = () => {
                     <p className="text-red-400">{validation.errors.name}</p>
                 )}
               </div>
-
-              {isOverview && (
-                <div className="xl:col-span-6">
-                  <label htmlFor="codeInput" className="inline-block mb-2 text-base font-medium">
-                      Code
-                  </label>
-                  <input
-                      type="text"
-                      id="codeInput"
-                      className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                      value={eventData?.code || ""}
-                      disabled={true}
-                  />
-                </div>
-              )}
 
               <div className="xl:col-span-12">
                 <label htmlFor="descriptionInput" className="inline-block mb-2 text-base font-medium">Description</label>
@@ -518,120 +393,19 @@ const Voucher = () => {
                 />
               </div>
 
-              <div className="xl:col-span-6">
-                <label htmlFor="statusInput" className="inline-block mb-2 text-base font-medium">
-                  Status <span className="text-red-500 ml-1">*</span>
-                </label>
-                <select
-                  id="statusInput"
+              <div className="xl:col-span-12">
+                <label htmlFor="routineInput" className="inline-block mb-2 text-base font-medium">Routine</label>
+                <textarea
+                  id="routineInput"
                   className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  name="status"
+                  placeholder="Enter routine"
+                  name="routine"
                   onChange={validation.handleChange}
                   onBlur={validation.handleBlur}
-                  value={validation.values.status || ""}
-                  disabled={isOverview}
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
-                {validation.touched.status && validation.errors.status && (
-                  <p className="text-red-400">{validation.errors.status}</p>
-                )}
-              </div>
-
-              <div className="xl:col-span-6">
-                <label htmlFor="discountRateInput" className="inline-block mb-2 text-base font-medium">
-                  Discount Rate (%) <span className="text-red-500 ml-1">*</span>
-                </label>
-                <input
-                  type="number"
-                  id="discountRateInput"
-                  className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Enter discount rate"
-                  name="discountRate"
-                  onChange={validation.handleChange}
-                  onBlur={validation.handleBlur}
-                  value={validation.values.discountRate || ""}
+                  value={validation.values.routine || ""}
+                  rows={3}
                   disabled={isOverview}
                 />
-                {validation.touched.discountRate && validation.errors.discountRate && (
-                  <p className="text-red-400">{validation.errors.discountRate}</p>
-                )}
-              </div>
-
-              <div className="xl:col-span-6">
-                <label htmlFor="usageLimitInput" className="inline-block mb-2 text-base font-medium">
-                  Usage Limit
-                </label>
-                <input
-                  type="text"
-                  id="usageLimitInput"
-                  className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Enter usage limit"
-                  name="usageLimit"
-                  onChange={validation.handleChange}
-                  onBlur={validation.handleBlur}
-                  value={validation.values.usageLimit || ""}
-                  disabled={isOverview}
-                />
-              </div>
-
-              <div className="xl:col-span-6">
-                <label htmlFor="minimumOrderValueInput" className="inline-block mb-2 text-base font-medium">
-                  Minimum Order Value <span className="text-red-500 ml-1">*</span>
-                </label>
-                <input
-                  type="number"
-                  id="minimumOrderValueInput"
-                  className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Enter minimum order value"
-                  name="minimumOrderValue"
-                  onChange={validation.handleChange}
-                  onBlur={validation.handleBlur}
-                  value={validation.values.minimumOrderValue || ""}
-                  disabled={isOverview}
-                />
-                {validation.touched.minimumOrderValue && validation.errors.minimumOrderValue && (
-                  <p className="text-red-400">{validation.errors.minimumOrderValue}</p>
-                )}
-              </div>
-
-              <div className="xl:col-span-6">
-                <label htmlFor="startDateInput" className="inline-block mb-2 text-base font-medium">
-                  Start Date <span className="text-red-500 ml-1">*</span>
-                </label>
-                <input
-                  type="date"
-                  id="startDateInput"
-                  className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  name="startDate"
-                  onChange={validation.handleChange}
-                  onBlur={validation.handleBlur}
-                  value={validation.values.startDate || ""}
-                  disabled={isOverview}
-                />
-                {validation.touched.startDate && validation.errors.startDate && (
-                  <p className="text-red-400">{validation.errors.startDate}</p>
-                )}
-              </div>
-
-              <div className="xl:col-span-6">
-                <label htmlFor="endDateInput" className="inline-block mb-2 text-base font-medium">
-                  End Date <span className="text-red-500 ml-1">*</span>
-                </label>
-                <input
-                  type="date"
-                  id="endDateInput"
-                  className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  name="endDate"
-                  onChange={validation.handleChange}
-                  onBlur={validation.handleBlur}
-                  value={validation.values.endDate || ""}
-                  disabled={isOverview}
-                />
-                {validation.touched.endDate && validation.errors.endDate && (
-                  <p className="text-red-400">{validation.errors.endDate}</p>
-                )}
               </div>
             </div>
 
@@ -648,7 +422,7 @@ const Voucher = () => {
                   type="submit" 
                   className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
                 >
-                  {!!isEdit ? "Update" : "Add Voucher"}
+                  {!!isEdit ? "Update" : "Add Skin Type"}
                 </button>
               )}
             </div>
@@ -659,4 +433,4 @@ const Voucher = () => {
   );
 };
 
-export default Voucher;
+export default SkinType;

@@ -27,6 +27,9 @@ import OrderOverview from "pages/Ecommerce/OrderOverview";
 import Brand from "pages/Ecommerce/Brand";
 import Promotion from "pages/Ecommerce/Promotion";
 import Voucher from "pages/Ecommerce/Voucher";
+import SkinType from "pages/Ecommerce/SkinType";
+import CancelReason from "pages/Ecommerce/CancelReason";
+import PaymentMethod from "pages/Ecommerce/PaymentMethod";
 
 // HR Management
 import EmployeeList from "pages/HRManagement/EmployeeList";
@@ -315,7 +318,9 @@ const authProtectedRoutes: Array<RouteObject> = [
   { path: "/apps-ecommerce-brand", component: Brand },
   { path: "/apps-ecommerce-promotion", component: Promotion },
   { path: "/apps-ecommerce-voucher", component: Voucher },
-
+  { path: "/apps-ecommerce-skin-type", component: SkinType },
+  { path: "/apps-ecommerce-cancel-reason", component: CancelReason },
+  { path: "/apps-ecommerce-payment-method", component: PaymentMethod },
   // HR Management
   { path: "/apps-hr-employee", component: EmployeeList },
   { path: "/apps-hr-holidays", component: Holidays },
