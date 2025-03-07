@@ -30,6 +30,7 @@ export const addCategory = createAsyncThunk(
     try {
       const response = await createCategoryApi(category);
       toast.success("Category added successfully");
+      console.log(response)
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {

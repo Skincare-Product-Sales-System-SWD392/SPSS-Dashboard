@@ -45,7 +45,7 @@ import InvoiceReducer from "./invoice/reducer"
 import UsersReducer from "./users/reducer";
 
 import promotionReducer from "./promotion/reducer";
-import categoryReducer from "./category/reducer";
+import CategoryReducer from "./category/reducer";
 
 const rootReducer = combineReducers({
     Layout: LayoutReducer,
@@ -62,7 +62,7 @@ const rootReducer = combineReducers({
     Invoice: InvoiceReducer,
     Users: UsersReducer,
     Promotion: promotionReducer,
-    Category: categoryReducer,
+    Category: CategoryReducer,
     Country: CountryReducer,
     Voucher: VoucherReducer,
     SkinType: SkinTypeReducer,

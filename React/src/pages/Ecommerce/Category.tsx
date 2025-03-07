@@ -36,7 +36,7 @@ const Category = () => {
   const [isOverview, setIsOverview] = useState<boolean>(false);
 
   const categorySelector = createSelector(
-    (state: any) => state.category,
+    (state: any) => state.Category,
     (category) => ({
       categories: category?.categories?.results || [],
       pageCount: category?.categories?.pageCount || 0,
@@ -46,12 +46,10 @@ const Category = () => {
       error: category?.error || null,
     })
   );
-
   const { categories, pageCount } =
     useSelector(categorySelector);
   const [data, setData] = useState<any>([]);
   const [eventData, setEventData] = useState<any>();
-
   // Get Data
   useEffect(() => {
     // Don't fetch if current page is greater than page count
@@ -88,7 +86,7 @@ const Category = () => {
   // Search functionality: Filters cancel reasons based on user input
   const filterSearchData = (e: any) => {
     const search = e.target.value;
-    const keysToSearch = ['categoryName'];
+    const keysToSearch = ['name'];
     const filteredData = categories.filter((item: any) => {
       return keysToSearch.some((key) => {
         const value = item[key]?.toString().toLowerCase() || '';
@@ -117,19 +115,19 @@ const Category = () => {
   const validation: any = useFormik({
     enableReinitialize: true,
     initialValues: {
-        parentCategoryId: (eventData && eventData.parentCategoryId) || '',
-        categoryName: (eventData && eventData.categoryName) || ''
+        parentCategoryId: (eventData && eventData.parentCategoryId) || null,
+        name: (eventData && eventData.name) || ''
     },
     validationSchema: Yup.object({
-        categoryName: Yup.string().required("Name is required"),
+      name: Yup.string().required("Name is required"),
     }),
     onSubmit: (values) => {
       if (isEdit) {
         const updateData = {
           id: eventData.id,
           data: {
-            parentCategoryId: values.parentCategoryId,
-            categoryName: values.categoryName
+            parentCategoryId: values.parentCategoryId ? values.parentCategoryId : null,
+            name: values.name
           }
         };
         dispatch(updateCategory(updateData))
@@ -139,8 +137,8 @@ const Category = () => {
           });
       } else {
         const newData = {
-            parentCategoryId: values.parentCategoryId,
-            categoryName: values.categoryName
+            parentCategoryId: values.parentCategoryId ? values.parentCategoryId : null,
+            name: values.name
         };
         dispatch(addCategory(newData))
           .then(() => {
@@ -182,8 +180,8 @@ const Category = () => {
   const columns = useMemo(
     () => [
       {
-        header: "Parent Category Id",
-        accessorKey: "parentCategoryId",
+        header: "Parent Category",
+        accessorKey: "parentCategoryName",
         enableColumnFilter: false,
         enableSorting: true,
         size: 350,
@@ -199,7 +197,7 @@ const Category = () => {
       },
       {
         header: "Category Name",
-        accessorKey: "categoryName",
+        accessorKey: "name",
         enableColumnFilter: false,
         enableSorting: true,
         size: 350,
@@ -354,43 +352,48 @@ const Category = () => {
             return false;
           }}>
             <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
-              <div className="xl:col-span-12">
-                <label htmlFor="parentCategoryIdInput" className="inline-block mb-2 text-base font-medium">
-                  Parent Cateogry <span className="text-red-500 ml-1">*</span>
-                </label>
-                <textarea
-                  id="parentCategoryIdInput"
-                  className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Enter parentCategoryId"
-                  name="parentCategoryId"
-                  onChange={validation.handleChange}
-                  onBlur={validation.handleBlur}
-                  value={validation.values.parentCategoryId || ""}
-                  rows={3}
-                  disabled={isOverview}
-                />
-                {validation.touched.parentCategoryId && validation.errors.parentCategoryId && (
-                  <p className="text-red-400">{validation.errors.parentCategoryId}</p>
-                )}
-              </div>
+            <div className="xl:col-span-12">
+              <label htmlFor="parentCategoryIdInput" className="inline-block mb-2 text-base font-medium">
+                Parent Category
+              </label>
+              <select
+                id="parentCategoryIdInput"
+                className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
+                name="parentCategoryId"
+                onChange={validation.handleChange}
+                onBlur={validation.handleBlur}
+                value={validation.values.parentCategoryId || ""}
+                disabled={isOverview || categories.length === 0}
+              >
+                <option value="">Select a Parent Category</option>
+                {categories.map((category : any) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+              {validation.touched.parentCategoryId && validation.errors.parentCategoryId && (
+                <p className="text-red-400">{validation.errors.parentCategoryId}</p>
+              )}
+            </div>
 
               <div className="xl:col-span-12">
-                <label htmlFor="categoryNameInput" className="inline-block mb-2 text-base font-medium">
+                <label htmlFor="nameInput" className="inline-block mb-2 text-base font-medium">
                   Name <span className="text-red-500 ml-1">*</span>
                 </label>
                 <textarea
-                  id="categoryNameInput"
+                  id="nameInput"
                   className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
                   placeholder="Enter name"
-                  name="categoryName" // Match the field in `validation.values`
+                  name="name" // Match the field in `validation.values`
                   onChange={validation.handleChange}
                   onBlur={validation.handleBlur}
-                  value={validation.values.categoryName || ""} // Correct field value
+                  value={validation.values.name || ""} // Correct field value
                   rows={3}
                   disabled={isOverview}
                 />
-                {validation.touched.categoryName && validation.errors.categoryName && ( // Correct error logic
-                  <p className="text-red-400">{validation.errors.categoryName}</p>
+                {validation.touched.name && validation.errors.name && ( // Correct error logic
+                  <p className="text-red-400">{validation.errors.name}</p>
                 )}
               </div>
             </div>
