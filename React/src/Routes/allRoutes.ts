@@ -200,6 +200,7 @@ import Settings from "pages/Pages/Settings";
 import Pricing from "pages/Pages/Pricing";
 import Faqs from "pages/Pages/Faqs";
 import ContactUs from "pages/Pages/ContactUs";
+import Category from "pages/Ecommerce/Category";
 
 interface RouteObject {
   path: string;
@@ -318,6 +319,7 @@ const authProtectedRoutes: Array<RouteObject> = [
   { path: "/apps-ecommerce-order-overview", component: OrderOverview },
   { path: "/apps-ecommerce-brand", component: Brand },
   { path: "/apps-ecommerce-promotion", component: Promotion },
+  { path: "/apps-ecommerce-category", component: Category },
   { path: "/apps-ecommerce-voucher", component: Voucher },
   { path: "/apps-ecommerce-skin-type", component: SkinType },
   { path: "/apps-ecommerce-cancel-reason", component: CancelReason },

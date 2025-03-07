@@ -85,8 +85,17 @@ export const updateEvents = (data: any) => api.update(url.UPDATE_EVENT, data);
 export const deleteEvents = (data: any) => api.delete(url.DELETE_EVENT, { headers: { data } });
 
 // Category
-export const getCategory = () => api.get(url.GET_CATEGORY, null);
-export const deleteCategory = (data: any) => api.delete(url.DELETE_CATEGORY, { headers: { data } });
+export const getAllCategories = (params: { Page: number; PageSize: number }) => 
+  api.get(url.GET_ALL_CATEGORIES, params);
+
+export const createCategory = (data: any) => 
+  api.create(url.CREATE_CATEGORY, data);
+
+export const updateCategory = (id: string, data: any) => 
+  api.update(`${url.UPDATE_CATEGORY}/${id}`, data);
+
+export const deleteCategory = (id: string) => 
+  api.delete(`${url.DELETE_CATEGORY}/${id}`, { headers: { data: id } });
 
 // Ecommerce
 

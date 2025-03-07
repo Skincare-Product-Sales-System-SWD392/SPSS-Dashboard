@@ -32,8 +32,10 @@ export const UPDATE_EVENT = "/edit-event";
 export const DELETE_EVENT = "/delete-event";
 
 // Category
-export const GET_CATEGORY = "/get-category";
-export const DELETE_CATEGORY = "/delete-category";
+export const GET_ALL_CATEGORIES = "/api/v1/Category/all";
+export const CREATE_CATEGORY = "/api/v1/Category";
+export const UPDATE_CATEGORY = "/api/v1/Category";
+export const DELETE_CATEGORY = "/api/v1/Category";
 
 // Ecommerce
 
