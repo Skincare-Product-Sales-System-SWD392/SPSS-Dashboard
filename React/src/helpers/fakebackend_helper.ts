@@ -103,6 +103,47 @@ export const updatePromotion = (id: string, data: any) =>
 export const deletePromotion = (id: string) => 
   api.delete(`${url.DELETE_PROMOTION}/${id}`, { headers: { data: id } });
 
+// Payment Method
+export const getAllPaymentMethods = (params: { Page: number; PageSize: number }) => 
+  api.get(url.GET_ALL_PAYMENT_METHODS, params);
+
+export const createPaymentMethod = (data: any) => 
+  api.create(url.CREATE_PAYMENT_METHOD, data);
+
+export const updatePaymentMethod = (id: string, data: any) => 
+  api.update(`${url.UPDATE_PAYMENT_METHOD}/${id}`, data);
+
+export const deletePaymentMethod = (id: string) => 
+  api.delete(`${url.DELETE_PAYMENT_METHOD}/${id}`, { headers: { data: id } });
+
+// Skin Type
+export const getAllSkinTypes = (params: { Page: number; PageSize: number }) => 
+  api.get(url.GET_ALL_SKIN_TYPES, params);
+
+export const createSkinType = (data: any) => 
+  api.create(url.CREATE_SKIN_TYPE, data);
+
+export const updateSkinType = (id: string, data: any) => 
+  api.update(`${url.UPDATE_SKIN_TYPE}/${id}`, data);
+
+export const deleteSkinType = (id: string) => 
+  api.delete(`${url.DELETE_SKIN_TYPE}/${id}`, { headers: { data: id } });
+
+// Cancel Reason
+export const getAllCancelReasons = (params: { Page: number; PageSize: number }) => 
+  api.get(url.GET_ALL_CANCEL_REASONS, params);
+
+export const createCancelReason = (data: any) => 
+  api.create(url.CREATE_CANCEL_REASON, data);
+
+export const updateCancelReason = (id: string, data: any) => 
+  api.update(`${url.UPDATE_CANCEL_REASON}/${id}`, data);
+
+export const deleteCancelReason = (id: string) => 
+  api.delete(`${url.DELETE_CANCEL_REASON}/${id}`, { headers: { data: id } });
+
+
+
 // Product
 export const getAllProducts = (params: { Page: number; PageSize: number }) => 
   api.get(url.GET_ALL_PRODUCTS, params);
