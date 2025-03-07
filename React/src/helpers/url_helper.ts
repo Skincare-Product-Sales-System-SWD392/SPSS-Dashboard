@@ -43,6 +43,31 @@ export const CREATE_PROMOTION = "/api/v1/Promotion";
 export const UPDATE_PROMOTION = "/api/v1/Promotion";
 export const DELETE_PROMOTION = "/api/v1/Promotion";
 
+// Payment Method
+export const GET_ALL_PAYMENT_METHODS = "/api/v1/PaymentMethod/all";
+export const CREATE_PAYMENT_METHOD = "/api/v1/PaymentMethod";
+export const UPDATE_PAYMENT_METHOD = "/api/v1/PaymentMethod";
+export const DELETE_PAYMENT_METHOD = "/api/v1/PaymentMethod";
+
+// Skin Type
+export const GET_ALL_SKIN_TYPES = "/api/v1/SkinType/all";
+export const CREATE_SKIN_TYPE = "/api/v1/SkinType";
+export const UPDATE_SKIN_TYPE = "/api/v1/SkinType";
+export const DELETE_SKIN_TYPE = "/api/v1/SkinType";
+
+// Cancel Reason
+export const GET_ALL_CANCEL_REASONS = "/api/v1/CancelReason/all";
+export const CREATE_CANCEL_REASON = "/api/v1/CancelReason";
+export const UPDATE_CANCEL_REASON = "/api/v1/CancelReason";
+export const DELETE_CANCEL_REASON = "/api/v1/CancelReason";
+
+// Products
+// List View
+export const GET_ALL_PRODUCTS = "/api/v1/Product/all";
+export const CREATE_PRODUCT = "/api/v1/Product";
+export const UPDATE_PRODUCT = "/api/v1/Product";
+export const DELETE_PRODUCT = "/api/v1/Product";
+
 // Country
 export const GET_ALL_COUNTRIES = "/api/v1/Country/all";
 
@@ -51,6 +76,12 @@ export const GET_ALL_BRANDS = "/api/v1/Brand/all";
 export const CREATE_BRAND = "/api/v1/Brand";
 export const UPDATE_BRAND = "/api/v1/Brand";
 export const DELETE_BRAND = "/api/v1/Brand";
+
+// Voucher
+export const GET_ALL_VOUCHERS = "/api/v1/Voucher/all";
+export const CREATE_VOUCHER = "/api/v1/Voucher";
+export const UPDATE_VOUCHER = "/api/v1/Voucher";
+export const DELETE_VOUCHER = "/api/v1/Voucher";
 
 // Orders
 export const GET_ORDERS = "/get-orders";
@@ -64,12 +95,7 @@ export const ADD_SELLERS = "/add-sellers";
 export const UPDATE_SELLERS = "/edit-sellers";
 export const DELETE_SELLERS = "/delete-sellers";
 
-// Products
-// List View
-export const GET_PRODUCT_LIST = "/get-product-list";
-export const ADD_PRODUCT_LIST = "/add-product-list";
-export const UPDATE_PRODUCT_LIST = "/edit-product-list";
-export const DELETE_PRODUCT_LIST = "/delete-product-list";
+
 
 // Grid View
 export const GET_PRODUCT_GRID = "/get-product-grid";

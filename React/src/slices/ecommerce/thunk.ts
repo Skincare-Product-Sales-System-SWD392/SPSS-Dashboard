@@ -9,14 +9,6 @@ import {
     addSellers as addSellersApi,
     updateSellers as updateSellersApi,
     deleteSellers as deleteSellersApi,
-    getProductList as getProductListApi,
-    addProductList as addProductListApi,
-    updateProductList as updateProductListApi,
-    deleteProductList as deleteProductListApi,
-    getProductGrid as getProductGridApi,
-    addProductGrid as addProductGridApi,
-    updateProductGrid as updateProductGridApi,
-    deleteProductGrid as deleteProductGridApi,
     getReview as getReviewApi,
     addReview as addReviewApi,
     updateReview as updateReviewApi,
@@ -103,88 +95,6 @@ export const deleteSellers = createAsyncThunk("ecommerce/deleteSellers", async (
         return response;
     } catch (error) {
         toast.error("Seller deleted Failed", { autoClose: 2000 });
-        return error;
-    }
-});
-
-export const getProductList = createAsyncThunk("ecommerce/getProductList", async () => {
-    try {
-        const response = getProductListApi();
-        return response;
-    } catch (error) {
-        return error;
-    }
-});
-export const addProductList = createAsyncThunk("ecommerce/addProductList", async (event: any) => {
-    try {
-        const response = addProductListApi(event);
-        const data = await response;
-        toast.success("Data Added Successfully", { autoClose: 2000 });
-        return data;
-    } catch (error) {
-        toast.error("Data Added Failed", { autoClose: 2000 });
-        return error;
-    }
-});
-export const updateProductList = createAsyncThunk("ecommerce/updateProductList", async (event: any) => {
-    try {
-        const response = updateProductListApi(event);
-        const data = await response;
-        toast.success("Data updated Successfully", { autoClose: 2000 });
-        return data;
-    } catch (error) {
-        toast.error("Data updated Failed", { autoClose: 2000 });
-        return error;
-    }
-});
-export const deleteProductList = createAsyncThunk("ecommerce/deleteProductList", async (event: any) => {
-    try {
-        const response = deleteProductListApi(event);
-        toast.success("Data deleted Successfully", { autoClose: 2000 });
-        return response;
-    } catch (error) {
-        toast.error("Data deleted Failed", { autoClose: 2000 });
-        return error;
-    }
-});
-
-export const getProductGrid = createAsyncThunk("ecommerce/getProductGrid", async () => {
-    try {
-        const response = getProductGridApi();
-        return response;
-    } catch (error) {
-        return error;
-    }
-});
-export const addProductGrid = createAsyncThunk("ecommerce/addProductGrid", async (event: any) => {
-    try {
-        const response = addProductGridApi(event);
-        const data = await response;
-        toast.success("Data Added Successfully", { autoClose: 2000 });
-        return data;
-    } catch (error) {
-        toast.error("Data Added Failed", { autoClose: 2000 });
-        return error;
-    }
-});
-export const updateProductGrid = createAsyncThunk("ecommerce/updateProductGrid", async (event: any) => {
-    try {
-        const response = updateProductGridApi(event);
-        const data = await response;
-        toast.success("Data updated Successfully", { autoClose: 2000 });
-        return data;
-    } catch (error) {
-        toast.error("Data updated Failed", { autoClose: 2000 });
-        return error;
-    }
-});
-export const deleteProductGrid = createAsyncThunk("ecommerce/deleteProductGrid", async (event: any) => {
-    try {
-        const response = deleteProductGridApi(event);
-        toast.success("Data deleted Successfully", { autoClose: 2000 });
-        return response;
-    } catch (error) {
-        toast.error("Data deleted Failed", { autoClose: 2000 });
         return error;
     }
 });

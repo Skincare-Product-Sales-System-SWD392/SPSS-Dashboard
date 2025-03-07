@@ -8,14 +8,6 @@ import {
     addSellers,
     updateSellers,
     deleteSellers,
-    getProductList,
-    addProductList,
-    updateProductList,
-    deleteProductList,
-    getProductGrid,
-    addProductGrid,
-    updateProductGrid,
-    deleteProductGrid,
     getReview,
     addReview,
     updateReview,
@@ -97,71 +89,6 @@ const EcommerceSlice = createSlice({
             );
         });
         builder.addCase(deleteSellers.rejected, (state: any, action: any) => {
-            state.error = action.payload.error || null;
-        });
-
-        // Products
-        // List View
-        builder.addCase(getProductList.fulfilled, (state: any, action: any) => {
-            state.productList = action.payload;
-        });
-        builder.addCase(getProductList.rejected, (state: any, action: any) => {
-            state.error = action.payload.error || null;
-        });
-        builder.addCase(addProductList.fulfilled, (state: any, action: any) => {
-            state.productList.unshift(action.payload);
-        });
-        builder.addCase(addProductList.rejected, (state: any, action: any) => {
-            state.error = action.payload.error || null;
-        });
-        builder.addCase(updateProductList.fulfilled, (state: any, action: any) => {
-            state.productList = state.productList.map((productList: any) =>
-                productList.id === action.payload.id
-                    ? { ...productList, ...action.payload }
-                    : productList
-            );
-        });
-        builder.addCase(updateProductList.rejected, (state: any, action: any) => {
-            state.error = action.payload.error || null;
-        });
-        builder.addCase(deleteProductList.fulfilled, (state: any, action: any) => {
-            state.productList = state.productList.filter(
-                (productList: any) => productList.id.toString() !== action.payload.toString()
-            );
-        });
-        builder.addCase(deleteProductList.rejected, (state: any, action: any) => {
-            state.error = action.payload.error || null;
-        });
-
-        // Grid View
-        builder.addCase(getProductGrid.fulfilled, (state: any, action: any) => {
-            state.productGrid = action.payload;
-        });
-        builder.addCase(getProductGrid.rejected, (state: any, action: any) => {
-            state.error = action.payload.error || null;
-        });
-        builder.addCase(addProductGrid.fulfilled, (state: any, action: any) => {
-            state.productGrid.unshift(action.payload);
-        });
-        builder.addCase(addProductGrid.rejected, (state: any, action: any) => {
-            state.error = action.payload.error || null;
-        });
-        builder.addCase(updateProductGrid.fulfilled, (state: any, action: any) => {
-            state.productGrid = state.productGrid.map((productGrid: any) =>
-                productGrid.id === action.payload.id
-                    ? { ...productGrid, ...action.payload }
-                    : productGrid
-            );
-        });
-        builder.addCase(updateProductGrid.rejected, (state: any, action: any) => {
-            state.error = action.payload.error || null;
-        });
-        builder.addCase(deleteProductGrid.fulfilled, (state: any, action: any) => {
-            state.productGrid = state.productGrid.filter(
-                (productGrid: any) => productGrid.id.toString() !== action.payload.toString()
-            );
-        });
-        builder.addCase(deleteProductGrid.rejected, (state: any, action: any) => {
             state.error = action.payload.error || null;
         });
 

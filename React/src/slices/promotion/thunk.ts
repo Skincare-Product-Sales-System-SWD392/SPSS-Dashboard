@@ -29,13 +29,10 @@ export const addPromotion = createAsyncThunk(
   "promotion/addPromotion",
   async (promotion: any) => {
     try {
-      console.log('Adding promotion with data:', promotion);
       const response = await createPromotionApi(promotion);
-      console.log('Add promotion API response:', response);
       toast.success("Promotion added successfully");
       return response;
     } catch (error: any) {
-      console.error('Add promotion error:', error);
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
@@ -50,13 +47,10 @@ export const updatePromotion = createAsyncThunk(
   "promotion/updatePromotion",
   async (promotion: { id: string, data: any }) => {
     try {
-      console.log('Updating promotion with data:', promotion);
       const response = await updatePromotionApi(promotion.id, promotion.data);
-      console.log('Update promotion API response:', response);
       toast.success("Promotion updated successfully");
       return response;
     } catch (error: any) {
-      console.error('Update promotion error:', error);
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {

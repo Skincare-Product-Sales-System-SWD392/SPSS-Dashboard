@@ -23,7 +23,12 @@ import CalendarReducer from "./calendar/reducer";
 
 // Ecommerce
 import EcommerceReducer from "./ecommerce/reducer";
-
+import CountryReducer from "./country/reducer";
+import VoucherReducer from "./voucher/reducer";
+import SkinTypeReducer from "./skintype/reducer";
+import BrandReducer from "./brand/reducer";
+import CancelReasonReducer from "./cancelreason/reducer";
+import PaymentMethodReducer from "./paymentmethod/reducer";
 // HR Managment
 import HRManagmentReducer from "./hrManagement/reducer";
 
@@ -41,7 +46,6 @@ import UsersReducer from "./users/reducer";
 
 import promotionReducer from "./promotion/reducer";
 
-import CountryReducer from "./country/reducer";
 
 const rootReducer = combineReducers({
     Layout: LayoutReducer,
@@ -59,6 +63,11 @@ const rootReducer = combineReducers({
     Users: UsersReducer,
     Promotion: promotionReducer,
     Country: CountryReducer,
+    Voucher: VoucherReducer,
+    SkinType: SkinTypeReducer,
+    Brand: BrandReducer,
+    cancelReason: CancelReasonReducer,
+    paymentMethod: PaymentMethodReducer,
 });
 
 
