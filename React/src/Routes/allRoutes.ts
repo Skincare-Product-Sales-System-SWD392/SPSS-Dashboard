@@ -30,7 +30,8 @@ import Voucher from "pages/Ecommerce/Voucher";
 import SkinType from "pages/Ecommerce/SkinType";
 import CancelReason from "pages/Ecommerce/CancelReason";
 import PaymentMethod from "pages/Ecommerce/PaymentMethod";
-
+import SurveyQuestion from "pages/Ecommerce/SurveyQuestion";
+import Blog from "pages/Ecommerce/Blog";
 // HR Management
 import EmployeeList from "pages/HRManagement/EmployeeList";
 import Holidays from "pages/HRManagement/Holidays";
@@ -321,6 +322,8 @@ const authProtectedRoutes: Array<RouteObject> = [
   { path: "/apps-ecommerce-skin-type", component: SkinType },
   { path: "/apps-ecommerce-cancel-reason", component: CancelReason },
   { path: "/apps-ecommerce-payment-method", component: PaymentMethod },
+  { path: "/apps-ecommerce-survey-question", component: SurveyQuestion },
+  { path: "/apps-ecommerce-blog", component: Blog },
   // HR Management
   { path: "/apps-hr-employee", component: EmployeeList },
   { path: "/apps-hr-holidays", component: Holidays },
