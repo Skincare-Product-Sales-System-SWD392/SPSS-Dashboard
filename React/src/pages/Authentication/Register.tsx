@@ -37,8 +37,8 @@ const Register = () => {
 
         initialValues: {
             email: "admin@themesbrand.com",
-            username: "admin" || '',
-            password: "123456" || '',
+            username: "admin",
+            password: "123456",
         },
         validationSchema: Yup.object({
             email: Yup.string().email().required("Please Enter Your Email"),
