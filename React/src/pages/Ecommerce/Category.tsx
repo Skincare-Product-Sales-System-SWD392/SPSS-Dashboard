@@ -115,6 +115,7 @@ const Category = () => {
   const validation: any = useFormik({
     enableReinitialize: true,
     initialValues: {
+        id: (eventData && eventData.id) || null,
         parentCategoryId: (eventData && eventData.parentCategoryId) || null,
         name: (eventData && eventData.name) || ''
     },
@@ -124,7 +125,7 @@ const Category = () => {
     onSubmit: (values) => {
       if (isEdit) {
         const updateData = {
-          id: eventData.id,
+          id: values.id,
           data: {
             parentCategoryId: values.parentCategoryId ? values.parentCategoryId : null,
             name: values.name
@@ -366,11 +367,13 @@ const Category = () => {
                 disabled={isOverview || categories.length === 0}
               >
                 <option value="">Select a Parent Category</option>
-                {categories.map((category : any) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
+                {categories 
+                  .filter((category: any) => category.id !== validation.values.id)
+                  .map((category: any) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
               </select>
               {validation.touched.parentCategoryId && validation.errors.parentCategoryId && (
                 <p className="text-red-400">{validation.errors.parentCategoryId}</p>
