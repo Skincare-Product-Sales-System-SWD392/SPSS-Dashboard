@@ -5,8 +5,6 @@ import {
     addEvents as addEventsApi,
     updateEvents as updateEventsApi,
     deleteEvents as deleteEventsApi,
-    getCategory as getCategoryApi,
-    deleteCategory as deleteCategoryApi
 } from "../../helpers/fakebackend_helper";
 import { toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
@@ -48,26 +46,6 @@ export const deleteEvents = createAsyncThunk("calendar/deleteEvents", async (eve
         return response;
     } catch (error) {
         toast.error("Event deleted Failed", { autoClose: 2000 });
-        return error;
-    }
-});
-
-export const getCategory = createAsyncThunk("calendar/getCategory", async () => {
-    try {
-        const response = getCategoryApi();
-        return response;
-    } catch (error) {
-        return error;
-    }
-});
-
-export const deleteCategory = createAsyncThunk("calendar/deleteCategory", async (event: any) => {
-    try {
-        const response = deleteCategoryApi(event);
-        toast.success("Category deleted Successfully", { autoClose: 2000 });
-        return response;
-    } catch (error) {
-        toast.error("Category deleted Failed", { autoClose: 2000 });
         return error;
     }
 });

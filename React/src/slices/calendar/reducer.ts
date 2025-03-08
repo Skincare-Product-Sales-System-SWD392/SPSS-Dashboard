@@ -4,8 +4,6 @@ import {
     addEvents,
     updateEvents,
     deleteEvents,
-    getCategory,
-    deleteCategory
 } from './thunk';
 
 export const initialState = {
@@ -47,22 +45,6 @@ const CalendarSlice = createSlice({
             );
         });
         builder.addCase(deleteEvents.rejected, (state: any, action: any) => {
-            state.error = action.payload.error || null;
-        });
-
-        builder.addCase(getCategory.fulfilled, (state: any, action: any) => {
-            state.category = action.payload;
-        });
-        builder.addCase(getCategory.rejected, (state: any, action: any) => {
-            state.error = action.payload.error || null;
-        });
-
-        builder.addCase(deleteCategory.fulfilled, (state: any, action: any) => {
-            state.category = state.category.filter(
-                (category: any) => category.id.toString() !== action.payload.toString()
-            );
-        });
-        builder.addCase(deleteCategory.rejected, (state: any, action: any) => {
             state.error = action.payload.error || null;
         });
     }

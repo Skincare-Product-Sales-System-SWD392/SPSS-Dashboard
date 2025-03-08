@@ -18,8 +18,6 @@ import {
     addEvents as onAddEvents,
     updateEvents as onUpdateEvents,
     deleteEvents as onDeleteEvents,
-    getCategory as onGetCategory,
-    deleteCategory as onDeleteCategory
 } from 'slices/thunk';
 import Modal from "Common/Components/Modal";
 import DeleteModal from "Common/DeleteModal";
@@ -48,7 +46,6 @@ const DefaultCalendar = () => {
     // Get Data
     useEffect(() => {
         dispatch(onGetEvents());
-        dispatch(onGetCategory());
     }, [dispatch]);
 
     useEffect(() => {
@@ -180,10 +177,6 @@ const DefaultCalendar = () => {
         const draggedEl = event.draggedEl;
         const draggedElclass = draggedEl.className;
         const draggedElDataclass = draggedEl.getAttribute("data-class");
-
-        if (toggledrop) {
-            dispatch(onDeleteCategory(event.draggedEl.id));
-        }
 
         if (draggedEl.classList.contains('external-event') && draggedElclass.indexOf("fc-event-draggable") === -1) {
             const modifiedData: any = {

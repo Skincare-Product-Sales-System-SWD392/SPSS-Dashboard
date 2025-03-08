@@ -398,20 +398,6 @@ const fakeBackend = () => {
     });
   });
 
-  // Category
-  mock.onGet(url.GET_CATEGORY).reply(() => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (CalenderCategories) {
-          // Passing fake JSON data as response
-          resolve([200, CalenderCategories]);
-        } else {
-          reject([400, "cannot get data"]);
-        }
-      });
-    });
-  });
-
   mock.onDelete(url.DELETE_CATEGORY).reply((config: any) => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
