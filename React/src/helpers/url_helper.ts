@@ -45,6 +45,12 @@ export const CREATE_PROMOTION = "/api/v1/Promotion";
 export const UPDATE_PROMOTION = "/api/v1/Promotion";
 export const DELETE_PROMOTION = "/api/v1/Promotion";
 
+// Blog
+export const GET_ALL_BLOGS = "/api/v1/Blog/all";
+export const CREATE_BLOG = "/api/v1/Blog";
+export const UPDATE_BLOG = "/api/v1/Blog";
+export const DELETE_BLOG = "/api/v1/Blog";
+
 // Payment Method
 export const GET_ALL_PAYMENT_METHODS = "/api/v1/PaymentMethod/all";
 export const CREATE_PAYMENT_METHOD = "/api/v1/PaymentMethod";

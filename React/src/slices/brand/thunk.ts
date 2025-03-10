@@ -6,7 +6,6 @@ import {
   updateBrand as updateBrandApi,
   deleteBrand as deleteBrandApi,
 } from "../../helpers/fakebackend_helper";
-import axios from "axios";
 
 export const getBrands = createAsyncThunk(
   "brand/getBrands",

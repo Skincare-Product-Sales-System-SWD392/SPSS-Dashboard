@@ -112,6 +112,21 @@ export const updatePromotion = (id: string, data: any) =>
 export const deletePromotion = (id: string) => 
   api.delete(`${url.DELETE_PROMOTION}/${id}`, { headers: { data: id } });
 
+// Blog
+export const getAllBlogs = (params: { Page: number; PageSize: number }) => 
+  api.get(url.GET_ALL_BLOGS, params);
+
+export const createBlog = (data: any) => 
+  api.create(url.CREATE_BLOG, data);
+
+export const updateBlog = (id: string, data: any) => 
+  api.update(`${url.UPDATE_BLOG}/${id}`, data);
+
+export const deleteBlog = (id: string) => 
+  api.delete(`${url.DELETE_BLOG}/${id}`, { headers: { data: id } });
+
+
+
 // Payment Method
 export const getAllPaymentMethods = (params: { Page: number; PageSize: number }) => 
   api.get(url.GET_ALL_PAYMENT_METHODS, params);

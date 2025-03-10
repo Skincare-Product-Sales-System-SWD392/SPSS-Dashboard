@@ -29,6 +29,7 @@ import SkinTypeReducer from "./skintype/reducer";
 import BrandReducer from "./brand/reducer";
 import CancelReasonReducer from "./cancelreason/reducer";
 import PaymentMethodReducer from "./paymentmethod/reducer";
+import BlogReducer from "./blog/reducer";
 // HR Managment
 import HRManagmentReducer from "./hrManagement/reducer";
 
@@ -69,6 +70,7 @@ const rootReducer = combineReducers({
     Brand: BrandReducer,
     cancelReason: CancelReasonReducer,
     paymentMethod: PaymentMethodReducer,
+    blog: BlogReducer,
 });
 
 
