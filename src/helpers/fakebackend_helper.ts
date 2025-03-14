@@ -128,7 +128,7 @@ export const deleteBlog = (id: string) =>
 
 
 // Payment Method
-export const getAllPaymentMethods = (params: { Page: number; PageSize: number }) => 
+export const getAllPaymentMethods = (params: { pageNumber: number; pageSize: number }) => 
   api.get(url.GET_ALL_PAYMENT_METHODS, params);
 
 export const createPaymentMethod = (data: any) => 
@@ -141,7 +141,7 @@ export const deletePaymentMethod = (id: string) =>
   api.delete(`${url.DELETE_PAYMENT_METHOD}/${id}`, { headers: { data: id } });
 
 // Skin Type
-export const getAllSkinTypes = (params: { Page: number; PageSize: number }) => 
+export const getAllSkinTypes = (params: { pageNumber: number; pageSize: number }) => 
   api.get(url.GET_ALL_SKIN_TYPES, params);
 
 export const createSkinType = (data: any) => 
@@ -154,7 +154,7 @@ export const deleteSkinType = (id: string) =>
   api.delete(`${url.DELETE_SKIN_TYPE}/${id}`, { headers: { data: id } });
 
 // Cancel Reason
-export const getAllCancelReasons = (params: { Page: number; PageSize: number }) => 
+export const getAllCancelReasons = (params: { pageNumber: number; pageSize: number }) => 
   api.get(url.GET_ALL_CANCEL_REASONS, params);
 
 export const createCancelReason = (data: any) => 
@@ -169,7 +169,7 @@ export const deleteCancelReason = (id: string) =>
 
 
 // Product
-export const getAllProducts = (params: { Page: number; PageSize: number }) => 
+export const getAllProducts = (params: { pageNumber: number; pageSize: number }) => 
   api.get(url.GET_ALL_PRODUCTS, params);
 
 export const createProduct = (data: any) => 
@@ -187,7 +187,7 @@ export const getAllCountries = (params: { Page: number; PageSize: number }) =>
   api.get(url.GET_ALL_COUNTRIES, params);
 
 // Brand
-export const getAllBrands = (params: { Page: number; PageSize: number }) => 
+export const getAllBrands = (params: { pageNumber: number; pageSize: number }) => 
   api.get(url.GET_ALL_BRANDS, params);
 
 export const createBrand = (data: any) => 
@@ -200,7 +200,7 @@ export const deleteBrand = (id: string) =>
   api.delete(`${url.DELETE_BRAND}/${id}`, { headers: { data: id } });
 
 // Voucher
-export const getAllVouchers = (params: { Page: number; PageSize: number }) => 
+export const getAllVouchers = (params: { pageNumber: number; pageSize: number }) => 
   api.get(url.GET_ALL_VOUCHERS, params);
 
 export const createVoucher = (data: any) => 
@@ -213,10 +213,17 @@ export const deleteVoucher = (id: string) =>
   api.delete(`${url.DELETE_VOUCHER}/${id}`);
 
 // Orders
-export const getOrders = () => api.get(url.GET_ORDERS, null);
-export const addOrders = (data: any) => api.create(url.ADD_ORDERS, data);
-export const updateOrders = (data: any) => api.update(url.UPDATE_ORDERS, data);
-export const deleteOrders = (data: any) => api.delete(url.DELETE_ORDERS, { headers: { data } });
+export const getAllOrders = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_ORDERS, params);
+
+export const createOrder = (data: any) => 
+  api.create(url.CREATE_ORDERS, data);
+
+export const updateOrder = (id: string, data: any) => 
+  api.update(`${url.UPDATE_ORDERS}/${id}`, data);
+
+export const deleteOrder = (id: string) => 
+  api.delete(`${url.DELETE_ORDERS}/${id}`, { headers: { data: id } });
 
 // Sellers
 export const getSellers = () => api.get(url.GET_SELLERS, null);
@@ -321,4 +328,8 @@ export const getUserGrid = () => api.get(url.GET_USER_GRID, null);
 export const addUserGrid = (data: any) => api.create(url.ADD_USER_GRID, data);
 export const updateUserGrid = (data: any) => api.update(url.UPDATE_USER_GRID, data);
 export const deleteUserGrid = (user: any) => api.delete(url.DELETE_USER_GRID, { headers: { user } });
+
+// Get Product by ID
+export const getProductById = (id: string) => 
+  api.get(`${url.GET_PRODUCT_BY_ID}/${id}`, null);
 

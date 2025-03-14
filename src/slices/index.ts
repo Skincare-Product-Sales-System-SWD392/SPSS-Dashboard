@@ -22,7 +22,7 @@ import MailboxReducer from "./mailbox/reducer";
 import CalendarReducer from "./calendar/reducer";
 
 // Ecommerce
-import EcommerceReducer from "./ecommerce/reducer";
+// import EcommerceReducer from "./ecommerce/reducer";
 import CountryReducer from "./country/reducer";
 import VoucherReducer from "./voucher/reducer";
 import SkinTypeReducer from "./skintype/reducer";
@@ -30,6 +30,8 @@ import BrandReducer from "./brand/reducer";
 import CancelReasonReducer from "./cancelreason/reducer";
 import PaymentMethodReducer from "./paymentmethod/reducer";
 import BlogReducer from "./blog/reducer";
+import ProductReducer from "./product/reducer";
+
 // HR Managment
 import HRManagmentReducer from "./hrManagement/reducer";
 
@@ -56,7 +58,7 @@ const rootReducer = combineReducers({
     Chat: ChatReducer,
     Mailbox: MailboxReducer,
     Calendar: CalendarReducer,
-    Ecommerce: EcommerceReducer,
+    // Ecommerce: EcommerceReducer,
     HRManagment: HRManagmentReducer,
     Notes: NotesReducer,
     Social: SocialReducer,
@@ -71,6 +73,7 @@ const rootReducer = combineReducers({
     cancelReason: CancelReasonReducer,
     paymentMethod: PaymentMethodReducer,
     blog: BlogReducer,
+    product: ProductReducer,
 });
 
 

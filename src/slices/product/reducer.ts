@@ -1,32 +1,35 @@
+// ... existing code ...
 import { createSlice } from "@reduxjs/toolkit";
-import { getAllProducts, addProduct, updateProduct, deleteProduct } from "./thunk";
+import { getAllProducts, getProductById, addProduct, updateProduct, deleteProduct } from "./thunk";
 
 interface ProductState {
   loading: boolean;
   error: string | null;
   products: {
-    results: any[];
-    currentPage: number;
-    pageCount: number;
-    pageSize: number;
-    rowCount: number;
-    firstRowOnPage: number;
-    lastRowOnPage: number;
+    data: {
+      items: any[];
+      totalCount: number;
+      pageNumber: number;
+      pageSize: number;
+      totalPages: number;
+    }
   };
+  selectedProduct: any;
 }
 
 export const initialState: ProductState = {
   loading: false,
   error: null,
   products: {
-    results: [],
-    currentPage: 1,
-    pageCount: 1,
-    pageSize: 10,
-    rowCount: 0,
-    firstRowOnPage: 0,
-    lastRowOnPage: 0,
+    data: {
+      items: [],
+      totalCount: 0,
+      pageNumber: 1,
+      pageSize: 10,
+      totalPages: 1
+    }
   },
+  selectedProduct: null,
 };
 
 const productSlice = createSlice({
@@ -41,10 +44,25 @@ const productSlice = createSlice({
     });
     builder.addCase(getAllProducts.fulfilled, (state, action) => {
       state.loading = false;
-      state.products = action.payload.data;
+      state.products = action.payload;
       state.error = null;
     });
     builder.addCase(getAllProducts.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || null;
+    });
+
+    // Get Product by ID
+    builder.addCase(getProductById.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(getProductById.fulfilled, (state, action) => {
+      state.loading = false;
+      state.selectedProduct = action.payload.data;
+      state.error = null;
+    });
+    builder.addCase(getProductById.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message || null;
     });
@@ -56,7 +74,7 @@ const productSlice = createSlice({
     });
     builder.addCase(addProduct.fulfilled, (state, action) => {
       state.loading = false;
-      state.products.results.unshift(action.payload.data);
+      state.products.data.items.unshift(action.payload.data);
       state.error = null;
     });
     builder.addCase(addProduct.rejected, (state, action) => {
@@ -71,7 +89,7 @@ const productSlice = createSlice({
     });
     builder.addCase(updateProduct.fulfilled, (state, action) => {
       state.loading = false;
-      state.products.results = state.products.results.map(product =>
+      state.products.data.items = state.products.data.items.map(product =>
         product.id === action.payload.data.id ? action.payload.data : product
       );
       state.error = null;
@@ -88,7 +106,7 @@ const productSlice = createSlice({
     });
     builder.addCase(deleteProduct.fulfilled, (state, action) => {
       state.loading = false;
-      state.products.results = state.products.results.filter(
+      state.products.data.items = state.products.data.items.filter(
         product => product.id !== action.payload.data
       );
       state.error = null;
@@ -101,3 +119,4 @@ const productSlice = createSlice({
 });
 
 export default productSlice.reducer; 
+// ... existing code ...

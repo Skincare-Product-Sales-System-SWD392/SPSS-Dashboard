@@ -5,13 +5,13 @@ interface VoucherState {
   loading: boolean;
   error: string | null;
   vouchers: {
-    results: any[];
-    currentPage: number;
-    pageCount: number;
-    pageSize: number;
-    rowCount: number;
-    firstRowOnPage: number;
-    lastRowOnPage: number;
+    data: {
+      items: any[];
+      totalCount: number;
+      pageNumber: number;
+      pageSize: number;
+      totalPages: number;
+    };
   };
 }
 
@@ -19,14 +19,14 @@ export const initialState: VoucherState = {
   loading: false,
   error: null,
   vouchers: {
-    results: [],
-    currentPage: 1,
-    pageCount: 0,
-    pageSize: 10,
-    rowCount: 0,
-    firstRowOnPage: 0,
-    lastRowOnPage: 0,
-  },
+    data: {
+      items: [],
+      totalCount: 0,
+      pageNumber: 1,
+      pageSize: 5,
+      totalPages: 1
+    }
+  }
 };
 
 const voucherSlice = createSlice({
@@ -40,8 +40,7 @@ const voucherSlice = createSlice({
     });
     builder.addCase(getAllVouchers.fulfilled, (state, action) => {
       state.loading = false;
-      state.vouchers = action.payload.data || action.payload;
-      console.log("Voucher state after update:", state.vouchers);
+      state.vouchers = action.payload;
     });
     builder.addCase(getAllVouchers.rejected, (state, action) => {
       state.loading = false;
@@ -55,7 +54,7 @@ const voucherSlice = createSlice({
     });
     builder.addCase(addVoucher.fulfilled, (state, action) => {
       state.loading = false;
-      state.vouchers.results.unshift(action.payload.data);
+      state.vouchers.data.items.unshift(action.payload.data);
       state.error = null;
     });
     builder.addCase(addVoucher.rejected, (state, action) => {
@@ -70,7 +69,7 @@ const voucherSlice = createSlice({
     });
     builder.addCase(updateVoucher.fulfilled, (state, action) => {
       state.loading = false;
-      state.vouchers.results = state.vouchers.results.map(voucher =>
+      state.vouchers.data.items = state.vouchers.data.items.map(voucher =>
         voucher.id === action.payload.data.id ? action.payload.data : voucher
       );
       state.error = null;
@@ -87,7 +86,7 @@ const voucherSlice = createSlice({
     });
     builder.addCase(deleteVoucher.fulfilled, (state, action) => {
       state.loading = false;
-      state.vouchers.results = state.vouchers.results.filter(
+      state.vouchers.data.items = state.vouchers.data.items.filter(
         voucher => voucher.id !== action.payload.data
       );
       state.error = null;

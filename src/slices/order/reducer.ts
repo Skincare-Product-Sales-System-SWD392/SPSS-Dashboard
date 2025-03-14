@@ -1,10 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getAllBrands, addBrand, updateBrand, deleteBrand } from "./thunk";
+import { getAllOrders, addOrder, updateOrder, deleteOrder } from "./thunk";
 
-interface BrandState {
+interface OrderState {
   loading: boolean;
   error: string | null;
-  brands: {
+  orders: {
     data: {
       items: any[];
       totalCount: number;
@@ -15,10 +15,10 @@ interface BrandState {
   };
 }
 
-export const initialState: BrandState = {
+export const initialState: OrderState = {
   loading: false,
   error: null,
-  brands: {
+  orders: {
     data: {
       items: [],
       totalCount: 0,
@@ -29,77 +29,77 @@ export const initialState: BrandState = {
   },
 };
 
-const brandSlice = createSlice({
-  name: "brand",
+const orderSlice = createSlice({
+  name: "order",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    // Get Brands
-    builder.addCase(getAllBrands.pending, (state) => {
+    // Get Orders
+    builder.addCase(getAllOrders.pending, (state) => {
       state.loading = true;
       state.error = null;
     });
-    builder.addCase(getAllBrands.fulfilled, (state, action) => {
+    builder.addCase(getAllOrders.fulfilled, (state, action) => {
       state.loading = false;
-      state.brands = {
+      state.orders = {
         data: action.payload.data
       };
       state.error = null;
     });
-    builder.addCase(getAllBrands.rejected, (state, action) => {
+    builder.addCase(getAllOrders.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message || null;
     });
 
-    // Add Brand
-    builder.addCase(addBrand.pending, (state) => {
+    // Add Order
+    builder.addCase(addOrder.pending, (state) => {
       state.loading = true;
       state.error = null;
     });
-    builder.addCase(addBrand.fulfilled, (state, action) => {
+    builder.addCase(addOrder.fulfilled, (state, action) => {
       state.loading = false;
-      state.brands.data.items.unshift(action.payload.data);
+      state.orders.data.items.unshift(action.payload.data);
       state.error = null;
     });
-    builder.addCase(addBrand.rejected, (state, action) => {
+    builder.addCase(addOrder.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message || null;
     });
 
-    // Update Brand
-    builder.addCase(updateBrand.pending, (state) => {
+    // Update Order
+    builder.addCase(updateOrder.pending, (state) => {
       state.loading = true;
       state.error = null;
     });
-    builder.addCase(updateBrand.fulfilled, (state, action) => {
+    builder.addCase(updateOrder.fulfilled, (state, action) => {
       state.loading = false;
-      state.brands.data.items = state.brands.data.items.map(brand =>
-        brand.id === action.payload.data.id ? action.payload.data : brand
+      state.orders.data.items = state.orders.data.items.map(order =>
+        order.id === action.payload.data.id ? action.payload.data : order
       );
       state.error = null;
     });
-    builder.addCase(updateBrand.rejected, (state, action) => {
+    builder.addCase(updateOrder.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message || null;
     });
 
-    // Delete Brand
-    builder.addCase(deleteBrand.pending, (state) => {
+    // Delete Order
+    builder.addCase(deleteOrder.pending, (state) => {
       state.loading = true;
       state.error = null;
     });
-    builder.addCase(deleteBrand.fulfilled, (state, action) => {
+    builder.addCase(deleteOrder.fulfilled, (state, action) => {
       state.loading = false;
-      state.brands.data.items = state.brands.data.items.filter(
-        brand => brand.id !== action.payload.data
+      state.orders.data.items = state.orders.data.items.filter(
+        order => order.id !== action.payload.data
       );
       state.error = null;
     });
-    builder.addCase(deleteBrand.rejected, (state, action) => {
+    builder.addCase(deleteOrder.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message || null;
     });
   },
 });
 
-export default brandSlice.reducer; 
+export default orderSlice.reducer; 

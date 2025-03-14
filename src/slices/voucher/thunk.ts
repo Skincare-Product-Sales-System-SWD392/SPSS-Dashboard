@@ -11,17 +11,18 @@ export const getAllVouchers = createAsyncThunk(
   "voucher/getAllVouchers",
   async (params: { page: number, pageSize: number }) => {
     try {
-      console.log("Calling API with params:", params);
-      const response = await getAllVouchersApi({ Page: params.page, PageSize: params.pageSize });
-      console.log("API response:", response);
+      const response = await getAllVouchersApi({ 
+        pageNumber: params.page,
+        pageSize: params.pageSize 
+      });
+      
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to fetch skin types");
+        toast.error("Failed to fetch vouchers");
       }
-      console.error("API error:", error);
       throw error;
     }
   }
@@ -34,7 +35,8 @@ export const addVoucher = createAsyncThunk(
     try {
       const response = await createVoucherApi(voucher);
       toast.success("Voucher added successfully");
-      return response;
+      // Return the item from the response
+      return { data: response.data.items ? response.data.items[0] : response.data };
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
@@ -52,7 +54,8 @@ export const updateVoucher = createAsyncThunk(
     try {
       const response = await updateVoucherApi(voucher.id, voucher.data);
       toast.success("Voucher updated successfully");
-      return response;
+      // Return the updated item
+      return { data: response.data.items ? response.data.items[0] : response.data };
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
@@ -70,7 +73,8 @@ export const deleteVoucher = createAsyncThunk(
     try {
       const response = await deleteVoucherApi(id);
       toast.success("Voucher deleted successfully");
-      return response;
+      // Return the ID of the deleted item
+      return { data: id };
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);

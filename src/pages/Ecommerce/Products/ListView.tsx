@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import BreadCrumb from "Common/BreadCrumb";
-import Flatpickr from 'react-flatpickr';
 import { Link } from "react-router-dom";
 import { Dropdown } from "Common/Components/Dropdown";
 import Modal from "Common/Components/Modal";
@@ -39,10 +38,10 @@ const ListView = () => {
     const productSelector = createSelector(
         (state: any) => state.product,
         (product) => ({
-            products: product?.products?.results || [],
-            pageCount: product?.products?.rowCount ? Math.ceil(product?.products?.rowCount / pageSize) : 0,
-            firstRowOnPage: product?.products?.firstRowOnPage || 0,
-            rowCount: product?.products?.rowCount || 0,
+            products: product?.products?.data?.items || [],
+            pageCount: product?.products?.data?.totalPages || 0,
+            totalCount: product?.products?.data?.totalCount || 0,
+            pageNumber: product?.products?.data?.pageNumber || 1,
             loading: product?.loading || false,
             error: product?.error || null,
         })
@@ -65,13 +64,11 @@ const ListView = () => {
 
     // Update local data when products change
     useEffect(() => {
-        if (products) {
-            if (products.length === 0 && currentPage > 1) {
-                // If no data and not on first page, go back one page
-                setCurrentPage(prev => prev - 1);
-            } else {
-                setData(products);
-            }
+        if (products && products.length > 0) {
+            setData(products);
+        } else if (currentPage > 1 && products.length === 0) {
+            // If no data and not on first page, go back one page
+            setCurrentPage(prev => prev - 1);
         }
     }, [products, currentPage]);
 
@@ -100,29 +97,27 @@ const ListView = () => {
 
     // Search Data
     const filterSearchData = (e: any) => {
-        const search = e.target.value;
-        const keysToSearch = ['productCode', 'productName', 'category', 'status'];
-        filterDataBySearch(products, search, keysToSearch, setData);
-    };
-
-    // Date filtering function
-    const handleDateFilter = (dates: any) => {
-        if (!dates || dates.length === 0) {
-            setData(products); // Reset to all data if date is cleared
+        const searchTerm = e.target.value.toLowerCase();
+        const keysToSearch = ['name', 'description', 'price', 'marketPrice'];
+        
+        if (!searchTerm) {
+            setData(products);
             return;
         }
 
-        // Filter products by date range
-        const startDate = new Date(dates[0]);
-        const endDate = dates[1] ? new Date(dates[1]) : null;
-
         const filteredData = products.filter((item: any) => {
-            const productDate = new Date(item.createdAt || item.updatedAt);
-            if (endDate) {
-                return productDate >= startDate && productDate <= endDate;
-            } else {
-                return productDate >= startDate;
-            }
+            return keysToSearch.some(key => {
+                const value = item[key];
+                
+                // Handle different types of values
+                if (typeof value === 'string') {
+                    return value.toLowerCase().includes(searchTerm);
+                } else if (typeof value === 'number') {
+                    // Convert number to string for searching
+                    return value.toString().toLowerCase().includes(searchTerm);
+                }
+                return false;
+            });
         });
 
         setData(filteredData);
@@ -149,11 +144,10 @@ const ListView = () => {
         setShow(true);
     };
 
-    // Add handler for overview click
-    const handleOverviewClick = (ele: any) => {
-        setEventData({ ...ele });
-        setIsOverview(true);
-        setShow(true);
+    // Update handleOverviewClick to pass the ID in the URL
+    const handleOverviewClick = (data: any) => {
+        // Navigate to the overview page with the product ID as a query parameter
+        window.location.href = `/apps-ecommerce-product-overview?id=${data.id}`;
     };
 
     // Toggle modal
@@ -171,16 +165,8 @@ const ListView = () => {
 
     const columns = useMemo(() => [
         {
-            header: "Product Code",
-            accessorKey: "productCode",
-            enableColumnFilter: false,
-            cell: (cell: any) => (
-                <Link to="#" className="transition-all duration-150 ease-linear product_code text-custom-500 hover:text-custom-600">{cell.getValue()}</Link>
-            ),
-        },
-        {
             header: "Product Name",
-            accessorKey: "productName",
+            accessorKey: "name",
             enableColumnFilter: false,
             enableSorting: true,
             cell: (cell: any) => (
@@ -188,17 +174,17 @@ const ListView = () => {
                     const data = cell.row.original;
                     handleOverviewClick(data);
                 }}>
-                    <img src={cell.row.original.img} alt="Product images" className="h-6" />
-                    <h6 className="product_name">{cell.getValue()}</h6>
+                    <img src={cell.row.original.thumbnail || "https://placehold.co/200x200/gray/white?text=No+Image"} alt="Product images" className="h-10 w-10 object-cover" />
+                    <h6 className="product_name line-clamp-1 max-w-[200px]">{cell.getValue()}</h6>
                 </Link>
             ),
         },
         {
-            header: "Category",
-            accessorKey: "category",
+            header: "Description",
+            accessorKey: "description",
             enableColumnFilter: false,
             cell: (cell: any) => (
-                <span className="category px-2.5 py-0.5 text-xs inline-block font-medium rounded border bg-slate-100 border-slate-200 text-slate-500 dark:bg-slate-500/20 dark:border-slate-500/20 dark:text-zink-200">{cell.getValue()}</span>
+                <span className="description line-clamp-1 max-w-[250px]">{cell.getValue()}</span>
             ),
         },
         {
@@ -206,38 +192,29 @@ const ListView = () => {
             accessorKey: "price",
             enableColumnFilter: false,
             enableSorting: true,
+            cell: (cell: any) => (
+                <span className="whitespace-nowrap">{cell.getValue().toLocaleString()} VND</span>
+            ),
         },
         {
-            header: "Stock",
-            accessorKey: "stock",
-            enableColumnFilter: false,
-            enableSorting: true,
-        },
-        {
-            header: "Revenue",
-            accessorKey: "revenue",
-            enableColumnFilter: false,
-            enableSorting: true,
-        },
-        {
-            header: "Status",
-            accessorKey: "status",
+            header: "Market Price",
+            accessorKey: "marketPrice",
             enableColumnFilter: false,
             enableSorting: true,
             cell: (cell: any) => (
-                <Status item={cell.getValue()} />
+                <span className="whitespace-nowrap">{cell.getValue().toLocaleString()} VND</span>
             ),
         },
         {
             header: "Action",
+            accessorKey: "action",
             enableColumnFilter: false,
-            enableSorting: true,
             cell: (cell: any) => (
-                <Dropdown className="relative dropdown">
-                    <Dropdown.Trigger className="flex items-center justify-center size-[30px] dropdown-toggle p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400 dark:hover:bg-slate-500 dark:hover:text-white dark:focus:bg-slate-500 dark:focus:text-white dark:active:bg-slate-500 dark:active:text-white dark:ring-slate-400/20" id="productAction1" data-bs-toggle="dropdown">
+                <Dropdown className="relative">
+                    <Dropdown.Trigger id="orderAction1" data-bs-toggle="dropdown" className="flex items-center justify-center size-[30px] p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-zink-700 dark:text-zink-200 dark:hover:bg-slate-500 dark:hover:text-white dark:focus:bg-slate-500 dark:focus:text-white dark:active:bg-slate-500 dark:active:text-white dark:ring-slate-400/20">
                         <MoreHorizontal className="size-3" />
                     </Dropdown.Trigger>
-                    <Dropdown.Content placement={cell.row.index ? "top-end" : "right-end"} className="absolute z-50 py-2 mt-1 ltr:text-left rtl:text-right list-none bg-white rounded-md shadow-md dropdown-menu min-w-[10rem] dark:bg-zink-600" aria-labelledby="productAction1">
+                    <Dropdown.Content placement="right-end" className="absolute z-50 py-2 mt-1 ltr:text-left rtl:text-right list-none bg-white rounded-md shadow-md min-w-[10rem] dark:bg-zink-600" aria-labelledby="orderAction1">
                         <li>
                             <Link 
                                 to="#!" 
@@ -278,8 +255,7 @@ const ListView = () => {
                 </Dropdown>
             ),
         }
-    ], []
-    );
+    ], []);
 
     return (
         <React.Fragment>
@@ -293,19 +269,6 @@ const ListView = () => {
                             <div className="relative">
                                 <input type="text" className="ltr:pl-8 rtl:pr-8 search form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200" placeholder="Search for product..." autoComplete="off" onChange={(e) => filterSearchData(e)} />
                                 <Search className="inline-block size-4 absolute ltr:left-2.5 rtl:right-2.5 top-2.5 text-slate-500 dark:text-zink-200 fill-slate-100 dark:fill-zink-600" />
-                            </div>
-                        </div>
-                        <div className="xl:col-span-2">
-                            <div>
-                                <Flatpickr
-                                    className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                                    options={{
-                                        dateFormat: "d M, Y",
-                                        mode: "range",
-                                        onChange: (dates) => handleDateFilter(dates)
-                                    }}
-                                    placeholder='Select date'
-                                />
                             </div>
                         </div>
                         <div className="lg:col-span-2 ltr:lg:text-right rtl:lg:text-left xl:col-span-2 xl:col-start-11">
@@ -372,32 +335,23 @@ const ListView = () => {
                         <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
                             <div className="xl:col-span-12">
                                 <div className="flex items-center mb-4">
-                                    <img src={eventData?.img} alt="Product" className="h-16 mr-4" />
+                                    <img src={eventData?.thumbnail || "https://placehold.co/200x200/gray/white?text=No+Image"} alt="Product" className="h-16 w-16 object-cover mr-4" />
                                     <div>
-                                        <h5 className="text-lg font-semibold">{eventData?.productName}</h5>
-                                        <p className="text-sm text-slate-500">Code: {eventData?.productCode}</p>
+                                        <h5 className="text-lg font-semibold">{eventData?.name}</h5>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <p className="text-sm text-slate-500">Category</p>
-                                        <p>{eventData?.category}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-slate-500">Status</p>
-                                        <Status item={eventData?.status} />
+                                    <div className="col-span-2">
+                                        <p className="text-sm text-slate-500">Description</p>
+                                        <p>{eventData?.description}</p>
                                     </div>
                                     <div>
                                         <p className="text-sm text-slate-500">Price</p>
-                                        <p>{eventData?.price}</p>
+                                        <p>{eventData?.price?.toLocaleString()} VND</p>
                                     </div>
                                     <div>
-                                        <p className="text-sm text-slate-500">Stock</p>
-                                        <p>{eventData?.stock}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-slate-500">Revenue</p>
-                                        <p>{eventData?.revenue}</p>
+                                        <p className="text-sm text-slate-500">Market Price</p>
+                                        <p>{eventData?.marketPrice?.toLocaleString()} VND</p>
                                     </div>
                                 </div>
                             </div>

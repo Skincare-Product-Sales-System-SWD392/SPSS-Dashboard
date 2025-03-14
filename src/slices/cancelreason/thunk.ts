@@ -9,9 +9,13 @@ import {
 
 export const getAllCancelReasons = createAsyncThunk(
   "cancelReason/getAllCancelReasons",
-  async ({ page, pageSize }: { page: number; pageSize: number }) => {
+  async (params: { page: number, pageSize: number }) => {
     try {
-      const response = await getAllCancelReasonsApi({ Page: page, PageSize: pageSize });
+      const response = await getAllCancelReasonsApi({ 
+        pageNumber: params.page,
+        pageSize: params.pageSize 
+      });
+      
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
@@ -24,7 +28,6 @@ export const getAllCancelReasons = createAsyncThunk(
   }
 );
 
-// Add similar thunks for create, update, and delete 
 export const addCancelReason = createAsyncThunk(
   "cancelReason/addCancelReason",
   async (cancelReason: any) => {
