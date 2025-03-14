@@ -26,6 +26,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { createSelector } from "reselect";
 import { getAllSkinTypes, addSkinType, updateSkinType, deleteSkinType } from "slices/skintype/thunk";
 import { ToastContainer } from "react-toastify";
+
 const SkinType = () => {
   const dispatch = useDispatch<any>();
   const [currentPage, setCurrentPage] = useState(1);
@@ -38,17 +39,16 @@ const SkinType = () => {
   const skinTypeSelector = createSelector(
     (state: any) => state.SkinType,
     (SkinType) => ({
-      skinTypes: SkinType?.skinTypes?.results || [],
-      pageCount: Math.ceil((SkinType?.skinTypes?.rowCount || 0) / pageSize),
-      firstRowOnPage: SkinType?.skinTypes?.firstRowOnPage || 0,
-      rowCount: SkinType?.skinTypes?.rowCount || 0,
+      skinTypes: SkinType?.skinTypes?.data?.items || [],
+      pageCount: SkinType?.skinTypes?.data?.totalPages || 0,
+      firstRowOnPage: (SkinType?.skinTypes?.data?.pageNumber - 1) * pageSize + 1 || 0,
+      rowCount: SkinType?.skinTypes?.data?.totalCount || 0,
       loading: SkinType?.loading || false,
       error: SkinType?.error || null,
     })
   );
 
-  const { skinTypes, pageCount } =
-    useSelector(skinTypeSelector);
+  const { skinTypes, pageCount } = useSelector(skinTypeSelector);
 
   const [data, setData] = useState<any>([]);
   const [eventData, setEventData] = useState<any>();

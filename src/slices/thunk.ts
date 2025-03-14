@@ -23,7 +23,7 @@ export * from "./mailbox/thunk";
 
 export * from "./calendar/thunk";
 
-export * from "./ecommerce/thunk";
+// export * from "./ecommerce/thunk";
 
 export * from "./hrManagement/thunk";
 

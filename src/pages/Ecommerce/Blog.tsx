@@ -50,6 +50,52 @@ const Blog = () => {
   const [selectedBlog, setSelectedBlog] = useState<any>(null);
   const [isViewMode, setIsViewMode] = useState<boolean>(false);
   
+  // Sample data for demonstration
+  const sampleBlogs = [
+    {
+      id: 1,
+      title: "Getting Started with React Development",
+      content: "<p>React is a popular JavaScript library for building user interfaces. This blog post will guide you through the basics of React development and help you get started with your first React application.</p><p>We'll cover components, props, state, and more essential concepts.</p>",
+      image: "https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+      isLiked: false
+    },
+    {
+      id: 2,
+      title: "Understanding TypeScript for Modern Web Development",
+      content: "<p>TypeScript adds static typing to JavaScript, making it easier to develop and maintain large applications. In this post, we explore how TypeScript can improve your development workflow.</p><p>Learn about interfaces, types, generics, and other TypeScript features.</p>",
+      image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+      isLiked: true
+    },
+    {
+      id: 3,
+      title: "CSS Grid Layout: A Complete Guide",
+      content: "<p>CSS Grid Layout is a powerful tool for creating complex web layouts. This comprehensive guide will teach you everything you need to know about using CSS Grid effectively.</p><p>We'll cover grid containers, grid items, and responsive design techniques.</p>",
+      image: "https://images.unsplash.com/photo-1507721999472-8ed4421c4af2?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+      isLiked: false
+    },
+    {
+      id: 4,
+      title: "Introduction to Tailwind CSS",
+      content: "<p>Tailwind CSS is a utility-first CSS framework that allows you to build custom designs without leaving your HTML. This post introduces the core concepts of Tailwind and how to get started.</p><p>Learn about utility classes, responsive design, and customization options.</p>",
+      image: "https://images.unsplash.com/photo-1517180102446-f3ece451e9d8?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+      isLiked: true
+    },
+    {
+      id: 5,
+      title: "Building RESTful APIs with Node.js and Express",
+      content: "<p>Node.js and Express provide a powerful platform for building RESTful APIs. This tutorial walks through creating a complete API from scratch.</p><p>Topics include routing, middleware, authentication, and database integration.</p>",
+      image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+      isLiked: false
+    },
+    {
+      id: 6,
+      title: "Mastering Git for Team Collaboration",
+      content: "<p>Git is essential for modern software development teams. This guide covers advanced Git techniques to improve your team's collaboration workflow.</p><p>Learn about branching strategies, merge conflict resolution, and code review processes.</p>",
+      image: "https://images.unsplash.com/photo-1556075798-4825dfaaf498?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+      isLiked: false
+    }
+  ];
+  
   // Blog selector
   const blogSelector = createSelector(
     (state: any) => state.blog,
@@ -67,9 +113,16 @@ const Blog = () => {
 
   const [data, setData] = useState<any[]>([]);
   const [eventData, setEventData] = useState<any>();
+  const [useLocalData, setUseLocalData] = useState<boolean>(true); // Flag to use sample data
 
   // Get Data
   useEffect(() => {
+    if (useLocalData) {
+      // Use sample data instead of API call
+      setData(sampleBlogs);
+      return;
+    }
+    
     if (pageCount && currentPage > pageCount) {
       setCurrentPage(1);
       return;
@@ -87,7 +140,7 @@ const Blog = () => {
       .catch((error: any) => {
         console.error('Failed to fetch blogs:', error);
       });
-  }, [dispatch, currentPage, refreshFlag, pageCount]);
+  }, [dispatch, currentPage, refreshFlag, pageCount, useLocalData]);
 
   // Handle edit click
   const handleUpdateDataClick = useCallback((data: any) => {
@@ -243,14 +296,22 @@ const Blog = () => {
     }
   }, [show, validation]);
 
-  // Search function
+  // Search function - updated to work with sample data
   const filterSearchData = (e: any) => {
     const search = e.target.value.toLowerCase();
-    const filteredData = blogs.filter((item: any) => 
-      item.title?.toLowerCase().includes(search) ||
-      item.content?.toLowerCase().includes(search)
-    );
-    setData(filteredData);
+    if (useLocalData) {
+      const filteredData = sampleBlogs.filter((item: any) => 
+        item.title?.toLowerCase().includes(search) ||
+        item.content?.toLowerCase().includes(search)
+      );
+      setData(filteredData);
+    } else {
+      const filteredData = blogs.filter((item: any) => 
+        item.title?.toLowerCase().includes(search) ||
+        item.content?.toLowerCase().includes(search)
+      );
+      setData(filteredData);
+    }
   };
 
   // Pagination
@@ -278,61 +339,75 @@ const Blog = () => {
           >
             Blog Image <span className="text-red-500">*</span>
           </label>
-          <Dropzone
-            onDrop={(acceptfiles: any) => {
-              handleAcceptfiles(acceptfiles);
-              validation.setFieldValue('ImageUrl', acceptfiles[0]);
-            }}
-            disabled={isViewMode}
-          >
-            {({ getRootProps, getInputProps }: any) => (
-              <div className="flex items-center justify-center bg-white border border-dashed rounded-md cursor-pointer dropzone border-slate-200 dropzone2 dark:bg-zink-600 dark:border-zink-500">
-                <div
-                  className="w-full py-5 text-lg text-center dz-message needsClick"
-                  {...getRootProps()}
-                >
-                  <div className="mb-3">
-                    <UploadCloud className="block size-12 mx-auto text-slate-500 fill-slate-200 dark:text-zink-200 dark:fill-zink-500" />
+          {isViewMode ? (
+            // In view mode, just show the image without dropzone
+            <div className="rounded-md overflow-hidden mb-3">
+              {selectfiles && (
+                <img
+                  src={selectfiles.priview}
+                  alt="Blog Image"
+                  className="w-full h-auto max-h-[300px] object-contain"
+                />
+              )}
+            </div>
+          ) : (
+            // In edit mode, show the dropzone
+            <Dropzone
+              onDrop={(acceptfiles: any) => {
+                handleAcceptfiles(acceptfiles);
+                validation.setFieldValue('ImageUrl', acceptfiles[0]);
+              }}
+              disabled={isViewMode}
+            >
+              {({ getRootProps, getInputProps }: any) => (
+                <div className="flex items-center justify-center bg-white border border-dashed rounded-md cursor-pointer dropzone border-slate-200 dropzone2 dark:bg-zink-600 dark:border-zink-500">
+                  <div
+                    className="w-full py-5 text-lg text-center dz-message needsClick"
+                    {...getRootProps()}
+                  >
+                    <div className="mb-3">
+                      <UploadCloud className="block size-12 mx-auto text-slate-500 fill-slate-200 dark:text-zink-200 dark:fill-zink-500" />
+                    </div>
+                    <h5 className="mb-0 font-normal text-slate-500 dark:text-zink-200 text-15">
+                      Drag and drop your image or{" "}
+                      <span 
+                        className="text-custom-500 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.accept = 'image/*';
+                          input.onchange = (e: any) => {
+                            if (e.target.files && e.target.files.length > 0) {
+                              handleAcceptfiles([e.target.files[0]]);
+                              validation.setFieldValue('ImageUrl', e.target.files[0]);
+                            }
+                          };
+                          input.click();
+                        }}
+                      >
+                        browse
+                      </span>{" "}
+                      your image
+                    </h5>
+                    <input {...getInputProps()} />
                   </div>
-                  <h5 className="mb-0 font-normal text-slate-500 dark:text-zink-200 text-15">
-                    Drag and drop your image or{" "}
-                    <span 
-                      className="text-custom-500 cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = 'image/*';
-                        input.onchange = (e: any) => {
-                          if (e.target.files && e.target.files.length > 0) {
-                            handleAcceptfiles([e.target.files[0]]);
-                            validation.setFieldValue('ImageUrl', e.target.files[0]);
-                          }
-                        };
-                        input.click();
-                      }}
-                    >
-                      browse
-                    </span>{" "}
-                    your image
-                  </h5>
-                  <input {...getInputProps()} />
                 </div>
-              </div>
-            )}
-          </Dropzone>
+              )}
+            </Dropzone>
+          )}
 
-          {validation.touched.ImageUrl && validation.errors.ImageUrl ? (
+          {!isViewMode && validation.touched.ImageUrl && validation.errors.ImageUrl ? (
             <p className="text-red-400">
               {validation.errors.ImageUrl as string}
             </p>
           ) : null}
 
-          <ul
-            className="flex flex-wrap mb-0 gap-x-5"
-            id="dropzone-preview2"
-          >
-            {selectfiles && (
+          {!isViewMode && selectfiles && (
+            <ul
+              className="flex flex-wrap mb-0 gap-x-5"
+              id="dropzone-preview2"
+            >
               <li className="mt-5" id="dropzone-preview-list2">
                 <div className="border rounded border-slate-200 dark:border-zink-500">
                   <div className="p-2 text-center">
@@ -360,81 +435,46 @@ const Blog = () => {
                         data-dz-errormessage
                       ></strong>
                     </div>
-                    {!isViewMode && (
-                      <div className="mt-2">
-                        <button
-                          data-dz-remove
-                          className="px-2 py-1.5 text-xs text-white bg-red-500 border-red-500 btn hover:text-white hover:bg-red-600 hover:border-red-600 focus:text-white focus:bg-red-600 focus:border-red-600 focus:ring focus:ring-red-100 active:text-white active:bg-red-600 active:border-red-600 active:ring active:ring-red-100 dark:ring-custom-400/20"
-                          onClick={() => {
-                            setSelectfiles("");
-                            validation.setFieldValue("ImageUrl", null);
-                          }}
-                          type="button"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    )}
+                    <div className="mt-2">
+                      <button
+                        data-dz-remove
+                        className="px-2 py-1.5 text-xs text-white bg-red-500 border-red-500 btn hover:text-white hover:bg-red-600 hover:border-red-600 focus:text-white focus:bg-red-600 focus:border-red-600 focus:ring focus:ring-red-100 active:text-white active:bg-red-600 active:border-red-600 active:ring active:ring-red-100 dark:ring-custom-400/20"
+                        onClick={() => {
+                          setSelectfiles("");
+                          validation.setFieldValue("ImageUrl", null);
+                        }}
+                        type="button"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
               </li>
-            )}
-          </ul>
+            </ul>
+          )}
         </div>
         <div className="mb-3">
           <label className="inline-block mb-2 text-base font-medium">
             Title <span className="text-red-500">*</span>
           </label>
-          <CKEditor
-            editor={ClassicEditor}
-            data={validation.values.Title}
-            onChange={(event: any, editor: any) => {
-              if (!isViewMode) {
-                const data = editor.getData();
-                validation.setFieldValue('Title', data);
-              }
-            }}
-            config={{
-              toolbar: isViewMode ? [] : [
-                'heading',
-                '|',
-                'bold',
-                'italic',
-                'link',
-                'bulletedList',
-                'numberedList',
-                '|',
-                'outdent',
-                'indent',
-                '|',
-                'blockQuote',
-                'insertTable',
-                'undo',
-                'redo'
-              ],
-              removePlugins: isViewMode ? ['Toolbar'] : [],
-            }}
-          />
-          {validation.touched.Title && validation.errors.Title ? (
-            <p className="text-red-400">{validation.errors.Title as string}</p>
-          ) : null}
-        </div>
-        <div className="mb-3">
-          <label className="inline-block mb-2 text-base font-medium">
-            Content <span className="text-red-500">*</span>
-          </label>
-          <div className={`ck-editor__height ${isViewMode ? 'view-mode' : ''}`}>
+          {isViewMode ? (
+            // In view mode, just show the title as HTML
+            <div 
+              className="p-3 border rounded-md bg-slate-50 dark:bg-zink-600 dark:border-zink-500"
+              dangerouslySetInnerHTML={{ __html: validation.values.Title }}
+            ></div>
+          ) : (
+            // In edit mode, show the CKEditor
             <CKEditor
               editor={ClassicEditor}
-              data={validation.values.Content}
+              data={validation.values.Title}
               onChange={(event: any, editor: any) => {
-                if (!isViewMode) {
-                  const data = editor.getData();
-                  validation.setFieldValue('Content', data);
-                }
+                const data = editor.getData();
+                validation.setFieldValue('Title', data);
               }}
               config={{
-                toolbar: isViewMode ? [] : [
+                toolbar: [
                   'heading',
                   '|',
                   'bold',
@@ -450,12 +490,57 @@ const Blog = () => {
                   'insertTable',
                   'undo',
                   'redo'
-                ],
-                removePlugins: isViewMode ? ['Toolbar'] : [],
+                ]
               }}
             />
-          </div>
-          {validation.touched.Content && validation.errors.Content ? (
+          )}
+          {!isViewMode && validation.touched.Title && validation.errors.Title ? (
+            <p className="text-red-400">{validation.errors.Title as string}</p>
+          ) : null}
+        </div>
+        <div className="mb-3">
+          <label className="inline-block mb-2 text-base font-medium">
+            Content <span className="text-red-500">*</span>
+          </label>
+          {isViewMode ? (
+            // In view mode, just show the content as HTML
+            <div 
+              className="p-3 border rounded-md bg-slate-50 dark:bg-zink-600 dark:border-zink-500 blog-content"
+              dangerouslySetInnerHTML={{ __html: validation.values.Content }}
+            ></div>
+          ) : (
+            // In edit mode, show the CKEditor
+            <div className="ck-editor__height">
+              <CKEditor
+                editor={ClassicEditor}
+                data={validation.values.Content}
+                onChange={(event: any, editor: any) => {
+                  const data = editor.getData();
+                  validation.setFieldValue('Content', data);
+                }}
+                config={{
+                  toolbar: [
+                    'heading',
+                    '|',
+                    'bold',
+                    'italic',
+                    'link',
+                    'bulletedList',
+                    'numberedList',
+                    '|',
+                    'outdent',
+                    'indent',
+                    '|',
+                    'blockQuote',
+                    'insertTable',
+                    'undo',
+                    'redo'
+                  ]
+                }}
+              />
+            </div>
+          )}
+          {!isViewMode && validation.touched.Content && validation.errors.Content ? (
             <p className="text-red-400">{validation.errors.Content as string}</p>
           ) : null}
         </div>
@@ -615,7 +700,7 @@ const Blog = () => {
       <ToastContainer closeButton={false} limit={1} />
       <form action="#!" className="mb-5">
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
-          <div className="relative lg:col-span-3">
+          <div className="relative lg:col-span-6">
             <input
               type="text"
               className="ltr:pl-8 rtl:pr-8 search form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
@@ -625,7 +710,7 @@ const Blog = () => {
             />
             <Search className="inline-block size-4 absolute ltr:left-2.5 rtl:right-2.5 top-2.5 text-slate-500 dark:text-zink-200 fill-slate-100 dark:fill-zink-600" />
           </div>
-          <div className="ltr:lg:text-right rtl:lg:text-left lg:col-span-3 lg:col-start-10">
+          <div className="ltr:lg:text-right rtl:lg:text-left lg:col-span-6">
             <button
               type="button"
               className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
@@ -838,6 +923,33 @@ const Blog = () => {
           
           .object-cover {
             object-fit: cover;
+          }
+
+          /* Blog content styling for view mode */
+          .blog-content {
+            min-height: 200px;
+            max-height: 500px;
+            overflow-y: auto;
+          }
+          
+          .blog-content p {
+            margin-bottom: 1rem;
+          }
+          
+          .blog-content ul, .blog-content ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+          }
+          
+          .blog-content h1, .blog-content h2, .blog-content h3, 
+          .blog-content h4, .blog-content h5, .blog-content h6 {
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+          }
+          
+          .dark .blog-content {
+            color: #e5e7eb;
           }
         `}
       </style>

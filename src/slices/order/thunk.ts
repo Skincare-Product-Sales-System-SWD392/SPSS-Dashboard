@@ -1,81 +1,80 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
 import {
-  getAllBrands as getAllBrandsApi,
-  createBrand as createBrandApi,
-  updateBrand as updateBrandApi,
-  deleteBrand as deleteBrandApi,
+  getAllOrders as getAllOrdersApi,
+  createOrder as createOrderApi,
+  updateOrder as updateOrderApi,
+  deleteOrder as deleteOrderApi,
 } from "../../helpers/fakebackend_helper";
 
-export const getAllBrands = createAsyncThunk(
-  "brand/getAllBrands",
+export const getAllOrders = createAsyncThunk(
+  "order/getAllOrders",
   async (params: { page: number, pageSize: number }) => {
     try {
-      const response = await getAllBrandsApi({ 
+      const response = await getAllOrdersApi({ 
         pageNumber: params.page,
         pageSize: params.pageSize 
       });
-      
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to fetch brands");
+        toast.error("Failed to fetch orders");
       }
       throw error;
     }
   }
 );
 
-export const addBrand = createAsyncThunk(
-  "brand/addBrand",
-  async (brand: any) => {
+export const addOrder = createAsyncThunk(
+  "order/addOrder",
+  async (order: any) => {
     try {
-      const response = await createBrandApi(brand);
-      toast.success("Brand added successfully");
+      const response = await createOrderApi(order);
+      toast.success("Order added successfully");
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to add brand");
+        toast.error("Failed to add order");
       }
       throw error;
     }
   }
 );
 
-export const updateBrand = createAsyncThunk(
-  "brand/updateBrand",
-  async (brand: { id: string, data: any }) => {
+export const updateOrder = createAsyncThunk(
+  "order/updateOrder",
+  async (order: { id: string, data: any }) => {
     try {
-      const response = await updateBrandApi(brand.id, brand.data);
-      toast.success("Brand updated successfully");
+      const response = await updateOrderApi(order.id, order.data);
+      toast.success("Order updated successfully");
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to update brand");
+        toast.error("Failed to update order");
       }
       throw error;
     }
   }
 );
 
-export const deleteBrand = createAsyncThunk(
-  "brand/deleteBrand",
+export const deleteOrder = createAsyncThunk(
+  "order/deleteOrder",
   async (id: string) => {
     try {
-      const response = await deleteBrandApi(id);
-      toast.success("Brand deleted successfully");
+      const response = await deleteOrderApi(id);
+      toast.success("Order deleted successfully");
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to delete brand");
+        toast.error("Failed to delete order");
       }
       throw error;
     }

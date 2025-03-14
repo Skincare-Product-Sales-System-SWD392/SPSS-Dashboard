@@ -52,50 +52,51 @@ export const UPDATE_BLOG = "/api/v1/Blog";
 export const DELETE_BLOG = "/api/v1/Blog";
 
 // Payment Method
-export const GET_ALL_PAYMENT_METHODS = "/api/v1/PaymentMethod/all";
-export const CREATE_PAYMENT_METHOD = "/api/v1/PaymentMethod";
-export const UPDATE_PAYMENT_METHOD = "/api/v1/PaymentMethod";
-export const DELETE_PAYMENT_METHOD = "/api/v1/PaymentMethod";
+export const GET_ALL_PAYMENT_METHODS = "/api/payment-methods";
+export const CREATE_PAYMENT_METHOD = "/api/payment-methods";
+export const UPDATE_PAYMENT_METHOD = "/api/payment-methods";
+export const DELETE_PAYMENT_METHOD = "/api/payment-methods";
 
 // Skin Type
-export const GET_ALL_SKIN_TYPES = "/api/v1/SkinType/all";
-export const CREATE_SKIN_TYPE = "/api/v1/SkinType";
-export const UPDATE_SKIN_TYPE = "/api/v1/SkinType";
-export const DELETE_SKIN_TYPE = "/api/v1/SkinType";
+export const GET_ALL_SKIN_TYPES = "/api/skin-types";
+export const CREATE_SKIN_TYPE = "/api/skin-types";
+export const UPDATE_SKIN_TYPE = "/api/skin-types";
+export const DELETE_SKIN_TYPE = "/api/skin-types";
 
 // Cancel Reason
-export const GET_ALL_CANCEL_REASONS = "/api/v1/CancelReason/all";
-export const CREATE_CANCEL_REASON = "/api/v1/CancelReason";
-export const UPDATE_CANCEL_REASON = "/api/v1/CancelReason";
-export const DELETE_CANCEL_REASON = "/api/v1/CancelReason";
+export const GET_ALL_CANCEL_REASONS = "/api/cancel-reasons";
+export const CREATE_CANCEL_REASON = "/api/cancel-reasons";
+export const UPDATE_CANCEL_REASON = "/api/cancel-reasons";
+export const DELETE_CANCEL_REASON = "/api/cancel-reasons";
 
 // Products
 // List View
-export const GET_ALL_PRODUCTS = "/api/v1/Product/all";
-export const CREATE_PRODUCT = "/api/v1/Product";
-export const UPDATE_PRODUCT = "/api/v1/Product";
-export const DELETE_PRODUCT = "/api/v1/Product";
+export const GET_ALL_PRODUCTS = "/api/products";
+export const GET_PRODUCT_BY_ID = "/api/products";
+export const CREATE_PRODUCT = "/api/products";
+export const UPDATE_PRODUCT = "/api/products";
+export const DELETE_PRODUCT = "/api/products";
 
 // Country
-export const GET_ALL_COUNTRIES = "/api/v1/Country/all";
+export const GET_ALL_COUNTRIES = "/api/countries";
 
 // Brand
-export const GET_ALL_BRANDS = "/api/v1/Brand/all";
-export const CREATE_BRAND = "/api/v1/Brand";
-export const UPDATE_BRAND = "/api/v1/Brand";
-export const DELETE_BRAND = "/api/v1/Brand";
+export const GET_ALL_BRANDS = "/api/brands";
+export const CREATE_BRAND = "/api/brands";
+export const UPDATE_BRAND = "/api/brands";
+export const DELETE_BRAND = "/api/brands";
 
 // Voucher
-export const GET_ALL_VOUCHERS = "/api/v1/Voucher/all";
-export const CREATE_VOUCHER = "/api/v1/Voucher";
-export const UPDATE_VOUCHER = "/api/v1/Voucher";
-export const DELETE_VOUCHER = "/api/v1/Voucher";
+export const GET_ALL_VOUCHERS = "/api/voucher";
+export const CREATE_VOUCHER = "/api/voucher";
+export const UPDATE_VOUCHER = "/api/voucher";
+export const DELETE_VOUCHER = "/api/voucher";
 
 // Orders
-export const GET_ORDERS = "/get-orders";
-export const ADD_ORDERS = "/add-orders";
-export const UPDATE_ORDERS = "/edit-orders";
-export const DELETE_ORDERS = "/delete-orders";
+export const GET_ALL_ORDERS = "/api/orders";
+export const CREATE_ORDERS = "/api/orders";
+export const UPDATE_ORDERS = "/api/orders";
+export const DELETE_ORDERS = "/api/orders";
 
 // Sellers
 export const GET_SELLERS = "/get-sellers";

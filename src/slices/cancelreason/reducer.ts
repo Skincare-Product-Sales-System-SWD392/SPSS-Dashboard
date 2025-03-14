@@ -5,13 +5,13 @@ interface CancelReasonState {
   loading: boolean;
   error: string | null;
   cancelReasons: {
-    results: any[];
-    currentPage: number;
-    pageCount: number;
-    pageSize: number;
-    rowCount: number;
-    firstRowOnPage: number;
-    lastRowOnPage: number;
+    data: {
+      items: any[];
+      totalCount: number;
+      pageNumber: number;
+      pageSize: number;
+      totalPages: number;
+    }
   };
 }
 
@@ -19,13 +19,13 @@ export const initialState: CancelReasonState = {
   loading: false,
   error: null,
   cancelReasons: {
-    results: [],
-    currentPage: 1,
-    pageCount: 1,
-    pageSize: 10,
-    rowCount: 0,
-    firstRowOnPage: 0,
-    lastRowOnPage: 0,
+    data: {
+      items: [],
+      totalCount: 0,
+      pageNumber: 1,
+      pageSize: 5,
+      totalPages: 1
+    }
   },
 };
 
@@ -41,7 +41,9 @@ const cancelReasonSlice = createSlice({
     });
     builder.addCase(getAllCancelReasons.fulfilled, (state, action) => {
       state.loading = false;
-      state.cancelReasons = action.payload.data;
+      state.cancelReasons = {
+        data: action.payload.data
+      };
       state.error = null;
     });
     builder.addCase(getAllCancelReasons.rejected, (state, action) => {
@@ -56,7 +58,7 @@ const cancelReasonSlice = createSlice({
     });
     builder.addCase(addCancelReason.fulfilled, (state, action) => {
       state.loading = false;
-      state.cancelReasons.results.unshift(action.payload.data);
+      state.cancelReasons.data.items.unshift(action.payload.data);
       state.error = null;
     });
     builder.addCase(addCancelReason.rejected, (state, action) => {
@@ -71,8 +73,8 @@ const cancelReasonSlice = createSlice({
     });
     builder.addCase(updateCancelReason.fulfilled, (state, action) => {
       state.loading = false;
-      state.cancelReasons.results = state.cancelReasons.results.map(cancelReason =>
-        cancelReason.description === action.payload.data.description ? action.payload.data : cancelReason
+      state.cancelReasons.data.items = state.cancelReasons.data.items.map(cancelReason =>
+        cancelReason.id === action.payload.data.id ? action.payload.data : cancelReason
       );
       state.error = null;
     });
@@ -88,8 +90,8 @@ const cancelReasonSlice = createSlice({
     });
     builder.addCase(deleteCancelReason.fulfilled, (state, action) => {
       state.loading = false;
-      state.cancelReasons.results = state.cancelReasons.results.filter(
-        cancelReason => cancelReason.description !== action.payload.data
+      state.cancelReasons.data.items = state.cancelReasons.data.items.filter(
+        cancelReason => cancelReason.id !== action.payload.data
       );
       state.error = null;
     });

@@ -8,10 +8,14 @@ import {
 } from "../../helpers/fakebackend_helper";
 
 export const getAllPaymentMethods = createAsyncThunk(
-  "paymentMethod/getAllPaymentMethods",
-  async ({ page, pageSize }: { page: number; pageSize: number }) => {
+  "voucher/getAllVouchers",
+  async (params: { page: number, pageSize: number }) => {
     try {
-      const response = await getAllPaymentMethodsApi({ Page: page, PageSize: pageSize });
+      const response = await getAllPaymentMethodsApi({ 
+        pageNumber: params.page,
+        pageSize: params.pageSize 
+      });
+      
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
@@ -23,7 +27,6 @@ export const getAllPaymentMethods = createAsyncThunk(
     }
   }
 );
-
 // Add similar thunks for create, update, and delete payment methods
 export const addPaymentMethod = createAsyncThunk(
   "paymentMethod/addPaymentMethod",

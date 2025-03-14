@@ -42,30 +42,29 @@ const PaymentMethod = () => {
 
   const paymentMethodSelector = createSelector(
     (state: any) => state.paymentMethod,
-    (paymentMethod) => ({
-      paymentMethods: paymentMethod?.paymentMethods?.results || [],
-      pageCount: Math.ceil((paymentMethod?.paymentMethods?.rowCount || 0) / pageSize),
-      firstRowOnPage: paymentMethod?.paymentMethods?.firstRowOnPage || 0,
-      rowCount: paymentMethod?.paymentMethods?.rowCount || 0,
-      loading: paymentMethod?.loading || false,
-      error: paymentMethod?.error || null,
-    })
+    (paymentMethod) => {
+      return {
+        paymentMethods: paymentMethod?.paymentMethods?.data?.items || [],
+        totalPages: paymentMethod?.paymentMethods?.data?.totalPages || 1,
+        currentPage: paymentMethod?.paymentMethods?.data?.pageNumber || 1,
+        pageSize: paymentMethod?.paymentMethods?.data?.pageSize || 5,
+        totalCount: paymentMethod?.paymentMethods?.data?.totalCount || 0,
+        loading: paymentMethod?.loading || false,
+        error: paymentMethod?.error || null,
+      };
+    }
   );
+  
 
-  const { paymentMethods, pageCount } = useSelector(paymentMethodSelector);
+  const { paymentMethods, totalPages, loading, error } = useSelector(paymentMethodSelector);
 
   const [data, setData] = useState<any>([]);
   const [eventData, setEventData] = useState<any>();
 
   // Get Data
   useEffect(() => {
-    // Don't fetch if current page is greater than page count
-    if (pageCount && currentPage > pageCount) {
-      setCurrentPage(1); // Reset to first page
-      return;
-    }
     dispatch(getAllPaymentMethods({ page: currentPage, pageSize }));
-  }, [dispatch, currentPage, refreshFlag, pageCount]);
+  }, [dispatch, currentPage, pageSize, refreshFlag]);
 
   useEffect(() => {
     if (paymentMethods) {
@@ -92,6 +91,13 @@ const PaymentMethod = () => {
   const filterSearchData = (e: any) => {
     const search = e.target.value;
     const keysToSearch = ['paymentType', 'id'];
+    
+    // If search is empty, restore original data
+    if (!search.trim()) {
+      setData(paymentMethods);
+      return;
+    }
+
     const filteredData = paymentMethods.filter((item: any) => {
       return keysToSearch.some((key) => {
         const value = item[key]?.toString().toLowerCase() || '';
@@ -126,14 +132,12 @@ const PaymentMethod = () => {
   // Delete handler
   const handleDelete = () => {
     if (eventData) {
-      console.log("Deleting payment method with ID:", eventData.id);
       dispatch(deletePaymentMethod(eventData.id))
         .then(() => {
           setDeleteModal(false);
           setRefreshFlag(prev => !prev);
         })
         .catch((error: any) => {
-          console.error("Error deleting payment method:", error);
           setDeleteModal(false);
         });
     }
@@ -155,9 +159,9 @@ const PaymentMethod = () => {
         let imageUrl = values.imageUrl;
         
         // If the imageUrl is a File object (new upload), upload it to Firebase
-        if (values.imageUrl instanceof File) {
+        if (selectfiles && selectfiles instanceof File) {
           const firebaseBackend = getFirebaseBackend();
-          imageUrl = await firebaseBackend.uploadFile(values.imageUrl, 'SPSS/PaymentMethod-Image');
+          imageUrl = await firebaseBackend.uploadFile(selectfiles, 'SPSS/PaymentMethod-Image');
         }
 
         if (isEdit) {
@@ -185,7 +189,7 @@ const PaymentMethod = () => {
             });
         }
       } catch (error) {
-        console.error('Error processing image upload:', error);
+        // console.error removed
       }
     },
   });
@@ -314,6 +318,9 @@ const PaymentMethod = () => {
     []
   );
 
+  // Define pageCount variable from the selector
+  const pageCount = totalPages;
+
   return (
     <React.Fragment>
       <BreadCrumb title="Payment Methods" pageTitle="Payment Methods" />
@@ -353,7 +360,13 @@ const PaymentMethod = () => {
           </div>
         </div>
         <div className="!pt-1 card-body">
-          {data && data.length > 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-10">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status">
+                <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span>
+              </div>
+            </div>
+          ) : data && data.length > 0 ? (
             <TableContainer
               isPagination={true}
               columns={columns || []}
@@ -363,7 +376,6 @@ const PaymentMethod = () => {
               currentPage={currentPage}
               onPageChange={(page: number) => {
                 setCurrentPage(page);
-                dispatch(getAllPaymentMethods({ page, pageSize }));
               }}
               divclassName="overflow-x-auto"
               tableclassName="w-full whitespace-nowrap"
@@ -446,17 +458,18 @@ const PaymentMethod = () => {
                   }}
                   disabled={isOverview}
                 >
-                  {({ getRootProps }: any) => (
+                  {({ getRootProps, getInputProps }: any) => (
                     <div className="flex items-center justify-center bg-white border border-dashed rounded-md cursor-pointer dropzone border-slate-200 dropzone2 dark:bg-zink-600 dark:border-zink-500">
                       <div
                         className="w-full py-5 text-lg text-center dz-message needsclick"
                         {...getRootProps()}
                       >
+                        <input {...getInputProps()} />
                         <div className="mb-3">
                           <UploadCloud className="block size-12 mx-auto text-slate-500 fill-slate-200 dark:text-zink-200 dark:fill-zink-500" />
                         </div>
                         <h5 className="mb-0 font-normal text-slate-500 dark:text-zink-200 text-15">
-                          Drag and drop your logo or <Link to="#!">browse</Link>{" "}
+                          Drag and drop your logo or <span className="text-custom-500">browse</span>{" "}
                           your logo
                         </h5>
                       </div>

@@ -38,16 +38,17 @@ const CancelReason = () => {
   const cancelReasonSelector = createSelector(
     (state: any) => state.cancelReason,
     (cancelReason) => ({
-      cancelReasons: cancelReason?.cancelReasons?.results || [],
-      pageCount: cancelReason?.cancelReasons?.pageCount || 0,
-      firstRowOnPage: cancelReason?.cancelReasons?.firstRowOnPage || 0,
-      rowCount: cancelReason?.cancelReasons?.rowCount || 0,
+      cancelReasons: cancelReason?.cancelReasons?.data?.items || [],
+      totalPages: cancelReason?.cancelReasons?.data?.totalPages || 1,
+      currentPage: cancelReason?.cancelReasons?.data?.pageNumber || 1,
+      pageSize: cancelReason?.cancelReasons?.data?.pageSize || 10,
+      totalCount: cancelReason?.cancelReasons?.data?.totalCount || 0,
       loading: cancelReason?.loading || false,
       error: cancelReason?.error || null,
     })
   );
 
-  const { cancelReasons, pageCount } =
+  const { cancelReasons, totalPages, currentPage: apiCurrentPage, pageSize: apiPageSize, totalCount } =
     useSelector(cancelReasonSelector);
 
   const [data, setData] = useState<any>([]);
@@ -55,24 +56,24 @@ const CancelReason = () => {
 
   // Get Data
   useEffect(() => {
-    // Don't fetch if current page is greater than page count
-    if (pageCount && currentPage > pageCount) {
+    // Don't fetch if current page is greater than total pages and total pages is not 0
+    if (totalPages > 0 && currentPage > totalPages) {
       setCurrentPage(1); // Reset to first page
       return;
     }
     dispatch(getAllCancelReasons({ page: currentPage, pageSize }));
-  }, [dispatch, currentPage, refreshFlag, pageCount]);
+  }, [dispatch, currentPage, refreshFlag, totalPages]);
 
   useEffect(() => {
     if (cancelReasons) {
-      if (cancelReasons.length === 0 && currentPage > 1) {
+      if (cancelReasons.length === 0 && currentPage > 1 && totalCount === 0) {
         // If no data and not on first page, go back one page
         setCurrentPage(prev => prev - 1);
       } else {
         setData(cancelReasons);
       }
     }
-  }, [cancelReasons, currentPage]);
+  }, [cancelReasons, currentPage, totalCount]);
 
   // Delete Modal
   const [deleteModal, setDeleteModal] = useState<boolean>(false);
@@ -90,6 +91,12 @@ const CancelReason = () => {
   const filterSearchData = (e: any) => {
     const search = e.target.value;
     const keysToSearch = ['id', 'description', 'refundRate'];
+    
+    if (!search.trim()) {
+      setData(cancelReasons);
+      return;
+    }
+    
     const filteredData = cancelReasons.filter((item: any) => {
       return keysToSearch.some((key) => {
         const value = item[key]?.toString().toLowerCase() || '';
@@ -102,13 +109,16 @@ const CancelReason = () => {
   
 
   // Delete handler: Processes the deletion of a cancel reason
-  // Called when user confirms deletion in the modal
   const handleDelete = () => {
-    if (eventData) {
+    if (eventData && eventData.id) {
       dispatch(deleteCancelReason(eventData.id))
         .then(() => {
           setDeleteModal(false);
           setRefreshFlag(prev => !prev); // Trigger data refresh after deletion
+        })
+        .catch((error : any) => {
+          // Error is handled in the thunk
+          setDeleteModal(false);
         });
     }
   };
@@ -297,11 +307,10 @@ const CancelReason = () => {
               columns={columns || []}
               data={data || []}
               customPageSize={pageSize}
-              pageCount={pageCount}
+              pageCount={totalPages}
               currentPage={currentPage}
               onPageChange={(page: number) => {
                 setCurrentPage(page);
-                dispatch(getAllCancelReasons({ page, pageSize }));
               }}
               divclassName="overflow-x-auto"
               tableclassName="w-full whitespace-nowrap"

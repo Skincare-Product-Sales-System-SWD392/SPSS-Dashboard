@@ -8,10 +8,13 @@ import {
 } from "../../helpers/fakebackend_helper";
 
 export const getAllSkinTypes = createAsyncThunk(
-  "skinType/getAllSkinTypes",
-  async ({ page, pageSize }: { page: number; pageSize: number }) => {
+  "skintype/getAllSkinTypes",
+  async (params: { page: number, pageSize: number }) => {
     try {
-      const response = await getAllSkinTypesApi({ Page: page, PageSize: pageSize });
+      const response = await getAllSkinTypesApi({ 
+        pageNumber: params.page,
+        pageSize: params.pageSize 
+      });
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
@@ -24,9 +27,8 @@ export const getAllSkinTypes = createAsyncThunk(
   }
 );
 
-// Add similar thunks for create, update, and delete 
 export const addSkinType = createAsyncThunk(
-  "skinType/addSkinType",
+  "skintype/addSkinType",
   async (skinType: any) => {
     try {
       const response = await createSkinTypeApi(skinType);
@@ -44,7 +46,7 @@ export const addSkinType = createAsyncThunk(
 );
 
 export const updateSkinType = createAsyncThunk(
-  "skinType/updateSkinType",
+  "skintype/updateSkinType",
   async (skinType: { id: string, data: any }) => {
     try {
       const response = await updateSkinTypeApi(skinType.id, skinType.data);
@@ -62,7 +64,7 @@ export const updateSkinType = createAsyncThunk(
 );
 
 export const deleteSkinType = createAsyncThunk(
-  "skinType/deleteSkinType",
+  "skintype/deleteSkinType",
   async (id: string) => {
     try {
       const response = await deleteSkinTypeApi(id);

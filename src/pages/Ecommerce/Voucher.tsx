@@ -24,8 +24,13 @@ import * as Yup from "yup";
 // react-redux
 import { useDispatch, useSelector } from "react-redux";
 import { createSelector } from "reselect";
-import { getAllVouchers, addVoucher, updateVoucher, deleteVoucher } from "slices/voucher/thunk";
-import { ToastContainer } from "react-toastify";  
+import {
+  getAllVouchers,
+  addVoucher,
+  updateVoucher,
+  deleteVoucher,
+} from "slices/voucher/thunk";
+import { ToastContainer } from "react-toastify";
 const Voucher = () => {
   const dispatch = useDispatch<any>();
   const [currentPage, setCurrentPage] = useState(1);
@@ -37,74 +42,42 @@ const Voucher = () => {
 
   const voucherState = useSelector((state: any) => state.Voucher);
   useEffect(() => {
-    console.log("Full Voucher Redux state:", voucherState);
   }, [voucherState]);
 
   const voucherSelector = createSelector(
     (state: any) => state.Voucher,
     (Voucher) => {
-      console.log("Selector received state:", Voucher);
       return {
-        vouchers: Voucher?.vouchers?.results || [],
-        pageCount: Math.ceil((Voucher?.vouchers?.rowCount || 0) / pageSize),
-        firstRowOnPage: Voucher?.vouchers?.firstRowOnPage || 0,
-        rowCount: Voucher?.vouchers?.rowCount || 0,
+        vouchers: Voucher?.vouchers?.data?.items || [],
+        totalPages: Voucher?.vouchers?.data?.totalPages || 1,
+        currentPage: Voucher?.vouchers?.data?.pageNumber || 1,
+        pageSize: Voucher?.vouchers?.data?.pageSize || 5,
+        totalCount: Voucher?.vouchers?.data?.totalCount || 0,
         loading: Voucher?.loading || false,
         error: Voucher?.error || null,
       };
     }
   );
 
-  const { vouchers, pageCount, loading, error } =
-    useSelector(voucherSelector);
-
-  // Add this for debugging
-  useEffect(() => {
-    console.log("Voucher state:", vouchers);
-    console.log("Loading state:", loading);
-    console.log("Error state:", error);
-  }, [vouchers, loading, error]);
-
+  const { vouchers, totalPages, loading, error } = useSelector(voucherSelector);
   const [data, setData] = useState<any>([]);
   const [eventData, setEventData] = useState<any>();
 
-  // Get Data
+  // Fix pagination issue
   useEffect(() => {
-    // Don't fetch if current page is greater than page count
-    if (pageCount && currentPage > pageCount) {
-      setCurrentPage(1); // Reset to first page
-      return;
-    }
-    
-    console.log("Fetching vouchers with page:", currentPage, "pageSize:", pageSize);
-    
-    dispatch(getAllVouchers({ page: currentPage, pageSize }))
-      .then((response: any) => {
-        console.log("Voucher API response:", response);
-        // Check if the response has the expected structure
-        if (response && response.payload && response.payload.results) {
-          console.log("Voucher results:", response.payload.results);
-        }
-      })
-      .catch((error: any) => {
-        console.error("Error fetching vouchers:", error);
-      });
-  }, [dispatch, currentPage, refreshFlag, pageCount]);
+    dispatch(getAllVouchers({ page: currentPage, pageSize }));
+  }, [dispatch, currentPage, pageSize, refreshFlag]);
 
+  // Separate effect to handle empty pages
   useEffect(() => {
-    console.log("Vouchers from state:", vouchers);
     if (vouchers && Array.isArray(vouchers)) {
-      if (vouchers.length === 0 && currentPage > 1) {
-        // If no data and not on first page, go back one page
-        setCurrentPage(prev => prev - 1);
+      if (vouchers.length === 0 && currentPage > 1 && !loading) {
+        setCurrentPage((prev) => prev - 1);
       } else {
-        console.log("Setting data from vouchers:", vouchers);
         setData(vouchers);
       }
-    } else {
-      console.error("Vouchers is not an array:", vouchers);
     }
-  }, [vouchers, currentPage]);
+  }, [vouchers, currentPage, loading]);
 
   // Delete Modal
   const [deleteModal, setDeleteModal] = useState<boolean>(false);
@@ -121,34 +94,36 @@ const Voucher = () => {
   // Search functionality: Filters skin types based on user input
   const filterSearchData = (e: any) => {
     const search = e.target.value;
-    const keysToSearch = ['name', 'code', 'description', 'status', 'discountRate', 'usageLimit', 'minimumOrderValue', 'startDate', 'endDate'];
+    const keysToSearch = [
+      "code",
+      "description",
+      "status",
+      "discountRate",
+      "usageLimit",
+      "minimumOrderValue",
+      "startDate",
+      "endDate",
+    ];
     const filteredData = vouchers.filter((item: any) => {
       return keysToSearch.some((key) => {
-        const value = item[key]?.toString().toLowerCase() || '';
+        const value = item[key]?.toString().toLowerCase() || "";
         return value.includes(search.toLowerCase());
       });
     });
     setData(filteredData);
   };
 
-  
-
   // Delete handler: Processes the deletion of a skin type
   // Called when user confirms deletion in the modal
   const handleDelete = () => {
     if (eventData && eventData.id) {
-      console.log("Attempting to delete voucher with ID:", eventData.id);
-      
       dispatch(deleteVoucher(eventData.id))
         .then(() => {
           setDeleteModal(false);
-          setRefreshFlag(prev => !prev); // Trigger data refresh after deletion
+          setRefreshFlag((prev) => !prev); // Trigger data refresh after deletion
         })
         .catch((error: any) => {
-          console.error("Delete error:", error);
         });
-    } else {
-      console.error("Cannot delete: No valid ID found in eventData", eventData);
     }
   };
 
@@ -157,85 +132,94 @@ const Voucher = () => {
   const validation: any = useFormik({
     enableReinitialize: true,
     initialValues: {
-      name: (eventData && eventData.name) || '',
-      code: (eventData && eventData.code) || '',
-      description: (eventData && eventData.description) || '',
-      status: (eventData && eventData.status) || 'Active',
-      discountRate: (eventData && eventData.discountRate) || 0,
-      usageLimit: (eventData && eventData.usageLimit) || '',
-      minimumOrderValue: (eventData && eventData.minimumOrderValue) || 0,
-      startDate: (eventData && eventData.startDate) ? new Date(eventData.startDate).toISOString().slice(0, 16) : '',
-      endDate: (eventData && eventData.endDate) ? new Date(eventData.endDate).toISOString().slice(0, 16) : ''
+      description: (eventData && eventData.description) || "",
+      status: (eventData && eventData.status) || "Active",
+      discountRate:
+        eventData && eventData.discountRate !== undefined
+          ? Number(eventData.discountRate)
+          : 0,
+      usageLimit: (eventData && eventData.usageLimit) || "",
+      minimumOrderValue:
+        eventData && eventData.minimumOrderValue !== undefined
+          ? Number(eventData.minimumOrderValue)
+          : 0,
+      startDate:
+        eventData && eventData.startDate
+          ? new Date(eventData.startDate).toISOString().slice(0, 16)
+          : "",
+      endDate:
+        eventData && eventData.endDate
+          ? new Date(eventData.endDate).toISOString().slice(0, 16)
+          : "",
     },
     validationSchema: Yup.object({
-      name: Yup.string().required("Name is required"),
       description: Yup.string(),
-      status: Yup.string().required("Status is required"),
-      discountRate: Yup.number().required("Discount rate is required").min(0, "Must be at least 0"),
+      status: Yup.string()
+        .required("Status is required")
+        .oneOf(["Active", "Inactive", "Expired"], "Invalid status"),
+      discountRate: Yup.number()
+        .required("Discount rate is required")
+        .min(0, "Must be at least 0")
+        .max(100, "Must not exceed 100%")
+        .typeError("Discount rate must be a number"),
       usageLimit: Yup.string(),
-      minimumOrderValue: Yup.number().required("Minimum order value is required").min(0, "Must be at least 0"),
+      minimumOrderValue: Yup.number()
+        .required("Minimum order value is required")
+        .min(0, "Must be at least 0")
+        .typeError("Minimum order value must be a number"),
       startDate: Yup.date().required("Start date is required"),
-      endDate: Yup.date().required("End date is required")
-        .min(Yup.ref('startDate'), "End date must be after start date")
+      endDate: Yup.date()
+        .required("End date is required")
+        .min(Yup.ref("startDate"), "End date must be after start date"),
     }),
-    onSubmit: (values) => {
+    onSubmit: async (values) => {
       if (isEdit) {
         if (!eventData.id) {
-          console.error("Cannot update: No valid ID found in eventData", eventData);
           return;
         }
-        
+
         const updateData = {
           id: eventData.id,
           data: {
-            name: values.name,
-            code: eventData.code,
+            code: eventData.code || "",
             description: values.description,
             status: values.status,
-            discountRate: values.discountRate,
+            discountRate: Number(values.discountRate),
             usageLimit: values.usageLimit,
-            minimumOrderValue: values.minimumOrderValue,
+            minimumOrderValue: Number(values.minimumOrderValue),
             startDate: new Date(values.startDate).toISOString(),
-            endDate: new Date(values.endDate).toISOString()
-          }
+            endDate: new Date(values.endDate).toISOString(),
+          },
         };
-        
-        console.log("Updating voucher with ID:", eventData.id, updateData);
-        
+
         dispatch(updateVoucher(updateData))
           .then((response: any) => {
-            console.log("Update response:", response);
             toggle();
-            console.log("Triggering refresh after update");
-            setRefreshFlag(prev => !prev);
+            setRefreshFlag((prev) => !prev);
           })
           .catch((error: any) => {
-            console.error("Update error:", error);
           });
-         
       } else {
         const newData = {
-          name: values.name,
+          code: "",
           description: values.description,
           status: values.status,
-          discountRate: values.discountRate,
+          discountRate: Number(values.discountRate),
           usageLimit: values.usageLimit,
-          minimumOrderValue: values.minimumOrderValue,
+          minimumOrderValue: Number(values.minimumOrderValue),
           startDate: new Date(values.startDate).toISOString(),
-          endDate: new Date(values.endDate).toISOString()
+          endDate: new Date(values.endDate).toISOString(),
         };
-        dispatch(addVoucher(newData))
-          .then(() => {
-            toggle();
-            setRefreshFlag(prev => !prev);
-          });
+        dispatch(addVoucher(newData)).then(() => {
+          toggle();
+          setRefreshFlag((prev) => !prev);
+        });
       }
     },
   });
 
   // Update Data
   const handleUpdateDataClick = (ele: any) => {
-    console.log("Update clicked, data before setting:", ele);
     setEventData({ ...ele });
     setIsEdit(true);
     setShow(true);
@@ -265,22 +249,6 @@ const Voucher = () => {
   const columns = useMemo(
     () => [
       {
-        header: "Name",
-        accessorKey: "name",
-        enableColumnFilter: false,
-        enableSorting: true,
-        cell: (cell: any) => (
-          <Link
-            to="#"
-            className="flex items-center gap-2"
-            onClick={() => handleOverviewClick(cell.row.original)}
-          >
-            {cell.getValue()}
-          </Link>
-        ),
-        size: 150,
-      },
-      {
         header: "Code",
         accessorKey: "code",
         enableColumnFilter: false,
@@ -300,11 +268,15 @@ const Voucher = () => {
         enableColumnFilter: false,
         enableSorting: true,
         cell: (cell: any) => (
-          <span className={`px-2.5 py-0.5 text-xs inline-block font-medium rounded border ${
-            cell.getValue() === 'Active' 
-              ? 'text-green-500 bg-green-100 border-green-200 dark:text-green-400 dark:bg-green-500/20 dark:border-green-500/20' 
-              : 'text-yellow-500 bg-yellow-100 border-yellow-200 dark:text-yellow-400 dark:bg-yellow-500/20 dark:border-yellow-500/20'
-          }`}>
+          <span
+            className={`px-2.5 py-0.5 text-xs inline-block font-medium rounded border ${
+              cell.getValue() === "Active"
+                ? "text-green-500 bg-green-100 border-green-200 dark:text-green-400 dark:bg-green-500/20 dark:border-green-500/20"
+                : cell.getValue() === "Inactive"
+                ? "text-yellow-500 bg-yellow-100 border-yellow-200 dark:text-yellow-400 dark:bg-yellow-500/20 dark:border-yellow-500/20"
+                : "text-red-500 bg-red-100 border-red-200 dark:text-red-400 dark:bg-red-500/20 dark:border-red-500/20"
+            }`}
+          >
             {cell.getValue()}
           </span>
         ),
@@ -315,9 +287,7 @@ const Voucher = () => {
         accessorKey: "discountRate",
         enableColumnFilter: false,
         enableSorting: true,
-        cell: (cell: any) => (
-          <span>{cell.getValue()}%</span>
-        ),
+        cell: (cell: any) => <span>{cell.getValue()}%</span>,
         size: 120,
       },
       {
@@ -334,7 +304,9 @@ const Voucher = () => {
         enableSorting: true,
         size: 120,
         cell: (cell: any) => {
-          const startDate = cell.getValue() ? new Date(cell.getValue()).toLocaleString() : "N/A";
+          const startDate = cell.getValue()
+            ? new Date(cell.getValue()).toLocaleString()
+            : "N/A";
           return <span>{startDate}</span>;
         },
       },
@@ -345,7 +317,9 @@ const Voucher = () => {
         enableSorting: true,
         size: 120,
         cell: (cell: any) => {
-          const endDate = cell.getValue() ? new Date(cell.getValue()).toLocaleString() : "N/A";
+          const endDate = cell.getValue()
+            ? new Date(cell.getValue()).toLocaleString()
+            : "N/A";
           return <span>{endDate}</span>;
         },
       },
@@ -355,37 +329,61 @@ const Voucher = () => {
         enableSorting: true,
         size: 100,
         cell: (cell: any) => (
-            <Dropdown className="relative ltr:ml-2 rtl:mr-2">
-                <Dropdown.Trigger id="orderAction1" data-bs-toggle="dropdown" className="flex items-center justify-center size-[30px] p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400 dark:hover:bg-slate-500 dark:hover:text-white dark:focus:bg-slate-500 dark:focus:text-white dark:active:bg-slate-500 dark:active:text-white dark:ring-slate-400/20"><MoreHorizontal className="size-3" /></Dropdown.Trigger>
-                <Dropdown.Content placement={cell.row.index ? "top-end" : "right-end"} className="absolute z-50 py-2 mt-1 ltr:text-left rtl:text-right list-none bg-white rounded-md shadow-md min-w-[10rem] dark:bg-zink-600" aria-labelledby="orderAction1">
-                    <li>
-                        <Link
-                          to="#!"
-                          className="block px-4 py-1.5 text-base transition-all duration-200 ease-linear text-slate-600 hover:bg-slate-100 hover:text-slate-500 focus:bg-slate-100 focus:text-slate-500 dark:text-zink-100 dark:hover:bg-zink-500 dark:hover:text-zink-200 dark:focus:bg-zink-500 dark:focus:text-zink-200"
-                          onClick={() => {
-                            const data = cell.row.original;
-                            handleOverviewClick(data);
-                          }}
-                        >
-                          <Eye className="inline-block size-3 ltr:mr-1 rtl:ml-1" />{" "}
-                          <span className="align-middle">Overview</span>
-                        </Link>
-                    </li>
-                    <li>
-                        <Link to="#!" data-modal-target="addOrderModal" className="block px-4 py-1.5 text-base transition-all duration-200 ease-linear text-slate-600 hover:bg-slate-100 hover:text-slate-500 focus:bg-slate-100 focus:text-slate-500 dark:text-zink-100 dark:hover:bg-zink-500 dark:hover:text-zink-200 dark:focus:bg-zink-500 dark:focus:text-zink-200" onClick={() => {
-                            const data = cell.row.original;
-                            handleUpdateDataClick(data);
-                        }}>
-                            <FileEdit className="inline-block size-3 ltr:mr-1 rtl:ml-1" /> <span className="align-middle">Edit</span></Link>
-                    </li>
-                    <li>
-                        <Link to="#!" className="block px-4 py-1.5 text-base transition-all duration-200 ease-linear text-slate-600 hover:bg-slate-100 hover:text-slate-500 focus:bg-slate-100 focus:text-slate-500 dark:text-zink-100 dark:hover:bg-zink-500 dark:hover:text-zink-200 dark:focus:bg-zink-500 dark:focus:text-zink-200" onClick={() => {
-                            const data = cell.row.original;
-                            onClickDelete(data);
-                        }}><Trash2 className="inline-block size-3 ltr:mr-1 rtl:ml-1" /> <span className="align-middle">Delete</span></Link>
-                    </li>
-                </Dropdown.Content>
-            </Dropdown>
+          <Dropdown className="relative ltr:ml-2 rtl:mr-2">
+            <Dropdown.Trigger
+              id="orderAction1"
+              data-bs-toggle="dropdown"
+              className="flex items-center justify-center size-[30px] p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400 dark:hover:bg-slate-500 dark:hover:text-white dark:focus:bg-slate-500 dark:focus:text-white dark:active:bg-slate-500 dark:active:text-white dark:ring-slate-400/20"
+            >
+              <MoreHorizontal className="size-3" />
+            </Dropdown.Trigger>
+            <Dropdown.Content
+              placement={cell.row.index ? "top-end" : "right-end"}
+              className="absolute z-50 py-2 mt-1 ltr:text-left rtl:text-right list-none bg-white rounded-md shadow-md min-w-[10rem] dark:bg-zink-600"
+              aria-labelledby="orderAction1"
+            >
+              <li>
+                <Link
+                  to="#!"
+                  className="block px-4 py-1.5 text-base transition-all duration-200 ease-linear text-slate-600 hover:bg-slate-100 hover:text-slate-500 focus:bg-slate-100 focus:text-slate-500 dark:text-zink-100 dark:hover:bg-zink-500 dark:hover:text-zink-200 dark:focus:bg-zink-500 dark:focus:text-zink-200"
+                  onClick={() => {
+                    const data = cell.row.original;
+                    handleOverviewClick(data);
+                  }}
+                >
+                  <Eye className="inline-block size-3 ltr:mr-1 rtl:ml-1" />{" "}
+                  <span className="align-middle">Overview</span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="#!"
+                  data-modal-target="addOrderModal"
+                  className="block px-4 py-1.5 text-base transition-all duration-200 ease-linear text-slate-600 hover:bg-slate-100 hover:text-slate-500 focus:bg-slate-100 focus:text-slate-500 dark:text-zink-100 dark:hover:bg-zink-500 dark:hover:text-zink-200 dark:focus:bg-zink-500 dark:focus:text-zink-200"
+                  onClick={() => {
+                    const data = cell.row.original;
+                    handleUpdateDataClick(data);
+                  }}
+                >
+                  <FileEdit className="inline-block size-3 ltr:mr-1 rtl:ml-1" />{" "}
+                  <span className="align-middle">Edit</span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="#!"
+                  className="block px-4 py-1.5 text-base transition-all duration-200 ease-linear text-slate-600 hover:bg-slate-100 hover:text-slate-500 focus:bg-slate-100 focus:text-slate-500 dark:text-zink-100 dark:hover:bg-zink-500 dark:hover:text-zink-200 dark:focus:bg-zink-500 dark:focus:text-zink-200"
+                  onClick={() => {
+                    const data = cell.row.original;
+                    onClickDelete(data);
+                  }}
+                >
+                  <Trash2 className="inline-block size-3 ltr:mr-1 rtl:ml-1" />{" "}
+                  <span className="align-middle">Delete</span>
+                </Link>
+              </li>
+            </Dropdown.Content>
+          </Dropdown>
         ),
       },
     ],
@@ -395,8 +393,8 @@ const Voucher = () => {
   return (
     <React.Fragment>
       <BreadCrumb title="Vouchers" pageTitle="Vouchers" />
-      <DeleteModal 
-        show={deleteModal} 
+      <DeleteModal
+        show={deleteModal}
         onHide={deleteToggle}
         onDelete={handleDelete}
       />
@@ -437,11 +435,10 @@ const Voucher = () => {
               columns={columns || []}
               data={data || []}
               customPageSize={pageSize}
-              pageCount={pageCount}
+              pageCount={totalPages}
               currentPage={currentPage}
               onPageChange={(page: number) => {
                 setCurrentPage(page);
-                dispatch(getAllVouchers({ page, pageSize }));
               }}
               divclassName="overflow-x-auto"
               tableclassName="w-full whitespace-nowrap"
@@ -466,7 +463,6 @@ const Voucher = () => {
         </div>
       </div>
 
-    
       <Modal
         show={show}
         onHide={toggle}
@@ -479,54 +475,49 @@ const Voucher = () => {
           closeButtonClass="transition-all duration-200 ease-linear text-slate-400 hover:text-red-500"
         >
           <Modal.Title className="text-16">
-            {isOverview ? "Voucher Details" : isEdit ? "Edit Voucher" : "Add Voucher"}
+            {isOverview
+              ? "Voucher Details"
+              : isEdit
+              ? "Edit Voucher"
+              : "Add Voucher"}
           </Modal.Title>
         </Modal.Header>
 
         <Modal.Body className="max-h-[calc(theme('height.screen')_-_180px)] p-4 overflow-y-auto">
-          <form action="#!" onSubmit={(e) => {
-            e.preventDefault();
-            validation.handleSubmit();
-            return false;
-          }}>
+          <form
+            action="#!"
+            onSubmit={(e) => {
+              e.preventDefault();
+              validation.handleSubmit();
+              return false;
+            }}
+          >
             <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
-              <div className="xl:col-span-12">
-                <label htmlFor="nameInput" className="inline-block mb-2 text-base font-medium">
-                    Name <span className="text-red-500 ml-1">*</span>
-                </label>
-                <input
-                    type="text"
-                    id="nameInput"
-                    className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                    placeholder="Enter voucher name"
-                    name="name"
-                    onChange={validation.handleChange}
-                    onBlur={validation.handleBlur}
-                    value={validation.values.name || ""}
-                    disabled={isOverview}
-                />
-                {validation.touched.name && validation.errors.name && (
-                    <p className="text-red-400">{validation.errors.name}</p>
-                )}
-              </div>
-
               {isOverview && (
                 <div className="xl:col-span-6">
-                  <label htmlFor="codeInput" className="inline-block mb-2 text-base font-medium">
-                      Code
+                  <label
+                    htmlFor="codeInput"
+                    className="inline-block mb-2 text-base font-medium"
+                  >
+                    Code
                   </label>
                   <input
-                      type="text"
-                      id="codeInput"
-                      className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                      value={eventData?.code || ""}
-                      disabled={true}
+                    type="text"
+                    id="codeInput"
+                    className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
+                    value={eventData?.code || ""}
+                    disabled={true}
                   />
                 </div>
               )}
 
               <div className="xl:col-span-12">
-                <label htmlFor="descriptionInput" className="inline-block mb-2 text-base font-medium">Description</label>
+                <label
+                  htmlFor="descriptionInput"
+                  className="inline-block mb-2 text-base font-medium"
+                >
+                  Description
+                </label>
                 <textarea
                   id="descriptionInput"
                   className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
@@ -541,7 +532,10 @@ const Voucher = () => {
               </div>
 
               <div className="xl:col-span-6">
-                <label htmlFor="statusInput" className="inline-block mb-2 text-base font-medium">
+                <label
+                  htmlFor="statusInput"
+                  className="inline-block mb-2 text-base font-medium"
+                >
                   Status <span className="text-red-500 ml-1">*</span>
                 </label>
                 <select
@@ -555,6 +549,7 @@ const Voucher = () => {
                 >
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
+                  <option value="Expired">Expired</option>
                 </select>
                 {validation.touched.status && validation.errors.status && (
                   <p className="text-red-400">{validation.errors.status}</p>
@@ -562,7 +557,10 @@ const Voucher = () => {
               </div>
 
               <div className="xl:col-span-6">
-                <label htmlFor="discountRateInput" className="inline-block mb-2 text-base font-medium">
+                <label
+                  htmlFor="discountRateInput"
+                  className="inline-block mb-2 text-base font-medium"
+                >
                   Discount Rate (%) <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
@@ -573,16 +571,23 @@ const Voucher = () => {
                   name="discountRate"
                   onChange={validation.handleChange}
                   onBlur={validation.handleBlur}
-                  value={validation.values.discountRate || ""}
+                  value={validation.values.discountRate}
                   disabled={isOverview}
+                  step="any"
                 />
-                {validation.touched.discountRate && validation.errors.discountRate && (
-                  <p className="text-red-400">{validation.errors.discountRate}</p>
-                )}
+                {validation.touched.discountRate &&
+                  validation.errors.discountRate && (
+                    <p className="text-red-400">
+                      {validation.errors.discountRate}
+                    </p>
+                  )}
               </div>
 
               <div className="xl:col-span-6">
-                <label htmlFor="usageLimitInput" className="inline-block mb-2 text-base font-medium">
+                <label
+                  htmlFor="usageLimitInput"
+                  className="inline-block mb-2 text-base font-medium"
+                >
                   Usage Limit
                 </label>
                 <input
@@ -599,8 +604,12 @@ const Voucher = () => {
               </div>
 
               <div className="xl:col-span-6">
-                <label htmlFor="minimumOrderValueInput" className="inline-block mb-2 text-base font-medium">
-                  Minimum Order Value <span className="text-red-500 ml-1">*</span>
+                <label
+                  htmlFor="minimumOrderValueInput"
+                  className="inline-block mb-2 text-base font-medium"
+                >
+                  Minimum Order Value{" "}
+                  <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
                   type="number"
@@ -610,16 +619,23 @@ const Voucher = () => {
                   name="minimumOrderValue"
                   onChange={validation.handleChange}
                   onBlur={validation.handleBlur}
-                  value={validation.values.minimumOrderValue || ""}
+                  value={validation.values.minimumOrderValue}
                   disabled={isOverview}
+                  step="any"
                 />
-                {validation.touched.minimumOrderValue && validation.errors.minimumOrderValue && (
-                  <p className="text-red-400">{validation.errors.minimumOrderValue}</p>
-                )}
+                {validation.touched.minimumOrderValue &&
+                  validation.errors.minimumOrderValue && (
+                    <p className="text-red-400">
+                      {validation.errors.minimumOrderValue}
+                    </p>
+                  )}
               </div>
 
               <div className="xl:col-span-6">
-                <label htmlFor="startDateInput" className="inline-block mb-2 text-base font-medium">
+                <label
+                  htmlFor="startDateInput"
+                  className="inline-block mb-2 text-base font-medium"
+                >
                   Start Date & Time <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
@@ -632,13 +648,19 @@ const Voucher = () => {
                   value={validation.values.startDate || ""}
                   disabled={isOverview}
                 />
-                {validation.touched.startDate && validation.errors.startDate && (
-                  <p className="text-red-400">{validation.errors.startDate}</p>
-                )}
+                {validation.touched.startDate &&
+                  validation.errors.startDate && (
+                    <p className="text-red-400">
+                      {validation.errors.startDate}
+                    </p>
+                  )}
               </div>
 
               <div className="xl:col-span-6">
-                <label htmlFor="endDateInput" className="inline-block mb-2 text-base font-medium">
+                <label
+                  htmlFor="endDateInput"
+                  className="inline-block mb-2 text-base font-medium"
+                >
                   End Date & Time <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
@@ -658,16 +680,16 @@ const Voucher = () => {
             </div>
 
             <div className="flex justify-end gap-2 mt-4">
-              <button 
-                type="button" 
-                className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10" 
+              <button
+                type="button"
+                className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10"
                 onClick={toggle}
               >
                 {isOverview ? "Close" : "Cancel"}
               </button>
               {!isOverview && (
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
                 >
                   {!!isEdit ? "Update" : "Add Voucher"}

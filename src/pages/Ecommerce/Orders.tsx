@@ -22,42 +22,63 @@ import { createSelector } from 'reselect';
 import * as Yup from "yup";
 import { useFormik } from "formik";
 
+// Import the new order thunk functions
 import {
-    getOrders as onGetOrders,
-    addOrders as onAddOrders,
-    updateOrders as onUpdateOrders,
-    deleteOrders as onDeleteOrders
-} from 'slices/thunk';
+    getAllOrders,
+    addOrder,
+    updateOrder,
+    deleteOrder
+} from 'slices/order/thunk';
 import { ToastContainer } from "react-toastify";
 import filterDataBySearch from "Common/filterDataBySearch";
 
 const Orders = () => {
 
     const dispatch = useDispatch<any>();
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 10;
 
-    const selectDataList = createSelector(
-        (state: any) => state.Ecommerce,
-        (state) => ({
-            dataList: state.orders
+    // Updated selector to work with the new order reducer structure
+    const orderSelector = createSelector(
+        (state: any) => state.order,
+        (order) => ({
+            orders: order?.orders?.data?.items || [],
+            pageCount: order?.orders?.data?.totalPages || 0,
+            totalCount: order?.orders?.data?.totalCount || 0,
+            pageNumber: order?.orders?.data?.pageNumber || 1,
+            loading: order?.loading || false,
+            error: order?.error || null,
         })
     );
 
-    const { dataList } = useSelector(selectDataList);
+    const { orders, pageCount, loading } = useSelector(orderSelector);
 
     const [data, setData] = useState<any>([]);
     const [eventData, setEventData] = useState<any>();
+    const [refreshFlag, setRefreshFlag] = useState(false);
 
     const [show, setShow] = useState<boolean>(false);
     const [isEdit, setIsEdit] = useState<boolean>(false);
 
-    // Get Data
+    // Get Data with pagination
     useEffect(() => {
-        dispatch(onGetOrders());
-    }, [dispatch]);
+        // Don't fetch if current page is greater than page count and pageCount exists
+        if (pageCount && currentPage > pageCount) {
+            setCurrentPage(1); // Reset to first page
+            return;
+        }
+        dispatch(getAllOrders({ page: currentPage, pageSize }));
+    }, [dispatch, currentPage, refreshFlag, pageCount]);
 
+    // Update local data when orders change
     useEffect(() => {
-        setData(dataList);
-    }, [dataList]);
+        if (orders && orders.length > 0) {
+            setData(orders);
+        } else if (currentPage > 1 && orders.length === 0) {
+            // If no data and not on first page, go back one page
+            setCurrentPage(prev => prev - 1);
+        }
+    }, [orders, currentPage]);
 
     // Delete Modal
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
@@ -71,13 +92,16 @@ const Orders = () => {
         }
     };
 
+    // Handle Delete
     const handleDelete = () => {
         if (eventData) {
-            dispatch(onDeleteOrders(eventData.id));
-            setDeleteModal(false);
+            dispatch(deleteOrder(eventData.id))
+                .then(() => {
+                    setDeleteModal(false);
+                    setRefreshFlag(prev => !prev); // Trigger data refresh after deletion
+                });
         }
     };
-    // 
 
     // Update Data
     const handleUpdateDataClick = (ele: any) => {
@@ -114,18 +138,24 @@ const Orders = () => {
             if (isEdit) {
                 const updateData = {
                     id: eventData ? eventData.id : 0,
-                    ...values,
+                    data: values,
                 };
-                // update user
-                dispatch(onUpdateOrders(updateData));
+                // update order using the new function
+                dispatch(updateOrder(updateData))
+                    .then(() => {
+                        setRefreshFlag(prev => !prev);
+                    });
             } else {
                 const newData = {
                     ...values,
                     id: (Math.floor(Math.random() * (30 - 20)) + 20).toString(),
                     orderId: "#TWT50151003" + (Math.floor(Math.random() * (30 - 20)) + 20).toString(),
                 };
-                // save new user
-                dispatch(onAddOrders(newData));
+                // save new order using the new function
+                dispatch(addOrder(newData))
+                    .then(() => {
+                        setRefreshFlag(prev => !prev);
+                    });
             }
             toggle();
         },
@@ -148,7 +178,7 @@ const Orders = () => {
     const filterSearchData = (e: any) => {
         const search = e.target.value;
         const keysToSearch = ['orderId', 'customerName', 'paymentMethod', 'deliveryStatus'];
-        filterDataBySearch(dataList, search, keysToSearch, setData);
+        filterDataBySearch(data, search, keysToSearch, setData);
     };
 
     const [activeTab, setActiveTab] = useState("1");
@@ -156,9 +186,9 @@ const Orders = () => {
     const toggleTab = (tab: any, type: any) => {
         if (activeTab !== tab) {
             setActiveTab(tab);
-            let filteredOrders = dataList;
+            let filteredOrders = data;
             if (type !== "all") {
-                filteredOrders = dataList.filter((order: any) => order.deliveryStatus === type);
+                filteredOrders = data.filter((order: any) => order.deliveryStatus === type);
             }
             setData(filteredOrders);
         }
@@ -415,27 +445,39 @@ const Orders = () => {
                         </li>
                     </ul>
 
-                    {data && data.length > 0 ?
+                    {loading ? (
+                        <div className="flex items-center justify-center py-10">
+                            <div className="spinner-border text-custom-500" role="status">
+                                <span className="sr-only">Loading...</span>
+                            </div>
+                        </div>
+                    ) : data && data.length > 0 ? (
                         <TableContainer
                             isPagination={true}
                             columns={(columns || [])}
                             data={(data || [])}
-                            customPageSize={10}
+                            customPageSize={pageSize}
                             divclassName="mt-5 overflow-x-auto"
                             tableclassName="w-full whitespace-nowrap"
                             theadclassName="ltr:text-left rtl:text-right bg-slate-100 dark:bg-zink-600"
                             thclassName="px-3.5 py-2.5 font-semibold text-slate-500 border-b border-slate-200 dark:border-zink-500 dark:text-zink-200"
                             tdclassName="px-3.5 py-2.5 border-y border-slate-200 dark:border-zink-500"
                             PaginationClassName="flex flex-col items-center mt-5 md:flex-row"
+                            currentPage={currentPage}
+                            pageCount={pageCount}
+                            onPageChange={(page: number) => {
+                                setCurrentPage(page);
+                            }}
                         />
-                        :
-                        (<div className="noresult">
+                    ) : (
+                        <div className="noresult">
                             <div className="py-6 text-center">
                                 <Search className="size-6 mx-auto text-sky-500 fill-sky-100 dark:sky-500/20" />
                                 <h5 className="mt-2 mb-1">Sorry! No Result Found</h5>
                                 <p className="mb-0 text-slate-500 dark:text-zink-200">We've searched more than 299+ orders We did not find any orders for you search.</p>
                             </div>
-                        </div>)}
+                        </div>
+                    )}
                 </div>
             </div>
 
