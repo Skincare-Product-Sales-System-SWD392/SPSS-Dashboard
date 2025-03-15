@@ -104,7 +104,8 @@ const OrderOverview = () => {
             <div style="padding: 30px; font-family: Arial, sans-serif; max-width: 900px; margin: 0 auto; border: 1px solid #eee; font-size: 16px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 40px;">
                     <div>
-                        <h1 style="margin: 0; color: #333; font-size: 28px;">Invoice-${invoiceId}</h1>
+                        <h1 style="margin: 0; color: #333; font-size: 28px;">Invoice</h1>
+                        <h2>Invoice number:${invoiceId}</h2>
                         <p style="margin: 10px 0; font-size: 18px;">Date: ${formatDate(currentOrder.createdTime)}</p>
                     </div>
                     <div>

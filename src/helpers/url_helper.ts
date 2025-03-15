@@ -1,3 +1,5 @@
+import { ex } from "@fullcalendar/core/internal-common";
+
 // REGISTER
 export const POST_FAKE_REGISTER = "/auth/signup";
 
@@ -32,18 +34,31 @@ export const UPDATE_EVENT = "/edit-event";
 export const DELETE_EVENT = "/delete-event";
 
 // Category
-export const GET_ALL_CATEGORIES = "/api/v1/Category/all";
-export const CREATE_CATEGORY = "/api/v1/Category";
-export const UPDATE_CATEGORY = "/api/v1/Category";
-export const DELETE_CATEGORY = "/api/v1/Category";
+export const GET_ALL_CATEGORIES = "/api/categories";
+export const CREATE_CATEGORY = "/api/categories";
+export const UPDATE_CATEGORY = "/api/categories";
+export const DELETE_CATEGORY = "/api/categories";
 
 // Ecommerce
 
 // Promotion 
-export const GET_ALL_PROMOTIONS = "/api/v1/Promotion/all";
-export const CREATE_PROMOTION = "/api/v1/Promotion";
-export const UPDATE_PROMOTION = "/api/v1/Promotion";
-export const DELETE_PROMOTION = "/api/v1/Promotion";
+export const GET_ALL_PROMOTIONS = "/api/promotions";
+export const CREATE_PROMOTION = "/api/promotions";
+export const UPDATE_PROMOTION = "/api/promotions";
+export const DELETE_PROMOTION = "/api/promotions";
+
+// Variation
+export const GET_ALL_VARIATIONS = "api/variations";
+export const CREATE_VARIATION = "api/variations";
+export const UPDATE_VARIATION = "api/variations";
+export const DELETE_VARIATION = "api/variations";
+
+// Product Category
+export const GET_ALL_PRODUCT_CATEGORIES = "api/product-categories";
+export const CREATE_PRODUCT_CATEGORIES = "api/product-categories";
+export const UPDATE_PRODUCT_CATEGORIES= "api/product-categories";
+export const DELETE_PRODUCT_CATEGORIES = "api/product-categories";
+
 
 // Blog
 export const GET_ALL_BLOGS = "/api/v1/Blog/all";
