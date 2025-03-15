@@ -31,6 +31,8 @@ import CancelReasonReducer from "./cancelreason/reducer";
 import PaymentMethodReducer from "./paymentmethod/reducer";
 import BlogReducer from "./blog/reducer";
 import ProductReducer from "./product/reducer";
+import ReviewReducer from "./review/reducer";
+import OrderReducer from "./order/reducer";
 
 // HR Managment
 import HRManagmentReducer from "./hrManagement/reducer";
@@ -74,6 +76,8 @@ const rootReducer = combineReducers({
     paymentMethod: PaymentMethodReducer,
     blog: BlogReducer,
     product: ProductReducer,
+    review: ReviewReducer,
+    order: OrderReducer
 });
 
 

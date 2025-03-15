@@ -225,17 +225,30 @@ export const updateOrder = (id: string, data: any) =>
 export const deleteOrder = (id: string) => 
   api.delete(`${url.DELETE_ORDERS}/${id}`, { headers: { data: id } });
 
+export const getOrderById = (id: string) => 
+  api.get(`${url.GET_ORDER_BY_ID}/${id}`, null);
+
+
 // Sellers
 export const getSellers = () => api.get(url.GET_SELLERS, null);
 export const addSellers = (data: any) => api.create(url.ADD_SELLERS, data);
 export const updateSellers = (data: any) => api.update(url.UPDATE_SELLERS, data);
 export const deleteSellers = (data: any) => api.delete(url.DELETE_SELLERS, { headers: { data } });
 
-// Overview
-export const getReview = () => api.get(url.GET_REVIEW, null);
-export const addReview = (data: any) => api.create(url.ADD_REVIEW, data);
-export const updateReview = (data: any) => api.update(url.UPDATE_REVIEW, data);
-export const deleteReview = (data: any) => api.delete(url.DELETE_REVIEW, { headers: { data } });
+// Review
+export const getAllReviews = (params: { pageNumber: number; pageSize: number; search?: string }) => 
+  api.get(url.GET_ALL_REVIEWS, params);
+
+export const createReview = (data: any) => 
+  api.create(url.ADD_REVIEW, data);
+
+export const updateReview = (id: string, data: any) => 
+  api.update(`${url.UPDATE_REVIEW}/${id}`, data);
+
+export const deleteReview = (id: string) => 
+  api.delete(`${url.DELETE_REVIEW}/${id}`, { headers: { data: id } });
+
+
 
 // HR Management
 // Employee List

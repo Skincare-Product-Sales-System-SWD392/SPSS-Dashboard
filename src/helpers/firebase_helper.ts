@@ -213,6 +213,35 @@ class FirebaseAuthBackend {
       throw error;
     }
   };
+
+  /**
+   * Upload multiple files to Firebase Storage
+   */
+  uploadFiles = async (files: File[], path: string = "SPSS/Product-Image") => {
+    try {
+      const storageRef = firebase.storage().ref();
+      const uploadPromises = files.map(async (file) => {
+        // Create a unique filename with timestamp
+        const fileRef = storageRef.child(`${path}/${Date.now()}_${file.name}`);
+        
+        // Upload the file
+        const snapshot = await fileRef.put(file);
+        
+        // Get the download URL
+        const downloadURL = await snapshot.ref.getDownloadURL();
+        
+        return downloadURL;
+      });
+      
+      // Wait for all uploads to complete
+      const downloadURLs = await Promise.all(uploadPromises);
+      
+      return downloadURLs;
+    } catch (error) {
+      console.error("Error uploading files:", error);
+      throw error;
+    }
+  };
 }
 
 let _fireBaseBackend: any = null;
