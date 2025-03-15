@@ -5,6 +5,7 @@ import {
   createOrder as createOrderApi,
   updateOrder as updateOrderApi,
   deleteOrder as deleteOrderApi,
+  getOrderById as getOrderByIdApi,
 } from "../../helpers/fakebackend_helper";
 
 export const getAllOrders = createAsyncThunk(
@@ -75,6 +76,23 @@ export const deleteOrder = createAsyncThunk(
         toast.error(error.response.data.data);
       } else {
         toast.error("Failed to delete order");
+      }
+      throw error;
+    }
+  }
+);
+
+export const getOrderById = createAsyncThunk(
+  "order/getOrderById",
+  async (id: string) => {
+    try {
+      const response = await getOrderByIdApi(id);
+      return response;
+    } catch (error: any) {
+      if (error.response?.data?.data) {
+        toast.error(error.response.data.data);
+      } else {
+        toast.error("Failed to fetch order details");
       }
       throw error;
     }

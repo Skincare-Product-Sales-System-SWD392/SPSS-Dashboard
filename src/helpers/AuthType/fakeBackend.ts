@@ -571,19 +571,19 @@ const fakeBackend = () => {
     });
   });
 
-  // OverView
-  mock.onGet(url.GET_REVIEW).reply(() => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (ProductReviewsData) {
-          // Passing fake JSON data as response
-          resolve([200, ProductReviewsData]);
-        } else {
-          reject([400, "cannot get data"]);
-        }
-      });
-    });
-  });
+  // // OverView
+  // mock.onGet(url.GET_REVIEW).reply(() => {
+  //   return new Promise((resolve, reject) => {
+  //     setTimeout(() => {
+  //       if (ProductReviewsData) {
+  //         // Passing fake JSON data as response
+  //         resolve([200, ProductReviewsData]);
+  //       } else {
+  //         reject([400, "cannot get data"]);
+  //       }
+  //     });
+  //   });
+  // });
 
   mock.onPost(url.ADD_REVIEW).reply((event: any) => {
     return new Promise((resolve, reject) => {

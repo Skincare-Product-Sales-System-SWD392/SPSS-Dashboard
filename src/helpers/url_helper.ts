@@ -97,6 +97,7 @@ export const GET_ALL_ORDERS = "/api/orders";
 export const CREATE_ORDERS = "/api/orders";
 export const UPDATE_ORDERS = "/api/orders";
 export const DELETE_ORDERS = "/api/orders";
+export const GET_ORDER_BY_ID = "/api/orders";
 
 // Sellers
 export const GET_SELLERS = "/get-sellers";
@@ -113,10 +114,10 @@ export const UPDATE_PRODUCT_GRID = "/edit-product-grid";
 export const DELETE_PRODUCT_GRID = "/delete-product-grid";
 
 // Overview
-export const GET_REVIEW = "/get-review";
-export const ADD_REVIEW = "/add-review";
-export const UPDATE_REVIEW = "/edit-review";
-export const DELETE_REVIEW = "/delete-review";
+export const GET_ALL_REVIEWS = "/api/reviews";
+export const ADD_REVIEW = "/api/review";
+export const UPDATE_REVIEW = "/api/review";
+export const DELETE_REVIEW = "/api/review";
 
 // HR Management
 // Employee List

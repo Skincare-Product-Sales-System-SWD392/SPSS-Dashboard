@@ -19,7 +19,7 @@ import MultiMonthStack from "pages/Calendar/MultiMonthStack";
 // Ecommerce
 import ListView from "pages/Ecommerce/Products/ListView";
 import Overview from "pages/Ecommerce/Products/Overview";
-import AddNew from "pages/Ecommerce/Products/AddNew";
+// import AddNew from "pages/Ecommerce/Products/AddNew";
 import ShoppingCart from "pages/Ecommerce/ShoppingCart";
 import Checkout from "pages/Ecommerce/Checkout";
 import Orders from "pages/Ecommerce/Orders";
@@ -32,6 +32,7 @@ import CancelReason from "pages/Ecommerce/CancelReason";
 import PaymentMethod from "pages/Ecommerce/PaymentMethod";
 import SurveyQuestion from "pages/Ecommerce/SurveyQuestion";
 import Blog from "pages/Ecommerce/Blog";
+import Review from "pages/Ecommerce/Review";
 // HR Management
 import EmployeeList from "pages/HRManagement/EmployeeList";
 import Holidays from "pages/HRManagement/Holidays";
@@ -312,11 +313,10 @@ const authProtectedRoutes: Array<RouteObject> = [
   // Ecommerce
   { path: "/apps-ecommerce-product-list", component: ListView },
   { path: "/apps-ecommerce-product-overview", component: Overview },
-  { path: "/apps-ecommerce-product-create", component: AddNew },
+  // { path: "/apps-ecommerce-product-create", component: AddNew },
   { path: "/apps-ecommerce-cart", component: ShoppingCart },
   { path: "/apps-ecommerce-checkout", component: Checkout },
   { path: "/apps-ecommerce-orders", component: Orders },
-  { path: "/apps-ecommerce-order-overview", component: OrderOverview },
   { path: "/apps-ecommerce-brand", component: Brand },
   { path: "/apps-ecommerce-promotion", component: Promotion },
   { path: "/apps-ecommerce-category", component: Category },
@@ -326,6 +326,8 @@ const authProtectedRoutes: Array<RouteObject> = [
   { path: "/apps-ecommerce-payment-method", component: PaymentMethod },
   { path: "/apps-ecommerce-survey-question", component: SurveyQuestion },
   { path: "/apps-ecommerce-blog", component: Blog },
+  { path: "/apps-ecommerce-reviews", component: Review },
+  { path: "/apps-ecommerce-order-overview", component: OrderOverview },
   // HR Management
   { path: "/apps-hr-employee", component: EmployeeList },
   { path: "/apps-hr-holidays", component: Holidays },

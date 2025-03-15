@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getAllOrders, addOrder, updateOrder, deleteOrder } from "./thunk";
+import { getAllOrders, addOrder, updateOrder, deleteOrder, getOrderById } from "./thunk";
 
 interface OrderState {
   loading: boolean;
@@ -13,6 +13,7 @@ interface OrderState {
       totalPages: number;
     }
   };
+  currentOrder: any;
 }
 
 export const initialState: OrderState = {
@@ -23,10 +24,11 @@ export const initialState: OrderState = {
       items: [],
       totalCount: 0,
       pageNumber: 1,
-      pageSize: 5,
+      pageSize: 10,
       totalPages: 1
     }
   },
+  currentOrder: null,
 };
 
 const orderSlice = createSlice({
@@ -34,16 +36,14 @@ const orderSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    // Get Orders
+    // Get All Orders
     builder.addCase(getAllOrders.pending, (state) => {
       state.loading = true;
       state.error = null;
     });
     builder.addCase(getAllOrders.fulfilled, (state, action) => {
       state.loading = false;
-      state.orders = {
-        data: action.payload.data
-      };
+      state.orders = action.payload;
       state.error = null;
     });
     builder.addCase(getAllOrders.rejected, (state, action) => {
@@ -56,9 +56,8 @@ const orderSlice = createSlice({
       state.loading = true;
       state.error = null;
     });
-    builder.addCase(addOrder.fulfilled, (state, action) => {
+    builder.addCase(addOrder.fulfilled, (state) => {
       state.loading = false;
-      state.orders.data.items.unshift(action.payload.data);
       state.error = null;
     });
     builder.addCase(addOrder.rejected, (state, action) => {
@@ -71,11 +70,8 @@ const orderSlice = createSlice({
       state.loading = true;
       state.error = null;
     });
-    builder.addCase(updateOrder.fulfilled, (state, action) => {
+    builder.addCase(updateOrder.fulfilled, (state) => {
       state.loading = false;
-      state.orders.data.items = state.orders.data.items.map(order =>
-        order.id === action.payload.data.id ? action.payload.data : order
-      );
       state.error = null;
     });
     builder.addCase(updateOrder.rejected, (state, action) => {
@@ -88,14 +84,26 @@ const orderSlice = createSlice({
       state.loading = true;
       state.error = null;
     });
-    builder.addCase(deleteOrder.fulfilled, (state, action) => {
+    builder.addCase(deleteOrder.fulfilled, (state) => {
       state.loading = false;
-      state.orders.data.items = state.orders.data.items.filter(
-        order => order.id !== action.payload.data
-      );
       state.error = null;
     });
     builder.addCase(deleteOrder.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || null;
+    });
+
+    // Get Order By Id
+    builder.addCase(getOrderById.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(getOrderById.fulfilled, (state, action) => {
+      state.loading = false;
+      state.currentOrder = action.payload.data;
+      state.error = null;
+    });
+    builder.addCase(getOrderById.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message || null;
     });
