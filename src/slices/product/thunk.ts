@@ -10,10 +10,10 @@ import {
 
 export const getAllProducts = createAsyncThunk(
   "product/getAllProducts",
-  async (params: { page: number, pageSize: number }) => {
+  async (params: { pageNumber: number, pageSize: number }) => {
     try {
       const response = await getAllProductsApi({ 
-        pageNumber: params.page,
+        pageNumber: params.pageNumber,
         pageSize: params.pageSize 
       });
       

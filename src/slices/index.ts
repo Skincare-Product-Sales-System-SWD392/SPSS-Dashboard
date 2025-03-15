@@ -33,6 +33,7 @@ import BlogReducer from "./blog/reducer";
 import ProductReducer from "./product/reducer";
 import ReviewReducer from "./review/reducer";
 import OrderReducer from "./order/reducer";
+import VariationReducer from "./variation/reducer";
 
 // HR Managment
 import HRManagmentReducer from "./hrManagement/reducer";
@@ -77,7 +78,8 @@ const rootReducer = combineReducers({
     blog: BlogReducer,
     product: ProductReducer,
     review: ReviewReducer,
-    order: OrderReducer
+    order: OrderReducer,
+    Variation: VariationReducer
 });
 
 

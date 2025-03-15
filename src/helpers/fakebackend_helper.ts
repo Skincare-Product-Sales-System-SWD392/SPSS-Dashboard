@@ -112,6 +112,21 @@ export const updatePromotion = (id: string, data: any) =>
 export const deletePromotion = (id: string) => 
   api.delete(`${url.DELETE_PROMOTION}/${id}`, { headers: { data: id } });
 
+// Variation
+export const getAllVariations = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_VARIATIONS, params);
+
+export const createVariation = (data: any) => 
+  api.create(url.CREATE_VARIATION, data);
+
+export const updateVariation = (id: string, data: any) => 
+  api.update(`${url.UPDATE_VARIATION}/${id}`, data);
+
+export const deleteVariation = (id: string) => 
+  api.delete(`${url.DELETE_VARIATION}/${id}`, { headers: { data: id } });
+
+// Product Category
+
 // Blog
 export const getAllBlogs = (params: { Page: number; PageSize: number }) => 
   api.get(url.GET_ALL_BLOGS, params);

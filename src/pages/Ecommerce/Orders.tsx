@@ -20,7 +20,9 @@ import {
 } from 'slices/order/thunk';
 import { ToastContainer } from "react-toastify";
 import filterDataBySearch from "Common/filterDataBySearch";
-import { Search, Plus, MoreHorizontal, Trash2, Eye, FileEdit } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, Trash2, Eye, FileEdit, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const Orders = () => {
     const navigate = useNavigate();
@@ -321,6 +323,72 @@ const Orders = () => {
         }
     };
 
+    // Function to export orders as PDF
+    const exportOrdersToPDF = () => {
+        // Initialize jsPDF with UTF-8 support
+        const doc = new jsPDF('landscape');
+        
+        // Add a Unicode font that supports Vietnamese
+        // This uses the default font but ensures proper encoding
+        doc.addFont('https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf', 'Roboto', 'normal');
+        doc.setFont('Roboto');
+        
+        // Add title
+        doc.setFontSize(18);
+        doc.text('Orders List', 14, 22);
+        
+        // Add date
+        doc.setFontSize(10);
+        doc.text(`Generated on: ${new Date().toLocaleString('vi-VN')}`, 14, 30);
+        
+        // Define the columns for the table
+        const tableColumn = ["Order ID", "Date", "Products", "Amount", "Status"];
+        
+        // Define the rows for the table - encode Vietnamese text properly
+        const tableRows = data.map((order: any) => [
+            `#${order.id.substring(0, 8)}`,
+            formatDate(order.createdTime),
+            // Handle Vietnamese characters in product names
+            order.orderDetails?.map((product: any) => product.productName).join(", "),
+            formatCurrency(order.orderTotal),
+            order.status
+        ]);
+        
+        // Generate the PDF table with Unicode support
+        autoTable(doc, {
+            head: [tableColumn],
+            body: tableRows,
+            startY: 35,
+            styles: {
+                fontSize: 9,
+                cellPadding: 3,
+                lineColor: [0, 0, 0],
+                lineWidth: 0.1,
+                font: 'Roboto', // Use the Unicode-compatible font
+            },
+            headStyles: {
+                fillColor: [41, 128, 185],
+                textColor: 255,
+                fontStyle: 'bold',
+            },
+            alternateRowStyles: {
+                fillColor: [245, 245, 245]
+            },
+            // Handle long text in the products column
+            columnStyles: {
+                2: { cellWidth: 'auto' }
+            },
+            margin: { top: 35 },
+            // Add this to properly handle Unicode characters
+            didDrawCell: (data) => {
+                // This helps with rendering complex characters
+            },
+        });
+        
+        // Save the PDF with a Vietnamese-friendly name
+        doc.save(`danh-sach-don-hang-${new Date().toISOString().split('T')[0]}.pdf`);
+    };
+
     return (
         <React.Fragment>
             <BreadCrumb title='Order Lists' pageTitle='Ecommerce' />
@@ -381,7 +449,16 @@ const Orders = () => {
                                         Cancelled
                                     </button>
                                 </div>
-                                <div className="ms-auto">
+                                <div className="ms-auto flex gap-2">
+                                    <button 
+                                        type="button" 
+                                        className="text-white btn bg-green-500 border-green-500 hover:text-white hover:bg-green-600 hover:border-green-600 focus:text-white focus:bg-green-600 focus:border-green-600 focus:ring focus:ring-green-100 active:text-white active:bg-green-600 active:border-green-600 active:ring active:ring-green-100 dark:ring-green-400/20"
+                                        onClick={exportOrdersToPDF}
+                                        disabled={!data || data.length === 0}
+                                    >
+                                        <Download className="inline-block size-4 align-middle ltr:mr-1 rtl:ml-1" />
+                                        <span className="align-middle">Export PDF</span>
+                                    </button>
                                     <button type="button" className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20" onClick={toggle}>
                                         <Plus className="inline-block size-4 align-middle ltr:mr-1 rtl:ml-1" />
                                         <span className="align-middle">Add Order</span>

@@ -46,7 +46,7 @@ const Review = () => {
 
     useEffect(() => {
         loadReviews();
-        dispatch(getAllProducts({ page: 1, pageSize: 100 }) as any)
+        dispatch(getAllProducts({ pageNumber: 1, pageSize: 100 }) as any)
             .then((result: any) => {
                 if (result?.payload?.data?.items) {
                     setProducts(result.payload.data.items);

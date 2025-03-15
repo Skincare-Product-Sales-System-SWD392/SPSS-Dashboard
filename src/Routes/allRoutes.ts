@@ -33,6 +33,7 @@ import PaymentMethod from "pages/Ecommerce/PaymentMethod";
 import SurveyQuestion from "pages/Ecommerce/SurveyQuestion";
 import Blog from "pages/Ecommerce/Blog";
 import Review from "pages/Ecommerce/Review";
+import Variation from "pages/Ecommerce/Variation";
 // HR Management
 import EmployeeList from "pages/HRManagement/EmployeeList";
 import Holidays from "pages/HRManagement/Holidays";
@@ -328,6 +329,7 @@ const authProtectedRoutes: Array<RouteObject> = [
   { path: "/apps-ecommerce-blog", component: Blog },
   { path: "/apps-ecommerce-reviews", component: Review },
   { path: "/apps-ecommerce-order-overview", component: OrderOverview },
+  { path: "/apps-ecommerce-variation", component: Variation},
   // HR Management
   { path: "/apps-hr-employee", component: EmployeeList },
   { path: "/apps-hr-holidays", component: Holidays },
