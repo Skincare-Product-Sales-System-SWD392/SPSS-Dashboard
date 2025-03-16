@@ -34,6 +34,9 @@ import ProductReducer from "./product/reducer";
 import ReviewReducer from "./review/reducer";
 import OrderReducer from "./order/reducer";
 import VariationReducer from "./variation/reducer";
+import QuizSetReducer from "./quizset/reducer";
+import QuizQuestionReducer from "./quizquestion/reducer";
+import QuizOptionReducer from "./quizoption/reducer";
 
 // HR Managment
 import HRManagmentReducer from "./hrManagement/reducer";
@@ -79,7 +82,10 @@ const rootReducer = combineReducers({
     product: ProductReducer,
     review: ReviewReducer,
     order: OrderReducer,
-    Variation: VariationReducer
+    Variation: VariationReducer,
+    QuizSet: QuizSetReducer,
+    quizQuestion: QuizQuestionReducer,
+    quizOption: QuizOptionReducer
 });
 
 

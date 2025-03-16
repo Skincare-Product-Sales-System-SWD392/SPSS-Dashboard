@@ -53,6 +53,12 @@ export const CREATE_VARIATION = "api/variations";
 export const UPDATE_VARIATION = "api/variations";
 export const DELETE_VARIATION = "api/variations";
 
+// Product Status
+export const GET_ALL_PRODUCT_STATUS = "api/product-statues"
+export const CREATE_PRODUCT_STATUS = "api/product-statues"
+export const UPDATE_PRODUCT_STATUS = "api/product-statues"
+export const DELETE_PRODUCT_STATUES = "api/product-statues"
+
 // Product Category
 export const GET_ALL_PRODUCT_CATEGORIES = "api/product-categories";
 export const CREATE_PRODUCT_CATEGORIES = "api/product-categories";
@@ -114,11 +120,47 @@ export const UPDATE_ORDERS = "/api/orders";
 export const DELETE_ORDERS = "/api/orders";
 export const GET_ORDER_BY_ID = "/api/orders";
 
+// Quiz Sets
+export const GET_ALL_QUIZ_SETS = "/api/quiz-sets";
+export const CREATE_QUIZ_SETS = "/api/quiz-sets";
+export const UPDATE_QUIZ_SETS = "/api/quiz-sets";
+export const DELETE_QUIZ_SETS = "/api/quiz-sets";
+export const SET_QUIZ_SETS_DEFAULT = "/api/quiz-sets";
+
+// Quiz Questions
+export const GET_ALL_QUIZ_QUESTIONS = "/api/quiz-questions";
+export const CREATE_QUIZ_QUESTIONS = "/api/quiz-questions";
+export const UPDATE_QUIZ_QUESTIONS = "/api/quiz-questions";
+export const DELETE_QUIZ_QUESTIONS = "/api/quiz-questions";
+export const GET_QUIZ_QUESTION_BY_QUIZ_SET_ID = "/api/quiz-questions"
+export const CREATE_QUIZ_QUESTION_BY_QUIZ_SET_ID = "/api/quiz-questions"
+export const UPDATE_QUIZ_QUESTION_BY_QUIZ_SET_ID = "/api/quiz-questions"
+export const DELETE_QUIZ_QUESTION_BY_QUIZ_SET_ID = "/api/quiz-questions"
+
+// Quiz Options
+export const GET_ALL_QUIZ_OPTIONS = "/api/quiz-options";
+export const CREATE_QUIZ_OPTIONS = "/api/quiz-options";
+export const UPDATE_QUIZ_OPTIONS = "/api/quiz-options";
+export const DELETE_QUIZ_OPTIONS = "/api/quiz-options";
+export const GET_QUIZ_OPTION_BY_QUIZ_QUESTION_ID = "/api/quiz-options"
+export const CREATE_QUIZ_OPTION_BY_QUIZ_QUESTION_ID = "/api/quiz-options"
+export const UPDATE_QUIZ_OPTION_BY_QUIZ_QUESTION_ID = "/api/quiz-options"
+export const DELETE_QUIZ_OPTION_BY_QUIZ_QUESTION_ID = "/api/quiz-options"
+
+
 // Sellers
 export const GET_SELLERS = "/get-sellers";
 export const ADD_SELLERS = "/add-sellers";
 export const UPDATE_SELLERS = "/edit-sellers";
 export const DELETE_SELLERS = "/delete-sellers";
+
+// Overview
+export const GET_ALL_REVIEWS = "/api/reviews";
+export const ADD_REVIEW = "/api/review";
+export const UPDATE_REVIEW = "/api/review";
+export const DELETE_REVIEW = "/api/review";
+
+
 
 
 
@@ -128,11 +170,7 @@ export const ADD_PRODUCT_GRID = "/add-product-grid";
 export const UPDATE_PRODUCT_GRID = "/edit-product-grid";
 export const DELETE_PRODUCT_GRID = "/delete-product-grid";
 
-// Overview
-export const GET_ALL_REVIEWS = "/api/reviews";
-export const ADD_REVIEW = "/api/review";
-export const UPDATE_REVIEW = "/api/review";
-export const DELETE_REVIEW = "/api/review";
+
 
 // HR Management
 // Employee List
