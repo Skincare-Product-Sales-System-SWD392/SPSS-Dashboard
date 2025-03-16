@@ -190,9 +190,9 @@ import CreatePasswordModern from "pages/AuthenticationInner/CreatePassword/Creat
 import CreatePasswordCover from "pages/AuthenticationInner/CreatePassword/CreatePasswordCover";
 import CreatePasswordBoxed from "pages/AuthenticationInner/CreatePassword/CreatePasswordBoxed";
 import Login from "pages/Authentication/Login";
-import Logout from "pages/Authentication/LogOut";
+// import Logout from "pages/Authentication/LogOut";
 import Pages404 from "pages/AuthenticationInner/Pages404";
-import Register from "pages/Authentication/Register";
+// import Register from "pages/Authentication/Register";
 import UserProfile from "pages/Authentication/UserProfile";
 import Account from "pages/Pages/Account";
 import ComingSoon from "pages/AuthenticationInner/ComingSoon";
@@ -436,8 +436,8 @@ const publicRoutes = [
   { path: "/pages-maintenance", component: Maintenance },
 
   // authentication
-  { path: "/logout", component: Logout },
-  { path: "/register", component: Register },
+  // { path: "/logout", component: Logout },
+  // { path: "/register", component: Register },
 ];
 
 export { authProtectedRoutes, publicRoutes };

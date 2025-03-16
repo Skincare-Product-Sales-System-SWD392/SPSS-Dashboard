@@ -1,248 +1,477 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
 import BreadCrumb from "Common/BreadCrumb";
 import Modal from "Common/Components/Modal";
 import TableContainer from "Common/TableContainer";
 import DeleteModal from "Common/DeleteModal";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import axios from 'axios';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useDispatch, useSelector } from "react-redux";
+import * as Yup from "yup";
+import { useFormik } from "formik";
+
+// Redux actions
+import {
+  getAllQuizSets,
+  createQuizSet,
+  updateQuizSet,
+  deleteQuizSet,
+  setQuizSetAsDefault,
+} from "../../slices/quizset/thunk";
+
+import {
+  getAllQuizQuestions,
+  createQuizQuestion,
+  updateQuizQuestion,
+  deleteQuizQuestion,
+  getQuizQuestionsBySetId,
+  createQuizQuestionForSet,
+  updateQuizQuestionForSet,
+  deleteQuizQuestionForSet,
+} from "slices/quizquestion/thunk";
+
+import {
+  getAllQuizOptions,
+  createQuizOption,
+  updateQuizOption,
+  deleteQuizOption,
+  getQuizOptionsByQuestionId,
+  createQuizOptionByQuestionId,
+  updateQuizOptionByQuestionId,
+  deleteQuizOptionByQuestionId,
+} from "slices/quizoption/thunk";
 
 // Icon imports
 import {
-  MoreHorizontal, Eye, FileEdit, Trash2, Search, Plus, ChevronDown, Check
-} from 'lucide-react';
+  MoreHorizontal,
+  Eye,
+  FileEdit,
+  Trash2,
+  Search,
+  Plus,
+  ChevronDown,
+  Check,
+} from "lucide-react";
 
 // Types definitions based on the database schema
 interface QuizSet {
-  quizSetId: string;
+  id: string;
   name: string;
   isDefault?: boolean;
 }
 
 interface QuizQuestion {
-  quizQuestionId: string;
+  id: string;
   setId: string;
   value: string;
 }
 
 interface QuizOption {
-  quizOptionId: string;
+  id: string;
   questionId: string;
   value: string;
   score: number;
 }
 
 const SurveyQuestion = () => {
-  // State for quiz sets, questions, and options
-  const [quizSets, setQuizSets] = useState<QuizSet[]>([]);
-  const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
-  const [quizOptions, setQuizOptions] = useState<QuizOption[]>([]);
-  
+  const dispatch = useDispatch();
+
   // Selected items
   const [selectedSet, setSelectedSet] = useState<string | null>(null);
   const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
-  const [expandedQuestions, setExpandedQuestions] = useState<{ [key: string]: boolean }>({});
-  
+  const [expandedQuestions, setExpandedQuestions] = useState<{
+    [key: string]: boolean;
+  }>({});
+
   // Modals
-  const [openSetDialog, setOpenSetDialog] = useState(false);
+  const [openSetDialog, setOpenSetDialog] = useState<boolean>(false);
   const [openQuestionDialog, setOpenQuestionDialog] = useState(false);
   const [openOptionDialog, setOpenOptionDialog] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
-  const [deleteData, setDeleteData] = useState<{type: string, id: string}>({type: '', id: ''});
+  const [deleteData, setDeleteData] = useState<{ type: string; id: string }>({
+    type: "",
+    id: "",
+  });
 
   // Form states
-  const [currentSet, setCurrentSet] = useState<Partial<QuizSet>>({ name: '' });
-  const [currentQuestion, setCurrentQuestion] = useState<Partial<QuizQuestion>>({ value: '' });
-  const [currentOption, setCurrentOption] = useState<Partial<QuizOption>>({ value: '', score: 0 });
+  const [currentSet, setCurrentSet] = useState<Partial<QuizSet>>({ name: "" });
+  const [currentQuestion, setCurrentQuestion] = useState<Partial<QuizQuestion>>(
+    { value: "" }
+  );
+  const [currentOption, setCurrentOption] = useState<Partial<QuizOption>>({
+    value: "",
+    score: 0,
+  });
   const [isEditing, setIsEditing] = useState(false);
 
-  // Hardcoded mock data
-  const mockQuizSets: QuizSet[] = [
-    { quizSetId: "set-1", name: "Skin Type Assessment", isDefault: true },
-    { quizSetId: "set-2", name: "Product Recommendation Quiz", isDefault: false }
-  ];
+  // Pagination
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pageSize: 10,
+  });
 
-  const mockQuizQuestions: QuizQuestion[] = [
-    { quizQuestionId: "q-1", setId: "set-1", value: "How would you describe your skin's oiliness during the day?" },
-    { quizQuestionId: "q-2", setId: "set-1", value: "How does your skin feel after cleansing?" },
-    { quizQuestionId: "q-3", setId: "set-1", value: "Do you experience breakouts regularly?" },
-    { quizQuestionId: "q-4", setId: "set-2", value: "What skincare concerns do you want to address?" }
-  ];
+  // Add this local state to keep a backup of the questions
+  const [localQuestions, setLocalQuestions] = useState<QuizQuestion[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const mockQuizOptions: QuizOption[] = [
-    { quizOptionId: "opt-1", questionId: "q-1", value: "Very oily all over", score: 10 },
-    { quizOptionId: "opt-2", questionId: "q-1", value: "Oily in T-zone, normal elsewhere", score: 7 },
-    { quizOptionId: "opt-3", questionId: "q-1", value: "Balanced, neither oily nor dry", score: 5 },
-    { quizOptionId: "opt-4", questionId: "q-1", value: "Slightly dry", score: 3 },
-    { quizOptionId: "opt-5", questionId: "q-1", value: "Very dry", score: 1 },
-    
-    { quizOptionId: "opt-6", questionId: "q-2", value: "Tight and dry", score: 1 },
-    { quizOptionId: "opt-7", questionId: "q-2", value: "Slightly tight", score: 3 },
-    { quizOptionId: "opt-8", questionId: "q-2", value: "Normal, no tightness", score: 5 },
-    { quizOptionId: "opt-9", questionId: "q-2", value: "Still feels somewhat oily", score: 8 },
-    
-    { quizOptionId: "opt-10", questionId: "q-3", value: "Yes, frequently", score: 9 },
-    { quizOptionId: "opt-11", questionId: "q-3", value: "Sometimes", score: 6 },
-    { quizOptionId: "opt-12", questionId: "q-3", value: "Rarely", score: 3 },
-    { quizOptionId: "opt-13", questionId: "q-3", value: "Never", score: 1 }
-  ];
+  // Update the selector to correctly access the quizQuestions array
+  const { quizSets, quizQuestions, quizOptions, loading, error } = useSelector(
+    (state: any) => {
+      console.log("Full Redux state:", state);
+      console.log("Quiz Question state:", state.quizQuestion);
+
+      return {
+        quizSets: state.QuizSet?.quizSets?.data?.items || [],
+        quizQuestions: state.quizQuestion?.quizQuestions || [], // This might be the issue
+        quizOptions: state.quizOption?.quizOptions || [],
+        loading:
+          state.QuizSet?.loading ||
+          state.quizQuestion?.loading ||
+          state.quizOption?.loading,
+        error:
+          state.QuizSet?.error ||
+          state.quizQuestion?.error ||
+          state.quizOption?.error,
+      };
+    }
+  );
 
   // Fetch quiz sets on component mount
   useEffect(() => {
-    setQuizSets(mockQuizSets);
-  }, []);
+    dispatch(getAllQuizSets(pagination) as any);
+  }, [dispatch, pagination]);
 
   // Fetch quiz questions when a set is selected
   useEffect(() => {
     if (selectedSet) {
-      const filteredQuestions = mockQuizQuestions.filter(q => q.setId === selectedSet);
-      setQuizQuestions(filteredQuestions);
-    } else {
-      setQuizQuestions([]);
+      console.log("Selected set ID:", selectedSet);
+      // Reset expanded questions and selected question when changing sets
+      setExpandedQuestions({});
+      setSelectedQuestion(null);
+
+      // Clear the current questions before fetching new ones
+      setLocalQuestions([]);
+
+      // Add a console log to track the API call
+      console.log("Fetching questions for set ID:", selectedSet);
+
+      // Dispatch the action to fetch questions for the selected set
+      dispatch(getQuizQuestionsBySetId(selectedSet) as any)
+        .then((response: any) => {
+          console.log("API response for questions:", response);
+
+          // Store the questions in local state as a backup
+          if (response && response.payload && response.payload.data) {
+            console.log(
+              "Setting local questions from payload.data:",
+              response.payload.data
+            );
+            setLocalQuestions(response.payload.data);
+          } else if (response && response.data) {
+            console.log("Setting local questions from data:", response.data);
+            setLocalQuestions(response.data);
+          } else if (Array.isArray(response)) {
+            console.log(
+              "Setting local questions from array response:",
+              response
+            );
+            setLocalQuestions(response);
+          } else {
+            console.error("Unexpected response format:", response);
+            setLocalQuestions([]);
+          }
+        })
+        .catch((error: any) => {
+          console.error("Error fetching questions:", error);
+          setLocalQuestions([]);
+        });
     }
-  }, [selectedSet]);
+  }, [selectedSet, dispatch]);
 
   // Fetch quiz options when a question is selected
   useEffect(() => {
     if (selectedQuestion) {
-      const filteredOptions = mockQuizOptions.filter(o => o.questionId === selectedQuestion);
-      setQuizOptions(filteredOptions);
-    } else {
-      setQuizOptions([]);
+      dispatch(getQuizOptionsByQuestionId(selectedQuestion) as any);
     }
-  }, [selectedQuestion]);
+  }, [selectedQuestion, dispatch]);
 
   // Toggle question expansion
   const toggleQuestionExpand = (questionId: string) => {
-    setExpandedQuestions(prev => ({
-      ...prev,
-      [questionId]: !prev[questionId]
-    }));
-    
+    // Close all other questions first
+    const newExpandedState: { [key: string]: boolean } = {};
+
+    // Toggle the clicked question
+    setExpandedQuestions((prev) => {
+      const newState = { ...newExpandedState };
+      newState[questionId] = !prev[questionId];
+      return newState;
+    });
+
     if (!expandedQuestions[questionId]) {
       setSelectedQuestion(questionId);
+      // Fetch options for this question
+      dispatch(getQuizOptionsByQuestionId(questionId) as any);
     } else {
       setSelectedQuestion(null);
     }
+
+    // Prevent scrolling to top
+    setTimeout(() => {
+      const element = document.getElementById(`question-${questionId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }, 100);
   };
 
   // Delete modal handlers
   const deleteToggle = () => setDeleteModal(!deleteModal);
-  
+
   const onClickDelete = (type: string, id: string) => {
     setDeleteData({ type, id });
     setDeleteModal(true);
   };
 
+  // Also add this helper function to make the code more DRY
+  const updateLocalQuestionsFromResponse = (response : any) => {
+    if (response && response.payload && response.payload.data) {
+      setLocalQuestions(response.payload.data);
+    } else if (response && response.data) {
+      setLocalQuestions(response.data);
+    } else if (Array.isArray(response)) {
+      setLocalQuestions(response);
+    } else {
+      console.error("Unexpected response format:", response);
+    }
+  };
+
   const handleDelete = () => {
-    if (deleteData.type === 'set') {
-      setQuizSets(quizSets.filter(set => set.quizSetId !== deleteData.id));
-      if (selectedSet === deleteData.id) {
-        setSelectedSet(null);
-        setQuizQuestions([]);
+    if (deleteData.type === "set" && deleteData.id) {
+      dispatch(deleteQuizSet(deleteData.id) as any).then(() => {
+        dispatch(getAllQuizSets(pagination) as any);
+      });
+    } else if (deleteData.type === "question" && deleteData.id) {
+      if (!selectedSet) {
+        toast.error("Missing set ID");
+        setDeleteModal(false);
+        return;
       }
-    } else if (deleteData.type === 'question') {
-      setQuizQuestions(quizQuestions.filter(question => question.quizQuestionId !== deleteData.id));
-      if (selectedQuestion === deleteData.id) {
-        setSelectedQuestion(null);
-        setQuizOptions([]);
+
+      setIsLoading(true); // Show loading state
+
+      dispatch(
+        deleteQuizQuestionForSet({
+          setId: selectedSet,
+          questionId: deleteData.id,
+        }) as any
+      )
+        .then(() => {
+          // After deleting, fetch fresh data
+          return dispatch(getQuizQuestionsBySetId(selectedSet) as any);
+        })
+        .then((response: any) => {
+          // Update local questions with the response data
+          if (response && response.payload && response.payload.data) {
+            setLocalQuestions(response.payload.data);
+          } else if (response && response.data) {
+            setLocalQuestions(response.data);
+          } else if (Array.isArray(response)) {
+            setLocalQuestions(response);
+          }
+          setIsLoading(false);
+        })
+        .catch((error: any) => {
+          console.error("Error deleting question:", error);
+          toast.error("Failed to delete question. Please try again.");
+          setIsLoading(false);
+        });
+    } else if (deleteData.type === "option" && deleteData.id) {
+      if (!selectedQuestion) {
+        toast.error("Missing question ID");
+        setDeleteModal(false);
+        return;
       }
-    } else if (deleteData.type === 'option') {
-      setQuizOptions(quizOptions.filter(option => option.quizOptionId !== deleteData.id));
+
+      dispatch(
+        deleteQuizOptionByQuestionId({
+          questionId: selectedQuestion,
+          optionId: deleteData.id,
+        }) as any
+      ).then(() => {
+        if (selectedQuestion) {
+          dispatch(getQuizOptionsByQuestionId(selectedQuestion) as any);
+        }
+      });
     }
     setDeleteModal(false);
   };
 
-  // Set management handlers with mock implementation
+  // Set management handlers with Redux
   const handleAddSet = () => {
-    const newSet: QuizSet = {
-      quizSetId: `set-${Date.now()}`,
-      name: currentSet.name || 'New Quiz Set',
-      isDefault: currentSet.isDefault || false
+    const newSet = {
+      name: currentSet.name || "New Quiz Set",
+      isDefault: currentSet.isDefault || false,
     };
-    
-    // If this set is marked as default, make sure no other set is default
-    if (newSet.isDefault) {
-      setQuizSets(quizSets.map(set => ({ ...set, isDefault: false })));
-    }
-    
-    setQuizSets([...quizSets, newSet]);
+
+    dispatch(createQuizSet(newSet) as any);
     setOpenSetDialog(false);
-    setCurrentSet({ name: '', isDefault: false });
+    setCurrentSet({ name: "", isDefault: false });
   };
 
   const handleEditSet = () => {
-    // If this set is being set as default, update all other sets
-    if (currentSet.isDefault) {
-      setQuizSets(quizSets.map(set => 
-        set.quizSetId === currentSet.quizSetId 
-          ? { ...set, name: currentSet.name || set.name, isDefault: true } 
-          : { ...set, isDefault: false }
-      ));
-    } else {
-      setQuizSets(quizSets.map(set => 
-        set.quizSetId === currentSet.quizSetId 
-          ? { ...set, name: currentSet.name || set.name, isDefault: currentSet.isDefault } 
-          : set
-      ));
-    }
-    
+    if (!currentSet.id) return;
+
+    const updatedSet = {
+      id: currentSet.id,
+      data: {
+        name: currentSet.name,
+        isDefault: currentSet.isDefault,
+      },
+    };
+
+    dispatch(updateQuizSet(updatedSet) as any);
     setOpenSetDialog(false);
-    setCurrentSet({ name: '', isDefault: false });
+    setCurrentSet({ name: "", isDefault: false });
     setIsEditing(false);
   };
 
-  // Question management handlers with mock implementation
+  // Question management handlers (still using local state for now)
   const handleAddQuestion = () => {
-    const newQuestion: QuizQuestion = {
-      quizQuestionId: `q-${Date.now()}`,
-      setId: selectedSet || '',
-      value: currentQuestion.value || 'New Question'
+    if (!selectedSet) {
+      toast.error("Please select a quiz set first");
+      return;
+    }
+
+    const newQuestion = {
+      value: currentQuestion.value || "New Question",
     };
-    
-    setQuizQuestions([...quizQuestions, newQuestion]);
+
+    setIsLoading(true);
+
+    dispatch(
+      createQuizQuestionForSet({
+        setId: selectedSet,
+        data: newQuestion,
+      }) as any
+    )
+      .then((response: any) => {
+        return dispatch(getQuizQuestionsBySetId(selectedSet) as any);
+      })
+      .then((response: any) => {
+        // Update local questions with the response data
+        if (response && response.payload && response.payload.data) {
+          setLocalQuestions(response.payload.data);
+        } else if (response && response.data) {
+          setLocalQuestions(response.data);
+        } else if (Array.isArray(response)) {
+          setLocalQuestions(response);
+        }
+        setIsLoading(false);
+      })
+      .catch((error: any) => {
+        console.error("Error handling question:", error);
+        toast.error("Failed to add question. Please try again.");
+        setIsLoading(false);
+      });
+
     setOpenQuestionDialog(false);
-    setCurrentQuestion({ value: '' });
+    setCurrentQuestion({ value: "" });
   };
 
   const handleEditQuestion = () => {
-    setQuizQuestions(quizQuestions.map(question => 
-      question.quizQuestionId === currentQuestion.quizQuestionId 
-        ? { ...question, value: currentQuestion.value || question.value } 
-        : question
-    ));
+    if (!currentQuestion.id || !selectedSet) {
+      toast.error("Missing question ID or set ID");
+      return;
+    }
+
+    const updatedQuestion = {
+      value: currentQuestion.value,
+    };
+
+    setIsLoading(true); // Show loading state while operation completes
+
+    dispatch(
+      updateQuizQuestionForSet({
+        setId: selectedSet,
+        questionId: currentQuestion.id,
+        data: updatedQuestion,
+      }) as any
+    )
+      .then(() => {
+        // Directly refresh questions from the API to ensure we have latest data
+        return dispatch(getQuizQuestionsBySetId(selectedSet) as any);
+      })
+      .then((response: any) => {
+        // Update local questions with the response data
+        if (response && response.payload && response.payload.data) {
+          setLocalQuestions(response.payload.data);
+        } else if (response && response.data) {
+          setLocalQuestions(response.data);
+        } else if (Array.isArray(response)) {
+          setLocalQuestions(response);
+        }
+        setIsLoading(false);
+      })
+      .catch((error: any) => {
+        console.error("Error updating question:", error);
+        toast.error("Failed to update question. Please try again.");
+        setIsLoading(false);
+      });
+
     setOpenQuestionDialog(false);
-    setCurrentQuestion({ value: '' });
+    setCurrentQuestion({ value: "" });
     setIsEditing(false);
   };
-
-  // Option management handlers with mock implementation
+  // Option management handlers
   const handleAddOption = () => {
-    const newOption: QuizOption = {
-      quizOptionId: `opt-${Date.now()}`,
-      questionId: selectedQuestion || '',
-      value: currentOption.value || 'New Option',
-      score: currentOption.score || 0
+    if (!selectedQuestion) {
+      toast.error("Please select a question first");
+      return;
+    }
+
+    const newOption = {
+      value: currentOption.value || "New Option",
+      score: currentOption.score || 0,
     };
-    
-    setQuizOptions([...quizOptions, newOption]);
+
+    dispatch(
+      createQuizOptionByQuestionId({
+        questionId: selectedQuestion,
+        data: newOption,
+      }) as any
+    ).then(() => {
+      if (selectedQuestion) {
+        dispatch(getQuizOptionsByQuestionId(selectedQuestion) as any);
+      }
+    });
     setOpenOptionDialog(false);
-    setCurrentOption({ value: '', score: 0 });
+    setCurrentOption({ value: "", score: 0 });
   };
 
   const handleEditOption = () => {
-    setQuizOptions(quizOptions.map(option => 
-      option.quizOptionId === currentOption.quizOptionId 
-        ? { 
-            ...option, 
-            value: currentOption.value || option.value,
-            score: currentOption.score !== undefined ? currentOption.score : option.score 
-          } 
-        : option
-    ));
+    if (!currentOption.id || !selectedQuestion) {
+      toast.error("Missing option ID or question ID");
+      return;
+    }
+
+    const updatedOption = {
+      value: currentOption.value,
+      score: currentOption.score,
+    };
+
+    dispatch(
+      updateQuizOptionByQuestionId({
+        questionId: selectedQuestion,
+        optionId: currentOption.id,
+        data: updatedOption,
+      }) as any
+    ).then(() => {
+      if (selectedQuestion) {
+        dispatch(getQuizOptionsByQuestionId(selectedQuestion) as any);
+      }
+    });
     setOpenOptionDialog(false);
-    setCurrentOption({ value: '', score: 0 });
+    setCurrentOption({ value: "", score: 0 });
     setIsEditing(false);
   };
 
@@ -250,7 +479,7 @@ const SurveyQuestion = () => {
   const toggleSetDialog = useCallback(() => {
     if (openSetDialog) {
       setOpenSetDialog(false);
-      setCurrentSet({ name: '' });
+      setCurrentSet({ name: "", isDefault: false });
       setIsEditing(false);
     } else {
       setOpenSetDialog(true);
@@ -261,7 +490,7 @@ const SurveyQuestion = () => {
   const toggleQuestionDialog = useCallback(() => {
     if (openQuestionDialog) {
       setOpenQuestionDialog(false);
-      setCurrentQuestion({ value: '' });
+      setCurrentQuestion({ value: "" });
       setIsEditing(false);
     } else {
       setOpenQuestionDialog(true);
@@ -272,7 +501,7 @@ const SurveyQuestion = () => {
   const toggleOptionDialog = useCallback(() => {
     if (openOptionDialog) {
       setOpenOptionDialog(false);
-      setCurrentOption({ value: '', score: 0 });
+      setCurrentOption({ value: "", score: 0 });
       setIsEditing(false);
     } else {
       setOpenOptionDialog(true);
@@ -281,19 +510,10 @@ const SurveyQuestion = () => {
 
   // Add handler for setting a quiz set as default
   const handleSetDefault = (setId: string) => {
-    // Update all quiz sets, setting only the selected one as default
-    setQuizSets(quizSets.map(set => ({
-      ...set,
-      isDefault: set.quizSetId === setId
-    })));
-    
-    // Show success toast notification
-    toast.success("Quiz set has been set as default successfully!");
-    
-    // Call API to update isDefault (commented for now)
-    // axios.put(`/api/quiz-sets/${setId}/default`, { isDefault: true })
-    //   .then(() => toast.success("Quiz set has been set as default successfully!"))
-    //   .catch(error => toast.error("Failed to set quiz set as default"));
+    dispatch(setQuizSetAsDefault(setId) as any).then(() => {
+      // Refresh the quiz sets after setting default
+      dispatch(getAllQuizSets(pagination) as any);
+    });
   };
 
   // Table columns for quiz sets
@@ -304,104 +524,282 @@ const SurveyQuestion = () => {
       enableColumnFilter: false,
       enableSorting: true,
       cell: (cell: any) => (
-        <Link
-          to="#"
-          className="flex items-center gap-2"
-          onClick={() => setSelectedSet(cell.row.original.quizSetId)}
+        <button
+          type="button"
+          className="text-left flex items-center gap-2 w-full"
+          onClick={() => {
+            const newSetId = cell.row.original.id;
+            console.log("Clicking set with ID:", newSetId);
+
+            // Set loading state
+            setIsLoading(true);
+
+            // Clear current questions and set the new selected set
+            setLocalQuestions([]);
+            setSelectedSet(newSetId);
+
+            // Manually fetch questions for this set
+            fetch(`/api/quiz-sets/${newSetId}/questions`)
+              .then((response) => response.json())
+              .then((data) => {
+                console.log("Direct fetch response:", data);
+                // Handle different response formats
+                if (Array.isArray(data)) {
+                  setLocalQuestions(data);
+                } else if (data && data.data && Array.isArray(data.data)) {
+                  setLocalQuestions(data.data);
+                } else if (data && data.items && Array.isArray(data.items)) {
+                  setLocalQuestions(data.items);
+                } else {
+                  console.error("Unexpected data format:", data);
+                  setLocalQuestions([]);
+                }
+                setIsLoading(false);
+              })
+              .catch((error) => {
+                console.error("Error fetching questions:", error);
+                setLocalQuestions([]);
+                setIsLoading(false);
+              });
+          }}
         >
           {cell.getValue()}
-        </Link>
+        </button>
       ),
     },
     {
       header: "Default",
       accessorKey: "isDefault",
       enableColumnFilter: false,
-      enableSorting: false,
-      Header: () => (
-        <div className="relative pr-4">
-          <span className="absolute right-[120px]">Default</span>
-        </div>
-      ),
+      enableSorting: true,
       cell: (cell: any) => (
-        <div className="relative flex items-center">
-          <div className="absolute right-[150px]">
-            {cell.row.original.isDefault ? (
-              <span className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded border bg-green-100 border-green-200 text-green-500 dark:bg-green-500/20 dark:border-green-500/20">
-                <Check className="w-3 h-3 mr-1" />
-                Default
-              </span>
-            ) : (
-              <button
-                type="button"
-                className="py-1 px-2.5 text-custom-500 bg-white btn border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:bg-zink-700 dark:hover:bg-custom-500 dark:ring-custom-400/20 dark:focus:bg-custom-500 text-xs"
-                onClick={() => handleSetDefault(cell.row.original.quizSetId)}
-              >
-                Set as Default
-              </button>
-            )}
-          </div>
+        <div className="flex items-center">
+          {cell.getValue() ? (
+            <span className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded border bg-green-100 border-transparent text-green-500 dark:bg-green-500/20 dark:text-green-300">
+              <Check className="size-3.5 me-1" />
+              Default
+            </span>
+          ) : (
+            <button
+              type="button"
+              className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded border bg-slate-100 border-slate-200 text-slate-500 hover:bg-slate-200 dark:bg-slate-500/20 dark:border-slate-500/20 dark:text-slate-400 dark:hover:bg-slate-500/30"
+              onClick={() => {
+                handleSetDefault(cell.row.original.id);
+                // Refresh the quiz sets after setting default
+                setTimeout(() => {
+                  dispatch(getAllQuizSets(pagination) as any);
+                }, 500);
+              }}
+            >
+              Set as Default
+            </button>
+          )}
         </div>
       ),
     },
     {
-      header: "Actions",
+      header: "Action",
       enableColumnFilter: false,
-      enableSorting: false,
-      Header: () => (
-        <div className="relative pr-4">
-          <span className="absolute right-[120px]">Actions</span>
-        </div>
-      ),
+      enableSorting: true,
       cell: (cell: any) => (
-        <div className="relative flex items-center gap-2">
-          <div className="absolute right-[158px] flex items-center gap-2">
-            <button 
-              className="flex items-center justify-center size-[30px] p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400"
-              onClick={() => {
-                setIsEditing(true);
-                setCurrentSet(cell.row.original);
-                setOpenSetDialog(true);
+        <div className="flex gap-2">
+          <div className="dropdown relative">
+            <button
+              type="button"
+              className="flex items-center justify-center size-[30px] p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400 dark:hover:bg-slate-500 dark:hover:text-white dark:focus:bg-slate-500 dark:focus:text-white dark:active:bg-slate-500 dark:active:text-white dark:ring-slate-400/20"
+              onClick={(e) => {
+                e.currentTarget.nextElementSibling?.classList.toggle("hidden");
               }}
             >
-              <FileEdit className="size-3" />
+              <MoreHorizontal className="size-3" />
             </button>
-            <button 
-              className="flex items-center justify-center size-[30px] p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400"
-              onClick={() => onClickDelete('set', cell.row.original.quizSetId)}
-            >
-              <Trash2 className="size-3" />
-            </button>
+            <ul className="absolute z-50 hidden p-2 mt-1 text-left list-none bg-white rounded-md shadow-md dropdown-menu min-w-[10rem] dark:bg-zink-600 right-0">
+              <li>
+                <button
+                  className="flex items-center gap-2 w-full p-2 text-sm font-medium text-slate-600 rounded hover:bg-slate-100 dark:text-zink-100 dark:hover:bg-zink-500"
+                  onClick={() => {
+                    setIsEditing(true);
+                    setCurrentSet({
+                      id: cell.row.original.id,
+                      name: cell.row.original.name,
+                      isDefault: cell.row.original.isDefault,
+                    });
+                    setOpenSetDialog(true);
+                  }}
+                >
+                  <FileEdit className="size-3" /> Edit
+                </button>
+              </li>
+              <li>
+                <button
+                  className="flex items-center gap-2 w-full p-2 text-sm font-medium text-slate-600 rounded hover:bg-slate-100 dark:text-zink-100 dark:hover:bg-zink-500"
+                  onClick={() => onClickDelete("set", cell.row.original.id)}
+                >
+                  <Trash2 className="size-3" /> Delete
+                </button>
+              </li>
+            </ul>
           </div>
         </div>
       ),
     },
   ];
 
+  // Inside your component, add this validation schema
+  const quizSetSchema = Yup.object().shape({
+    name: Yup.string().required("Quiz set name is required"),
+    isDefault: Yup.boolean(),
+  });
+
+  // Add this for form handling
+  const formik = useFormik({
+    initialValues: {
+      name: currentSet.name || "",
+      isDefault: currentSet.isDefault || false,
+    },
+    validationSchema: quizSetSchema,
+    enableReinitialize: true,
+    onSubmit: (values) => {
+      if (isEditing && currentSet.id) {
+        const updatedSet = {
+          id: currentSet.id,
+          data: {
+            name: values.name,
+            isDefault: values.isDefault === true,
+          },
+        };
+        dispatch(updateQuizSet(updatedSet) as any).then(() => {
+          // Refresh the quiz sets after update
+          dispatch(getAllQuizSets(pagination) as any);
+        });
+      } else {
+        const newSet = {
+          name: values.name,
+          isDefault: values.isDefault === true,
+        };
+        dispatch(createQuizSet(newSet) as any).then(() => {
+          // Refresh the quiz sets after creation
+          dispatch(getAllQuizSets(pagination) as any);
+        });
+      }
+      setOpenSetDialog(false);
+      setCurrentSet({ name: "", isDefault: false });
+      setIsEditing(false);
+      formik.resetForm();
+    },
+  });
+
+  // Add this debugging in your render to see what's available
+  console.log("Component quizQuestions:", quizQuestions);
+  console.log("Component localQuestions:", localQuestions);
+
+  // Add a function to render options for a selected question
+  const renderOptions = () => {
+    if (!selectedQuestion) return null;
+
+    return (
+      <div className="mt-4">
+        <div className="flex justify-between items-center mb-3">
+          <h6 className="text-15">Options for Selected Question</h6>
+          <button
+            type="button"
+            className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
+            onClick={() => {
+              setIsEditing(false);
+              setCurrentOption({ value: "", score: 0 });
+              setOpenOptionDialog(true);
+            }}
+          >
+            <Plus className="inline-block size-4 ltr:mr-1 rtl:ml-1" />{" "}
+            <span className="align-middle">Add Option</span>
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="py-3 text-center">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        ) : quizOptions && quizOptions.length > 0 ? (
+          <div className="space-y-2">
+            {quizOptions.map((option: QuizOption) => (
+              <div
+                key={option.id}
+                className="flex justify-between items-center p-3 border rounded-md dark:border-zink-500"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="font-medium">{option.value}</span>
+                  <span className="text-sm text-slate-500 dark:text-zink-200">
+                    Score: {option.score}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    className="flex items-center justify-center size-[30px] p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400 dark:hover:bg-slate-500 dark:hover:text-white dark:focus:bg-slate-500 dark:focus:text-white dark:active:bg-slate-500 dark:active:text-white dark:ring-slate-400/20"
+                    onClick={() => {
+                      setIsEditing(true);
+                      setCurrentOption({
+                        id: option.id,
+                        value: option.value,
+                        score: option.score,
+                      });
+                      setOpenOptionDialog(true);
+                    }}
+                  >
+                    <FileEdit className="size-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    className="flex items-center justify-center size-[30px] p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400 dark:hover:bg-slate-500 dark:hover:text-white dark:focus:bg-slate-500 dark:focus:text-white dark:active:bg-slate-500 dark:active:text-white dark:ring-slate-400/20"
+                    onClick={() => onClickDelete("option", option.id)}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="py-3 text-center">
+            <p className="text-slate-500 dark:text-zink-200">
+              No options found for this question.
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Add this useEffect to log when selectedSet changes
+  useEffect(() => {
+    console.log("selectedSet changed to:", selectedSet);
+  }, [selectedSet]);
+
+  // Add this useEffect to log when localQuestions changes
+  useEffect(() => {
+    console.log("localQuestions changed:", localQuestions);
+  }, [localQuestions]);
+
   return (
     <React.Fragment>
-      <ToastContainer />
-      <BreadCrumb title="Survey Questions" pageTitle="Survey Questions" />
-      <DeleteModal 
-        show={deleteModal} 
-        onHide={deleteToggle}
-        onDelete={handleDelete}
-      />
+      <div className="page-content">
+        <BreadCrumb title="Quiz Manager" pageTitle="Ecommerce" />
+        <ToastContainer closeButton={false} />
 
-      {/* Quiz Sets Section */}
-      <div className="card" id="quizSetsTable">
-        <div className="card-body">
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-12">
-            <div className="xl:col-span-10">
-              <h5 className="text-16">Quiz Manager</h5>
-            </div>
-            <div className="lg:col-span-2 ltr:lg:text-right rtl:lg:text-left xl:col-span-2">
+        {/* Quiz Sets Table */}
+        <div className="card" id="sets-container">
+          <div className="card-body">
+            <div className="flex items-center justify-between mb-4">
+              <h5 className="text-16">Quiz Sets</h5>
               <button
                 type="button"
                 className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
                 onClick={() => {
+                  console.log("Opening quiz set dialog"); // Debug log
                   setIsEditing(false);
-                  setCurrentSet({ name: '' });
+                  setCurrentSet({ name: "", isDefault: false });
                   setOpenSetDialog(true);
                 }}
               >
@@ -410,51 +808,55 @@ const SurveyQuestion = () => {
               </button>
             </div>
           </div>
-        </div>
 
-        <div className="!pt-1 card-body">
-          <h5 className="mb-3">Quiz Sets</h5>
-          {quizSets && quizSets.length > 0 ? (
-            <TableContainer
-              columns={setColumns}
-              data={quizSets}
-              customPageSize={10}
-              divclassName="overflow-x-auto"
-              tableclassName="w-full whitespace-nowrap"
-              theadclassName="ltr:text-left rtl:text-right bg-slate-100 dark:bg-zink-600"
-              thclassName="px-3.5 py-2.5 font-semibold border-b border-slate-200 dark:border-zink-500"
-              tdclassName="px-3.5 py-2.5 border-y border-slate-200 dark:border-zink-500"
-              isPagination={true}
-            />
-          ) : (
-            <div className="noresult">
+          <div className="!pt-1 card-body">
+            {loading ? (
               <div className="py-6 text-center">
-                <Search className="size-6 mx-auto mb-3 text-sky-500 fill-sky-100 dark:fill-sky-500/20" />
-                <h5 className="mt-2 mb-1">Sorry! No Result Found</h5>
-                <p className="mb-0 text-slate-500 dark:text-zink-200">
-                  No quiz sets found. Create one to get started.
-                </p>
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
               </div>
-            </div>
-          )}
+            ) : quizSets && quizSets.length > 0 ? (
+              <TableContainer
+                columns={setColumns}
+                data={quizSets}
+                customPageSize={pagination.pageSize}
+                divclassName="overflow-x-auto"
+                tableclassName="w-full whitespace-nowrap"
+                theadclassName="ltr:text-left rtl:text-right bg-slate-100 dark:bg-zink-600"
+                thclassName="px-3.5 py-2.5 font-semibold border-b border-slate-200 dark:border-zink-500"
+                tdclassName="px-3.5 py-2.5 border-y border-slate-200 dark:border-zink-500"
+                isPagination={true}
+                onPageChange={(page) =>
+                  setPagination((prev) => ({ ...prev, page }))
+                }
+              />
+            ) : (
+              <div className="noresult">
+                <div className="py-6 text-center">
+                  <Search className="size-6 mx-auto mb-3 text-sky-500 fill-sky-100 dark:fill-sky-500/20" />
+                  <h5 className="mt-2 mb-1">Sorry! No Result Found</h5>
+                  <p className="mb-0 text-slate-500 dark:text-zink-200">
+                    No quiz sets found. Create one to get started.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Questions Section - Only visible if a quiz set is selected */}
-      {selectedSet && (
-        <div className="card mt-4" id="quizQuestionsSection">
-          <div className="card-body">
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-12">
-              <div className="xl:col-span-10">
+        {/* Questions Section */}
+        {selectedSet && (
+          <div className="card mt-4" id="questions-container">
+            <div className="card-body">
+              <div className="flex items-center justify-between mb-4">
                 <h5 className="text-16">Questions</h5>
-              </div>
-              <div className="lg:col-span-2 ltr:lg:text-right rtl:lg:text-left xl:col-span-2">
                 <button
                   type="button"
                   className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
                   onClick={() => {
                     setIsEditing(false);
-                    setCurrentQuestion({ value: '' });
+                    setCurrentQuestion({ value: "" });
                     setOpenQuestionDialog(true);
                   }}
                 >
@@ -463,312 +865,338 @@ const SurveyQuestion = () => {
                 </button>
               </div>
             </div>
-          </div>
 
-          <div className="!pt-1 card-body">
-            {quizQuestions.length > 0 ? (
-              <div className="space-y-3">
-                {quizQuestions.map((question) => (
-                  <div key={question.quizQuestionId} className="border rounded-md overflow-hidden">
-                    <div 
-                      className={`flex justify-between items-center p-3 cursor-pointer ${expandedQuestions[question.quizQuestionId] ? 'bg-slate-50 dark:bg-zink-600' : 'bg-white dark:bg-zink-700'}`}
-                      onClick={() => toggleQuestionExpand(question.quizQuestionId)}
+            <div className="!pt-1 card-body">
+              {isLoading ? (
+                <div className="py-6 text-center">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+              ) : localQuestions && localQuestions.length > 0 ? (
+                <div className="space-y-4">
+                  {localQuestions.map((question: QuizQuestion) => (
+                    <div
+                      key={question.id}
+                      id={`question-${question.id}`}
+                      className="border rounded-md dark:border-zink-500"
                     >
-                      <span className="font-medium">{question.value}</span>
-                      <div className="flex items-center gap-2">
-                        <button 
-                          className="flex items-center justify-center size-[30px] p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setIsEditing(true);
-                            setCurrentQuestion(question);
-                            setOpenQuestionDialog(true);
-                          }}
-                        >
-                          <FileEdit className="size-3" />
-                        </button>
-                        <button 
-                          className="flex items-center justify-center size-[30px] p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onClickDelete('question', question.quizQuestionId);
-                          }}
-                        >
-                          <Trash2 className="size-3" />
-                        </button>
-                        <ChevronDown className={`size-5 transition-transform duration-300 ${expandedQuestions[question.quizQuestionId] ? 'rotate-180' : ''}`} />
-                      </div>
-                    </div>
-                    
-                    {expandedQuestions[question.quizQuestionId] && (
-                      <div className="p-3 border-t">
-                        <div className="flex justify-between items-center mb-3">
-                          <h6 className="text-sm font-medium">Answer Options</h6>
+                      <div
+                        className="flex items-center justify-between p-4 cursor-pointer"
+                        onClick={() => toggleQuestionExpand(question.id)}
+                      >
+                        <h6 className="text-15">{question.value}</h6>
+                        <div className="flex items-center gap-2">
                           <button
                             type="button"
-                            className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20 py-1 px-2 text-xs"
-                            onClick={() => {
-                              setIsEditing(false);
-                              setCurrentOption({ value: '', score: 0 });
-                              setOpenOptionDialog(true);
+                            className="flex items-center justify-center size-[30px] p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400 dark:hover:bg-slate-500 dark:hover:text-white dark:focus:bg-slate-500 dark:focus:text-white dark:active:bg-slate-500 dark:active:text-white dark:ring-slate-400/20"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsEditing(true);
+                              setCurrentQuestion({
+                                id: question.id,
+                                value: question.value,
+                              });
+                              setOpenQuestionDialog(true);
                             }}
                           >
-                            <Plus className="inline-block size-3 ltr:mr-1 rtl:ml-1" />{" "}
-                            <span className="align-middle">Add Option</span>
+                            <FileEdit className="size-3.5" />
                           </button>
+                          <button
+                            type="button"
+                            className="flex items-center justify-center size-[30px] p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400 dark:hover:bg-slate-500 dark:hover:text-white dark:focus:bg-slate-500 dark:focus:text-white dark:active:bg-slate-500 dark:active:text-white dark:ring-slate-400/20"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onClickDelete("question", question.id);
+                            }}
+                          >
+                            <Trash2 className="size-3.5" />
+                          </button>
+                          <ChevronDown
+                            className={`size-4 transition-transform ${
+                              expandedQuestions[question.id] ? "rotate-180" : ""
+                            }`}
+                          />
                         </div>
-                        
-                        {quizOptions.length > 0 ? (
-                          <div className="overflow-x-auto">
-                            <table className="w-full whitespace-nowrap">
-                              <thead className="ltr:text-left rtl:text-right bg-slate-100 dark:bg-zink-600">
-                                <tr>
-                                  <th className="px-3.5 py-2.5 font-semibold border-b border-slate-200 dark:border-zink-500">Option Text</th>
-                                  <th className="px-3.5 py-2.5 font-semibold border-b border-slate-200 dark:border-zink-500 text-center">Score</th>
-                                  <th className="px-3.5 py-2.5 font-semibold border-b border-slate-200 dark:border-zink-500 text-right">Actions</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {quizOptions.map((option) => (
-                                  <tr key={option.quizOptionId}>
-                                    <td className="px-3.5 py-2.5 border-y border-slate-200 dark:border-zink-500">{option.value}</td>
-                                    <td className="px-3.5 py-2.5 border-y border-slate-200 dark:border-zink-500 text-center">{option.score}</td>
-                                    <td className="px-3.5 py-2.5 border-y border-slate-200 dark:border-zink-500 text-right">
-                                      <div className="flex gap-2 justify-end">
-                                        <button 
-                                          className="flex items-center justify-center size-[26px] p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400"
-                                          onClick={() => {
-                                            setIsEditing(true);
-                                            setCurrentOption(option);
-                                            setOpenOptionDialog(true);
-                                          }}
-                                        >
-                                          <FileEdit className="size-3" />
-                                        </button>
-                                        <button 
-                                          className="flex items-center justify-center size-[26px] p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400"
-                                          onClick={() => onClickDelete('option', option.quizOptionId)}
-                                        >
-                                          <Trash2 className="size-3" />
-                                        </button>
-                                      </div>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        ) : (
-                          <div className="py-4 text-center border rounded-md">
-                            <p className="text-slate-500 dark:text-zink-200">No options for this question. Add some options.</p>
-                          </div>
-                        )}
                       </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="py-6 text-center">
-                <Search className="size-6 mx-auto mb-3 text-sky-500 fill-sky-100 dark:fill-sky-500/20" />
-                <h5 className="mt-2 mb-1">No Questions Found</h5>
-                <p className="mb-0 text-slate-500 dark:text-zink-200">
-                  No questions in this quiz set. Add a question to get started.
-                </p>
-              </div>
-            )}
+
+                      {expandedQuestions[question.id] && (
+                        <div className="p-4 border-t dark:border-zink-500">
+                          {selectedQuestion === question.id && renderOptions()}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-6 text-center">
+                  <p className="text-slate-500 dark:text-zink-200">
+                    No questions found for this quiz set.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Modals */}
-      {/* Quiz Set Modal */}
-      <Modal
-        show={openSetDialog}
-        onHide={toggleSetDialog}
-        modal-center="true"
-        className="fixed flex flex-col transition-all duration-300 ease-in-out left-2/4 z-drawer -translate-x-2/4 -translate-y-2/4"
-        dialogClassName="w-screen md:w-[30rem] bg-white shadow rounded-md dark:bg-zink-600"
-      >
-        <Modal.Header
-          className="flex items-center justify-between p-4 border-b dark:border-zink-500"
-          closeButtonClass="transition-all duration-200 ease-linear text-slate-400 hover:text-red-500"
+        {/* Question Modal */}
+        <Modal
+          show={openQuestionDialog}
+          onHide={toggleQuestionDialog}
+          modal-center="true"
+          className="fixed flex flex-col transition-all duration-300 ease-in-out left-2/4 z-drawer -translate-x-2/4 -translate-y-2/4"
+          dialogClassName="w-screen md:w-[30rem] bg-white shadow rounded-md dark:bg-zink-600"
         >
-          <Modal.Title className="text-16">
-            {isEditing ? "Edit Quiz Set" : "Add Quiz Set"}
-          </Modal.Title>
-        </Modal.Header>
+          <Modal.Header
+            className="flex items-center justify-between p-4 border-b dark:border-zink-500"
+            closeButtonClass="transition-all duration-200 ease-linear text-slate-400 hover:text-red-500"
+          >
+            <Modal.Title className="text-16">
+              {isEditing ? "Edit Question" : "Add Question"}
+            </Modal.Title>
+          </Modal.Header>
 
-        <Modal.Body className="max-h-[calc(theme('height.screen')_-_180px)] p-4 overflow-y-auto">
-          <form action="#!" onSubmit={(e) => {
-            e.preventDefault();
-            isEditing ? handleEditSet() : handleAddSet();
-            return false;
-          }}>
-            <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
-              <div className="xl:col-span-12">
-                <label htmlFor="nameInput" className="inline-block mb-2 text-base font-medium">
-                  Quiz Set Name <span className="text-red-500 ml-1">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="nameInput"
-                  className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Enter quiz set name"
-                  value={currentSet.name}
-                  onChange={(e) => setCurrentSet({ ...currentSet, name: e.target.value })}
-                />
+          <Modal.Body className="max-h-[calc(theme('height.screen')_-_180px)] p-4 overflow-y-auto">
+            <form
+              action="#!"
+              onSubmit={(e) => {
+                e.preventDefault();
+                isEditing ? handleEditQuestion() : handleAddQuestion();
+                return false;
+              }}
+            >
+              <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+                <div className="xl:col-span-12">
+                  <label
+                    htmlFor="questionInput"
+                    className="inline-block mb-2 text-base font-medium"
+                  >
+                    Question <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <textarea
+                    id="questionInput"
+                    className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
+                    placeholder="Enter question"
+                    rows={3}
+                    value={currentQuestion.value}
+                    onChange={(e) =>
+                      setCurrentQuestion({
+                        ...currentQuestion,
+                        value: e.target.value,
+                      })
+                    }
+                  ></textarea>
+                </div>
               </div>
-            </div>
 
-            <div className="flex justify-end gap-2 mt-4">
-              <button 
-                type="button" 
-                className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10" 
-                onClick={toggleSetDialog}
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit" 
-                className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
-              >
-                {isEditing ? "Update" : "Add Quiz Set"}
-              </button>
-            </div>
-          </form>
-        </Modal.Body>
-      </Modal>
+              <div className="flex justify-end gap-2 mt-4">
+                <button
+                  type="button"
+                  className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10"
+                  onClick={toggleQuestionDialog}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
+                >
+                  {isEditing ? "Update" : "Add"}
+                </button>
+              </div>
+            </form>
+          </Modal.Body>
+        </Modal>
 
-      {/* Question Modal */}
-      <Modal
-        show={openQuestionDialog}
-        onHide={toggleQuestionDialog}
-        modal-center="true"
-        className="fixed flex flex-col transition-all duration-300 ease-in-out left-2/4 z-drawer -translate-x-2/4 -translate-y-2/4"
-        dialogClassName="w-screen md:w-[30rem] bg-white shadow rounded-md dark:bg-zink-600"
-      >
-        <Modal.Header
-          className="flex items-center justify-between p-4 border-b dark:border-zink-500"
-          closeButtonClass="transition-all duration-200 ease-linear text-slate-400 hover:text-red-500"
+        {/* Option Modal */}
+        <Modal
+          show={openOptionDialog}
+          onHide={toggleOptionDialog}
+          modal-center="true"
+          className="fixed flex flex-col transition-all duration-300 ease-in-out left-2/4 z-drawer -translate-x-2/4 -translate-y-2/4"
+          dialogClassName="w-screen md:w-[30rem] bg-white shadow rounded-md dark:bg-zink-600"
         >
-          <Modal.Title className="text-16">
-            {isEditing ? "Edit Question" : "Add Question"}
-          </Modal.Title>
-        </Modal.Header>
+          <Modal.Header
+            className="flex items-center justify-between p-4 border-b dark:border-zink-500"
+            closeButtonClass="transition-all duration-200 ease-linear text-slate-400 hover:text-red-500"
+          >
+            <Modal.Title className="text-16">
+              {isEditing ? "Edit Option" : "Add Option"}
+            </Modal.Title>
+          </Modal.Header>
 
-        <Modal.Body className="max-h-[calc(theme('height.screen')_-_180px)] p-4 overflow-y-auto">
-          <form action="#!" onSubmit={(e) => {
-            e.preventDefault();
-            isEditing ? handleEditQuestion() : handleAddQuestion();
-            return false;
-          }}>
-            <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
-              <div className="xl:col-span-12">
-                <label htmlFor="questionInput" className="inline-block mb-2 text-base font-medium">
-                  Question Text <span className="text-red-500 ml-1">*</span>
-                </label>
-                <textarea
-                  id="questionInput"
-                  className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Enter question text"
-                  value={currentQuestion.value}
-                  onChange={(e) => setCurrentQuestion({ ...currentQuestion, value: e.target.value })}
-                  rows={3}
-                />
+          <Modal.Body className="max-h-[calc(theme('height.screen')_-_180px)] p-4 overflow-y-auto">
+            <form
+              action="#!"
+              onSubmit={(e) => {
+                e.preventDefault();
+                isEditing ? handleEditOption() : handleAddOption();
+                return false;
+              }}
+            >
+              <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+                <div className="xl:col-span-12">
+                  <label
+                    htmlFor="optionInput"
+                    className="inline-block mb-2 text-base font-medium"
+                  >
+                    Option Text <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="optionInput"
+                    className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
+                    placeholder="Enter option text"
+                    value={currentOption.value}
+                    onChange={(e) =>
+                      setCurrentOption({
+                        ...currentOption,
+                        value: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div className="xl:col-span-12">
+                  <label
+                    htmlFor="scoreInput"
+                    className="inline-block mb-2 text-base font-medium"
+                  >
+                    Score <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    id="scoreInput"
+                    className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
+                    placeholder="Enter score (non-negative number)"
+                    min="0"
+                    value={currentOption.score}
+                    onChange={(e) =>
+                      setCurrentOption({
+                        ...currentOption,
+                        score: parseInt(e.target.value) || 0,
+                      })
+                    }
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="flex justify-end gap-2 mt-4">
-              <button 
-                type="button" 
-                className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10" 
-                onClick={toggleQuestionDialog}
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit" 
-                className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
-              >
-                {isEditing ? "Update" : "Add Question"}
-              </button>
-            </div>
-          </form>
-        </Modal.Body>
-      </Modal>
-
-      {/* Option Modal */}
-      <Modal
-        show={openOptionDialog}
-        onHide={toggleOptionDialog}
-        modal-center="true"
-        className="fixed flex flex-col transition-all duration-300 ease-in-out left-2/4 z-drawer -translate-x-2/4 -translate-y-2/4"
-        dialogClassName="w-screen md:w-[30rem] bg-white shadow rounded-md dark:bg-zink-600"
-      >
-        <Modal.Header
-          className="flex items-center justify-between p-4 border-b dark:border-zink-500"
-          closeButtonClass="transition-all duration-200 ease-linear text-slate-400 hover:text-red-500"
-        >
-          <Modal.Title className="text-16">
-            {isEditing ? "Edit Option" : "Add Option"}
-          </Modal.Title>
-        </Modal.Header>
-
-        <Modal.Body className="max-h-[calc(theme('height.screen')_-_180px)] p-4 overflow-y-auto">
-          <form action="#!" onSubmit={(e) => {
-            e.preventDefault();
-            isEditing ? handleEditOption() : handleAddOption();
-            return false;
-          }}>
-            <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
-              <div className="xl:col-span-12">
-                <label htmlFor="optionInput" className="inline-block mb-2 text-base font-medium">
-                  Option Text <span className="text-red-500 ml-1">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="optionInput"
-                  className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Enter option text"
-                  value={currentOption.value}
-                  onChange={(e) => setCurrentOption({ ...currentOption, value: e.target.value })}
-                />
+              <div className="flex justify-end gap-2 mt-4">
+                <button
+                  type="button"
+                  className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10"
+                  onClick={toggleOptionDialog}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
+                >
+                  {isEditing ? "Update" : "Add"}
+                </button>
               </div>
-              <div className="xl:col-span-12">
-                <label htmlFor="scoreInput" className="inline-block mb-2 text-base font-medium">
-                  Score <span className="text-red-500 ml-1">*</span>
-                </label>
-                <input
-                  type="number"
-                  id="scoreInput"
-                  className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Enter score"
-                  value={currentOption.score}
-                  onChange={(e) => setCurrentOption({ ...currentOption, score: parseInt(e.target.value) || 0 })}
-                  min="0"
-                />
-              </div>
-            </div>
+            </form>
+          </Modal.Body>
+        </Modal>
 
-            <div className="flex justify-end gap-2 mt-4">
-              <button 
-                type="button" 
-                className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10" 
-                onClick={toggleOptionDialog}
-              >
-                Cancel
-              </button>
-              <button 
-                type="submit" 
-                className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
-              >
-                {isEditing ? "Update" : "Add Option"}
-              </button>
-            </div>
-          </form>
-        </Modal.Body>
-      </Modal>
+        {/* Delete Modal */}
+        <DeleteModal
+          show={deleteModal}
+          onHide={deleteToggle}
+          onDelete={handleDelete}
+        />
+
+        {openSetDialog && (
+          <Modal
+            show={openSetDialog}
+            onHide={() => {
+              setOpenSetDialog(false);
+              formik.resetForm();
+            }}
+            modal-center="true"
+            className="fixed flex flex-col transition-all duration-300 ease-in-out left-2/4 z-drawer -translate-x-2/4 -translate-y-2/4"
+            dialogClassName="w-screen md:w-[30rem] bg-white shadow rounded-md dark:bg-zink-600"
+          >
+            <Modal.Header
+              className="flex items-center justify-between p-4 border-b dark:border-zink-500"
+              closeButtonClass="transition-all duration-200 ease-linear text-slate-400 hover:text-red-500"
+            >
+              <Modal.Title className="text-16">
+                {isEditing ? "Edit Quiz Set" : "Add Quiz Set"}
+              </Modal.Title>
+            </Modal.Header>
+
+            <Modal.Body className="p-4">
+              <form onSubmit={formik.handleSubmit}>
+                <div className="mb-3">
+                  <label
+                    htmlFor="name"
+                    className="inline-block mb-2 text-base font-medium"
+                  >
+                    Quiz Set Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    className="form-input w-full border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500"
+                    placeholder="Enter quiz set name"
+                    value={formik.values.name}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                  />
+                  {formik.touched.name && formik.errors.name && (
+                    <div className="text-red-500 mt-1">
+                      {formik.errors.name}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mb-3">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="isDefault"
+                      name="isDefault"
+                      className="size-4 border rounded-sm appearance-none bg-slate-100 border-slate-200 dark:bg-zink-600 dark:border-zink-500 checked:bg-custom-500 checked:border-custom-500 dark:checked:bg-custom-500 dark:checked:border-custom-500 checked:disabled:bg-custom-400 checked:disabled:border-custom-400"
+                      checked={formik.values.isDefault === true}
+                      onChange={(e) => {
+                        // Explicitly set the boolean value
+                        formik.setFieldValue("isDefault", e.target.checked);
+                      }}
+                    />
+                    <label
+                      htmlFor="isDefault"
+                      className="ms-2 text-sm align-middle"
+                    >
+                      Set as default quiz
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 mt-4">
+                  <button
+                    type="button"
+                    className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10"
+                    onClick={() => {
+                      setOpenSetDialog(false);
+                      formik.resetForm();
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
+                  >
+                    {isEditing ? "Update" : "Add"}
+                  </button>
+                </div>
+              </form>
+            </Modal.Body>
+          </Modal>
+        )}
+      </div>
     </React.Fragment>
   );
 };

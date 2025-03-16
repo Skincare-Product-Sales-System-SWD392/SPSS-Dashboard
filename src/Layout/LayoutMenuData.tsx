@@ -1,4 +1,6 @@
+import { link } from "fs";
 import { Award, CalendarDays, CircuitBoard, Codesandbox, FileText, LifeBuoy, LocateFixed, Mail, Map, MessageSquare, MonitorDot, PackagePlus, PictureInPicture2, PieChart, RadioTower, ScrollText, Share2, ShoppingBag, Table, Trophy, UserRound} from "lucide-react";
+import { label } from "yet-another-react-lightbox/*";
 
 const menuData: any = [
     {
@@ -189,6 +191,12 @@ const menuData: any = [
                 id: 'voucher',
                 label: 'Voucher',
                 link: '/apps-ecommerce-voucher',
+                parentId: 'ecommerce'
+            },
+            {
+                id: 'variation-option',
+                label: 'Variation Option',
+                link : '/apps-ecommerce-variation-option',
                 parentId: 'ecommerce'
             },
             {

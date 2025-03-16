@@ -125,8 +125,31 @@ export const updateVariation = (id: string, data: any) =>
 export const deleteVariation = (id: string) => 
   api.delete(`${url.DELETE_VARIATION}/${id}`, { headers: { data: id } });
 
-// Product Category
 
+// Product Status
+export const getAllProductStatus = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_PRODUCT_STATUS, params);
+
+export const createProductStatus = (data: any) => 
+  api.create(url.CREATE_PRODUCT_STATUS, data);
+
+export const updateProductStatus = (id: string, data: any) => 
+  api.update(`${url.UPDATE_PRODUCT_STATUS}/${id}`, data);
+
+export const deleteProductStatus = (id: string) => 
+  api.delete(`${url.DELETE_PRODUCT_STATUES}/${id}`, { headers: { data: id } });
+// Product Category
+export const getAllProductCategories = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_PRODUCT_CATEGORIES, params);
+
+export const createProductCategory = (data: any) => 
+  api.create(url.CREATE_PRODUCT_CATEGORIES, data);
+
+export const updateProductCategory = (id: string, data: any) => 
+  api.update(`${url.UPDATE_PRODUCT_CATEGORIES}/${id}`, data);
+
+export const deleteProductCategory = (id: string) => 
+  api.delete(`${url.DELETE_PRODUCT_CATEGORIES}/${id}`, { headers: { data: id } });
 // Blog
 export const getAllBlogs = (params: { Page: number; PageSize: number }) => 
   api.get(url.GET_ALL_BLOGS, params);
@@ -243,6 +266,73 @@ export const deleteOrder = (id: string) =>
 export const getOrderById = (id: string) => 
   api.get(`${url.GET_ORDER_BY_ID}/${id}`, null);
 
+// Quiz Set
+export const getAllQuizSets = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_QUIZ_SETS, params);
+
+export const createQuizSets = (data: any) => 
+  api.create(url.CREATE_QUIZ_SETS, data);
+
+export const updateQuizSets = (id: string, data: any) => 
+  api.update(`${url.UPDATE_QUIZ_SETS}/${id}`, data);
+
+export const deleteQuizSets = (id: string) => 
+  api.delete(`${url.DELETE_QUIZ_SETS}/${id}`, { headers: { data: id } });
+
+export const setQuizSetAsDefault = (id: string) => 
+  api.update(`${url.SET_QUIZ_SETS_DEFAULT}/set-default/${id}`, { isDefault: true });
+
+// Quiz Questions
+export const getAllQuizQuestions = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_QUIZ_QUESTIONS, params);
+
+export const createQuizQuestion = (data: any) => 
+  api.create(url.CREATE_QUIZ_QUESTIONS, data);
+
+export const updateQuizQuestion = (id: string, data: any) => 
+  api.update(`${url.UPDATE_QUIZ_QUESTIONS}/${id}`, data);
+
+export const deleteQuizQuestion = (id: string) => 
+  api.delete(`${url.DELETE_QUIZ_QUESTIONS}/${id}`, { headers: { data: id } });
+
+export const getQuizQuestionByQuizSetId = (id: string) => 
+  api.get(`${url.GET_QUIZ_QUESTION_BY_QUIZ_SET_ID}/by-quiz-set/${id}`);
+
+// New APIs for quiz questions by quiz set ID
+export const createQuizQuestionByQuizSetId = (setId: string, data: any) => 
+  api.create(`${url.CREATE_QUIZ_QUESTION_BY_QUIZ_SET_ID}/by-quiz-set/${setId}`, data);
+
+export const updateQuizQuestionByQuizSetId = (setId: string, questionId: string, data: any) => 
+  api.update(`${url.UPDATE_QUIZ_QUESTION_BY_QUIZ_SET_ID}/by-quiz-set/${setId}/${questionId}`, data);
+
+export const deleteQuizQuestionByQuizSetId = (setId: string, questionId: string) => 
+  api.delete(`${url.DELETE_QUIZ_QUESTION_BY_QUIZ_SET_ID}/by-quiz-set/${setId}/${questionId}`);
+
+// Quiz Options
+export const getAllQuizOptions = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_QUIZ_OPTIONS, params);
+
+export const createQuizOption = (data: any) => 
+  api.create(url.CREATE_QUIZ_OPTIONS, data);
+
+export const updateQuizOption = (id: string, data: any) => 
+  api.update(`${url.UPDATE_QUIZ_OPTIONS}/${id}`, data);
+
+export const deleteQuizOption = (id: string) => 
+  api.delete(`${url.DELETE_QUIZ_OPTIONS}/${id}`, { headers: { data: id } });
+
+export const getQuizOptionByQuizQuestionId = (id: string) => 
+  api.get(`${url.GET_QUIZ_OPTION_BY_QUIZ_QUESTION_ID}/by-quiz-question/${id}`);
+
+// New APIs for quiz options by question ID
+export const createQuizOptionByQuestionId = (questionId: string, data: any) => 
+  api.create(`${url.CREATE_QUIZ_OPTION_BY_QUIZ_QUESTION_ID}/by-quiz-question/${questionId}`, data);
+
+export const updateQuizOptionByQuestionId = (questionId: string, optionId: string, data: any) => 
+  api.update(`${url.UPDATE_QUIZ_OPTION_BY_QUIZ_QUESTION_ID}/by-quiz-question/${questionId}/${optionId}`, data);
+
+export const deleteQuizOptionByQuestionId = (questionId: string, optionId: string) => 
+  api.delete(`${url.DELETE_QUIZ_OPTION_BY_QUIZ_QUESTION_ID}/by-quiz-question/${questionId}/${optionId}`, { headers: { data: optionId } });
 
 // Sellers
 export const getSellers = () => api.get(url.GET_SELLERS, null);
