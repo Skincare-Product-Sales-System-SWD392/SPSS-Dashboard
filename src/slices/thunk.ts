@@ -29,8 +29,6 @@ export * from "./hrManagement/thunk";
 
 export * from "./notes/thunk";
 
-export * from "./social/thunk";
-
 export * from "./invoice/thunk";
 
 export * from "./users/thunk";

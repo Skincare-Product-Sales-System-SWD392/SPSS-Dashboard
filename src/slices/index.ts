@@ -38,6 +38,7 @@ import QuizSetReducer from "./quizset/reducer";
 import QuizQuestionReducer from "./quizquestion/reducer";
 import QuizOptionReducer from "./quizoption/reducer";
 import ProductCategoryReducer from "./productcategory/reducer";
+import VariationOptionReducer from "./variationoption/reducer";
 
 // HR Managment
 import HRManagmentReducer from "./hrManagement/reducer";
@@ -45,8 +46,7 @@ import HRManagmentReducer from "./hrManagement/reducer";
 // Notes
 import NotesReducer from "./notes/reducer";
 
-// Social
-import SocialReducer from "./social/reducer";
+
 
 // Invoice
 import InvoiceReducer from "./invoice/reducer"
@@ -68,7 +68,6 @@ const rootReducer = combineReducers({
     // Ecommerce: EcommerceReducer,
     HRManagment: HRManagmentReducer,
     Notes: NotesReducer,
-    Social: SocialReducer,
     Invoice: InvoiceReducer,
     Users: UsersReducer,
     Promotion: promotionReducer,
@@ -84,6 +83,7 @@ const rootReducer = combineReducers({
     review: ReviewReducer,
     order: OrderReducer,
     Variation: VariationReducer,
+    VariationOption: VariationOptionReducer,
     QuizSet: QuizSetReducer,
     quizQuestion: QuizQuestionReducer,
     quizOption: QuizOptionReducer,

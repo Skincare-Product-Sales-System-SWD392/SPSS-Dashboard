@@ -53,6 +53,12 @@ export const CREATE_VARIATION = "api/variations";
 export const UPDATE_VARIATION = "api/variations";
 export const DELETE_VARIATION = "api/variations";
 
+// Variation Option
+export const GET_ALL_VARIATION_OPTION = "api/variation-options"
+export const CREATE_VARIATION_OPTION = "api/variation-options"
+export const UPDATE_VARIATION_OPTION = "api/variation-options"
+export const DELETE_VARIATION_OPTION = "api/variation-options"
+
 // Product Status
 export const GET_ALL_PRODUCT_STATUS = "api/product-statues"
 export const CREATE_PRODUCT_STATUS = "api/product-statues"
