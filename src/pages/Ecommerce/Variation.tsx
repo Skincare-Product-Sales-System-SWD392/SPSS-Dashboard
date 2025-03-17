@@ -25,8 +25,8 @@ import * as Yup from "yup";
 import { useDispatch, useSelector } from "react-redux";
 import { createSelector } from "reselect";
 import { getAllVariations, addVariation, updateVariation, deleteVariation } from "slices/variation/thunk";
+import { getAllProductCategories } from "slices/productcategory/thunk";
 import { ToastContainer } from "react-toastify";
-import { getAllCategories } from "slices/category/thunk";
 
 const Variation = () => {
   const dispatch = useDispatch<any>();
@@ -40,7 +40,7 @@ const Variation = () => {
 
   // Get categories for dropdown
   useEffect(() => {
-    dispatch(getAllCategories({ page: 1, pageSize: 100 }))
+    dispatch(getAllProductCategories({ page: 1, pageSize: 100 }))
       .then((res: any) => {
         if (res.payload?.data?.items) {
           setCategories(res.payload.data.items);

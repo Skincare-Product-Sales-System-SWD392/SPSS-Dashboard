@@ -37,6 +37,7 @@ import VariationReducer from "./variation/reducer";
 import QuizSetReducer from "./quizset/reducer";
 import QuizQuestionReducer from "./quizquestion/reducer";
 import QuizOptionReducer from "./quizoption/reducer";
+import ProductCategoryReducer from "./productcategory/reducer";
 
 // HR Managment
 import HRManagmentReducer from "./hrManagement/reducer";
@@ -85,7 +86,8 @@ const rootReducer = combineReducers({
     Variation: VariationReducer,
     QuizSet: QuizSetReducer,
     quizQuestion: QuizQuestionReducer,
-    quizOption: QuizOptionReducer
+    quizOption: QuizOptionReducer,
+    ProductCategory: ProductCategoryReducer
 });
 
 
