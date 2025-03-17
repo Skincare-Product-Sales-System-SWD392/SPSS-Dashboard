@@ -15,11 +15,11 @@ import ProfileReducer from "./auth/profile/reducer";
 // Chat
 import ChatReducer from "./chat/reducer";
 
-// MailBox
-import MailboxReducer from "./mailbox/reducer";
+// User
+import UserReducer from "./users/reducer";
 
-// Calendar
-import CalendarReducer from "./calendar/reducer";
+// Role
+import RoleReducer from "./role/reducer";
 
 // Ecommerce
 // import EcommerceReducer from "./ecommerce/reducer";
@@ -39,21 +39,6 @@ import QuizQuestionReducer from "./quizquestion/reducer";
 import QuizOptionReducer from "./quizoption/reducer";
 import ProductCategoryReducer from "./productcategory/reducer";
 import VariationOptionReducer from "./variationoption/reducer";
-
-// HR Managment
-import HRManagmentReducer from "./hrManagement/reducer";
-
-// Notes
-import NotesReducer from "./notes/reducer";
-
-
-
-// Invoice
-import InvoiceReducer from "./invoice/reducer"
-
-// Users
-import UsersReducer from "./users/reducer";
-
 import promotionReducer from "./promotion/reducer";
 import CategoryReducer from "./category/reducer";
 
@@ -63,13 +48,10 @@ const rootReducer = combineReducers({
     Register: RegisterReducer,
     Profile: ProfileReducer,
     Chat: ChatReducer,
-    Mailbox: MailboxReducer,
-    Calendar: CalendarReducer,
     // Ecommerce: EcommerceReducer,
-    HRManagment: HRManagmentReducer,
-    Notes: NotesReducer,
-    Invoice: InvoiceReducer,
-    Users: UsersReducer,
+  
+    User: UserReducer,
+    Role: RoleReducer,
     Promotion: promotionReducer,
     Category: CategoryReducer,
     Country: CountryReducer,
@@ -89,7 +71,6 @@ const rootReducer = combineReducers({
     quizOption: QuizOptionReducer,
     ProductCategory: ProductCategoryReducer
 });
-
 
 export type RootState = ReturnType<typeof rootReducer>;
 
