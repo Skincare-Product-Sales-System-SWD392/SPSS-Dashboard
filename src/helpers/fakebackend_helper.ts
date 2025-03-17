@@ -97,7 +97,7 @@ export const updateCategory = (id: string, data: any) =>
 export const deleteCategory = (id: string) => 
   api.delete(`${url.DELETE_CATEGORY}/${id}`, { headers: { data: id } });
 
-// Ecommerce
+// User
 
 // Promotion
 export const getAllPromotions = (params: { Page: number; PageSize: number }) => 
@@ -125,6 +125,15 @@ export const updateVariation = (id: string, data: any) =>
 export const deleteVariation = (id: string) => 
   api.delete(`${url.DELETE_VARIATION}/${id}`, { headers: { data: id } });
 
+// Variation Option
+export const getAllVariationOptions = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_VARIATION_OPTION, params);
+export const createVariationOption =  (data: any) => 
+  api.create(url.CREATE_VARIATION_OPTION, data);
+export const updateVariationOption = (id: string, data: any) => 
+  api.update(`${url.UPDATE_VARIATION_OPTION}/${id}`, data);
+export const deleteVariationOption = (id: string) => 
+  api.delete(`${url.DELETE_VARIATION_OPTION}/${id}`, { headers: { data: id } });
 
 // Product Status
 export const getAllProductStatus = (params: { pageNumber: number; pageSize: number }) => 

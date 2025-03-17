@@ -1,10 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getAllVariations, addVariation, updateVariation, deleteVariation } from "./thunk";
+import { getAllProductCategories, addProductCategory, updateProductCategory, deleteProductCategory } from "./thunk";
 
-interface VariationState {
+interface ProductCategoryState {
   loading: boolean;
   error: string | null;
-  variations: {
+  productCategories: {
     data: {
       items: any[];
       totalCount: number;
@@ -15,10 +15,10 @@ interface VariationState {
   };
 }
 
-export const initialState: VariationState = {
+export const initialState: ProductCategoryState = {
   loading: false,
   error: null,
-  variations: {
+  productCategories: {
     data: {
       items: [],
       totalCount: 0,
@@ -29,73 +29,73 @@ export const initialState: VariationState = {
   }
 };
 
-const variationSlice = createSlice({
-  name: "Variation",
+const productCategorySlice = createSlice({
+  name: "ProductCategory",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    // Get Variations
-    builder.addCase(getAllVariations.pending, (state) => {
+    // Get Product Categories
+    builder.addCase(getAllProductCategories.pending, (state) => {
       state.loading = true;
     });
-    builder.addCase(getAllVariations.fulfilled, (state, action) => {
+    builder.addCase(getAllProductCategories.fulfilled, (state, action) => {
       state.loading = false;
-      state.variations = action.payload;
+      state.productCategories = action.payload;
     });
-    builder.addCase(getAllVariations.rejected, (state, action) => {
+    builder.addCase(getAllProductCategories.rejected, (state, action) => {
       state.loading = false;
       state.error = typeof action.payload === 'string' ? action.payload : action.error.message || null;
     });
 
-    // Add Variation
-    builder.addCase(addVariation.pending, (state) => {
+    // Add Product Category
+    builder.addCase(addProductCategory.pending, (state) => {
       state.loading = true;
       state.error = null;
     });
-    builder.addCase(addVariation.fulfilled, (state, action) => {
+    builder.addCase(addProductCategory.fulfilled, (state, action) => {
       state.loading = false;
-      state.variations.data.items.unshift(action.payload.data);
+      state.productCategories.data.items.unshift(action.payload.data);
       state.error = null;
     });
-    builder.addCase(addVariation.rejected, (state, action) => {
+    builder.addCase(addProductCategory.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message || null;
     });
 
-    // Update Variation
-    builder.addCase(updateVariation.pending, (state) => {
+    // Update Product Category
+    builder.addCase(updateProductCategory.pending, (state) => {
       state.loading = true;
       state.error = null;
     });
-    builder.addCase(updateVariation.fulfilled, (state, action) => {
+    builder.addCase(updateProductCategory.fulfilled, (state, action) => {
       state.loading = false;
-      state.variations.data.items = state.variations.data.items.map(variation =>
-        variation.id === action.payload.data.id ? action.payload.data : variation
+      state.productCategories.data.items = state.productCategories.data.items.map(category =>
+        category.id === action.payload.data.id ? action.payload.data : category
       );
       state.error = null;
     });
-    builder.addCase(updateVariation.rejected, (state, action) => {
+    builder.addCase(updateProductCategory.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message || null;
     });
 
-    // Delete Variation
-    builder.addCase(deleteVariation.pending, (state) => {
+    // Delete Product Category
+    builder.addCase(deleteProductCategory.pending, (state) => {
       state.loading = true;
       state.error = null;
     });
-    builder.addCase(deleteVariation.fulfilled, (state, action) => {
+    builder.addCase(deleteProductCategory.fulfilled, (state, action) => {
       state.loading = false;
-      state.variations.data.items = state.variations.data.items.filter(
-        variation => variation.id !== action.payload.data
+      state.productCategories.data.items = state.productCategories.data.items.filter(
+        category => category.id !== action.payload.data
       );
       state.error = null;
     });
-    builder.addCase(deleteVariation.rejected, (state, action) => {
+    builder.addCase(deleteProductCategory.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message || null;
     });
   },
 });
 
-export default variationSlice.reducer; 
+export default productCategorySlice.reducer; 

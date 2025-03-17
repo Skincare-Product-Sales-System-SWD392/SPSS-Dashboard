@@ -1,20 +1,8 @@
 // dashboard
-import Analytics from "pages/Dashboards/Analytics";
 import Ecommerce from "pages/Dashboards/Ecommerce";
-import Email from "pages/Dashboards/Email";
-import HRDashboard from "pages/Dashboards/HR";
-import SocialMediaDashboard from "pages/Dashboards/SocialMedia";
 
 // Chat
 import Chat from "pages/Chat";
-
-// Email
-import Mailbox from "pages/Email";
-
-// Calendar
-import DefaultCalendar from "pages/Calendar/Default";
-import MonthGrid from "pages/Calendar/MonthGrid";
-import MultiMonthStack from "pages/Calendar/MultiMonthStack";
 
 // Ecommerce
 import ListView from "pages/Ecommerce/Products/ListView";
@@ -34,36 +22,6 @@ import SurveyQuestion from "pages/Ecommerce/SurveyQuestion";
 import Blog from "pages/Ecommerce/Blog";
 import Review from "pages/Ecommerce/Review";
 import Variation from "pages/Ecommerce/Variation";
-// HR Management
-import EmployeeList from "pages/HRManagement/EmployeeList";
-import Holidays from "pages/HRManagement/Holidays";
-import LeaveManageEmployee from "pages/HRManagement/Leaves Manage/LeaveManageEmployee";
-import AddLeaveEmployee from "pages/HRManagement/Leaves Manage/AddLeaveEmployee";
-import LeaveManageHR from "pages/HRManagement/Leaves Manage/LeaveManageHR";
-import AddLeaveHR from "pages/HRManagement/Leaves Manage/AddLeaveHR";
-import AttendanceHR from "pages/HRManagement/Attendance/AttendanceHR";
-import MainAttendance from "pages/HRManagement/Attendance/MainAttendance";
-import Departments from "pages/HRManagement/Departments";
-import Estimates from "pages/HRManagement/Sales/Estimates";
-import Payments from "pages/HRManagement/Sales/Payments";
-import Expenses from "pages/HRManagement/Sales/Expenses";
-import EmployeeSalary from "pages/HRManagement/Payroll/EmployeeSalary";
-import Payslip from "pages/HRManagement/Payroll/Payslip";
-import CreatePayslip from "pages/HRManagement/Payroll/CreatePayslip";
-
-// Notes
-import Notes from "pages/Notes";
-
-// Social Media
-import Friends from "pages/SocialMedia/Friends";
-import Event from "pages/SocialMedia/Event";
-import WatchVideo from "pages/SocialMedia/WatchVideo";
-import Marketplace from "pages/SocialMedia/Marketplace";
-
-// Invoices
-import InvoiceListView from "pages/Invoices/ListView";
-import InvoiceAddNew from "pages/Invoices/AddNew";
-import InvoiceOverview from "pages/Invoices/Overview";
 
 // Users
 import UserListView from "pages/Users/ListView";
@@ -144,65 +102,14 @@ import RangeAreaChart from "pages/ApexCharts/RangeAreaCharts";
 import Scatterchart from "pages/ApexCharts/ScatterCharts/Index";
 import TimeLinechart from "pages/ApexCharts/TimeLineCharts/Index";
 import Treemapchart from "pages/ApexCharts/TreemapCharts/Index";
-
-// Landing
-import OnePage from "pages/Components/Landing/Onepage";
-import Product from "pages/Components/Landing/Product";
-
-// auth
-import Basic from "pages/AuthenticationInner/Login/Basic";
-import LoginCover from "pages/AuthenticationInner/Login/LoginCover";
-import LoginBoxed from "pages/AuthenticationInner/Login/LoginBoxed";
-import LoginModern from "pages/AuthenticationInner/Login/LoginModern";
-
-//Register
-import BasicRegister from "pages/AuthenticationInner/Register/Basic";
-import RegisterCover from "pages/AuthenticationInner/Register/RegisterCover";
-import RegisterBoxed from "pages/AuthenticationInner/Register/RegisterBoxed";
-import RegisterModern from "pages/AuthenticationInner/Register/RegisterModern";
-
-// EmailVerify
-import BasicEmailVerify from "pages/AuthenticationInner/VerifyEmail/Basic";
-import EmailCover from "pages/AuthenticationInner/VerifyEmail/EmailCover";
-import EmailModern from "pages/AuthenticationInner/VerifyEmail/EmailModern";
-
-// TwoSteps
-import BasicTwoSteps from "pages/AuthenticationInner/TwoSteps/Basic";
-import TwoStepsCover from "pages/AuthenticationInner/TwoSteps/TwoStepsCover";
-import TwoStepsBoxed from "pages/AuthenticationInner/TwoSteps/TwoStepsBoxed";
-import TwoStepsModern from "pages/AuthenticationInner/TwoSteps/TwoStepsModern";
-
-// Logout
-import BasicLogout from "pages/AuthenticationInner/Logout/Basic";
-import LogoutCover from "pages/AuthenticationInner/Logout/LogoutCover";
-import LogoutBoxed from "pages/AuthenticationInner/Logout/LogoutBoxed";
-import LogoutModern from "pages/AuthenticationInner/Logout/LogoutModern";
-
-// Reset Password
-import BasicResetPassword from "pages/AuthenticationInner/ResetPassword/Basic";
-import ResetPasswordCover from "pages/AuthenticationInner/ResetPassword/ResetPasswordCover";
-import ResetPasswordBoxed from "pages/AuthenticationInner/ResetPassword/ResetPasswordBoxed";
-import ResetPasswordModern from "pages/AuthenticationInner/ResetPassword/ResetPasswordModern";
-
-// Create Password
-import BasicCreatePassword from "pages/AuthenticationInner/CreatePassword/Basic";
-import CreatePasswordModern from "pages/AuthenticationInner/CreatePassword/CreatePasswordModern";
-import CreatePasswordCover from "pages/AuthenticationInner/CreatePassword/CreatePasswordCover";
-import CreatePasswordBoxed from "pages/AuthenticationInner/CreatePassword/CreatePasswordBoxed";
 import Login from "pages/Authentication/Login";
 // import Logout from "pages/Authentication/LogOut";
-import Pages404 from "pages/AuthenticationInner/Pages404";
+
 // import Register from "pages/Authentication/Register";
 import UserProfile from "pages/Authentication/UserProfile";
-import Account from "pages/Pages/Account";
-import ComingSoon from "pages/AuthenticationInner/ComingSoon";
-import Offline from "pages/AuthenticationInner/Offline";
-import Maintenance from "pages/AuthenticationInner/Maintenance";
-import Settings from "pages/Pages/Settings";
-import Pricing from "pages/Pages/Pricing";
-import Faqs from "pages/Pages/Faqs";
-import ContactUs from "pages/Pages/ContactUs";
 import Category from "pages/Ecommerce/Category";
+import VariationOption from "pages/Ecommerce/VariationOption";
+import Account from "pages/Ecommerce/Account";
 
 interface RouteObject {
   path: string;
@@ -213,10 +120,6 @@ interface RouteObject {
 const authProtectedRoutes: Array<RouteObject> = [
   // Dashboard
   { path: "/dashboard", component: Ecommerce },
-  { path: "/dashboards-analytics", component: Analytics },
-  { path: "/dashboards-email", component: Email },
-  { path: "/dashboards-hr", component: HRDashboard },
-  { path: "/dashboards-social", component: SocialMediaDashboard },
 
   // Ui Element
   { path: "/ui-alerts", component: UiAlert },
@@ -271,15 +174,7 @@ const authProtectedRoutes: Array<RouteObject> = [
   // Table
   { path: "/tables-basic", component: BasicTable },
   { path: "/tables-datatable", component: ReactDataTable },
-
-  // Icons
-  { path: "/icons-remix", component: RemixIcon },
-  { path: "/icons-lucide", component: LucidIcon },
-
-  // Map
-  { path: "/maps-google", component: MapsGoogle },
-  { path: "/maps-leaflet", component: MapsLeaflet },
-
+  
   //Charts
   { path: "/charts-apex-area", component: AreaCharts },
   { path: "/charts-apex-bar", component: BarCharts },
@@ -303,14 +198,6 @@ const authProtectedRoutes: Array<RouteObject> = [
   // Chat
   { path: "/apps-chat", component: Chat },
 
-  // Mailbox
-  { path: "/apps-mailbox", component: Mailbox },
-
-  // Calendar
-  { path: "/apps-calendar", component: DefaultCalendar },
-  { path: "/apps-calendar-month-grid", component: MonthGrid },
-  { path: "/apps-calendar-multi-month-stack", component: MultiMonthStack },
-
   // Ecommerce
   { path: "/apps-ecommerce-product-list", component: ListView },
   { path: "/apps-ecommerce-product-overview", component: Overview },
@@ -329,48 +216,13 @@ const authProtectedRoutes: Array<RouteObject> = [
   { path: "/apps-ecommerce-blog", component: Blog },
   { path: "/apps-ecommerce-reviews", component: Review },
   { path: "/apps-ecommerce-order-overview", component: OrderOverview },
-  { path: "/apps-ecommerce-variation", component: Variation},
-  // HR Management
-  { path: "/apps-hr-employee", component: EmployeeList },
-  { path: "/apps-hr-holidays", component: Holidays },
-  { path: "/apps-hr-leave-employee", component: LeaveManageEmployee },
-  { path: "/apps-hr-create-leave-employee", component: AddLeaveEmployee },
-  { path: "/apps-hr-leave", component: LeaveManageHR },
-  { path: "/apps-hr-create-leave", component: AddLeaveHR },
-  { path: "/apps-hr-attendance", component: AttendanceHR },
-  { path: "/apps-hr-attendance-main", component: MainAttendance },
-  { path: "/apps-hr-department", component: Departments },
-  { path: "/apps-hr-sales-estimates", component: Estimates },
-  { path: "/apps-hr-sales-payments", component: Payments },
-  { path: "/apps-hr-sales-expenses", component: Expenses },
-  { path: "/apps-hr-payroll-employee-salary", component: EmployeeSalary },
-  { path: "/apps-hr-payroll-payslip", component: Payslip },
-  { path: "/apps-hr-payroll-create-payslip", component: CreatePayslip },
-
-  // Notes
-  { path: "/apps-notes", component: Notes },
-
-  // Social Media
-  { path: "/apps-social-friends", component: Friends },
-  { path: "/apps-social-event", component: Event },
-  { path: "/apps-social-video", component: WatchVideo },
-  { path: "/apps-social-marketplace", component: Marketplace },
-
-  // Invoices
-  { path: "/apps-invoice-list", component: InvoiceListView },
-  { path: "/apps-invoice-add-new", component: InvoiceAddNew },
-  { path: "/apps-invoice-overview", component: InvoiceOverview },
+  { path: "/apps-ecommerce-variation", component: Variation },
+  { path: "/apps-ecommerce-variation-option", component: VariationOption },
+  { path: "/apps-ecommerce-account", component: Account },
 
   // Users
   { path: "/apps-users-list", component: UserListView },
   { path: "/apps-users-grid", component: UserGridView },
-
-  // pages
-  { path: "/pages-account", component: Account },
-  { path: "/pages-account-settings", component: Settings },
-  { path: "/pages-pricing", component: Pricing },
-  { path: "/pages-faqs", component: Faqs },
-  { path: "/pages-contact-us", component: ContactUs },
 
   // profile
   { path: "/user-profile", component: UserProfile },
@@ -380,60 +232,6 @@ const publicRoutes = [
   // Move login to the top and add it as the root path
   { path: "/", component: Login },
   { path: "/login", component: Login },
-  // Landing
-  { path: "/onepage-landing", component: OnePage },
-  { path: "/product-landing", component: Product },
-
-  // auth
-  { path: "/auth-login-basic", component: Basic },
-  { path: "/auth-login-cover", component: LoginCover },
-  { path: "/auth-login-boxed", component: LoginBoxed },
-  { path: "/auth-login-modern", component: LoginModern },
-
-  // Register
-  { path: "/auth-register-basic", component: BasicRegister },
-  { path: "/auth-register-cover", component: RegisterCover },
-  { path: "/auth-register-boxed", component: RegisterBoxed },
-  { path: "/auth-register-modern", component: RegisterModern },
-
-  // Verify Email
-  { path: "/auth-verify-email-basic", component: BasicEmailVerify },
-  { path: "/auth-verify-email-cover", component: EmailCover },
-  { path: "/auth-verify-email-modern", component: EmailModern },
-
-  // two steps
-  { path: "/auth-two-steps-basic", component: BasicTwoSteps },
-  { path: "/auth-two-steps-cover", component: TwoStepsCover },
-  { path: "/auth-two-steps-boxed", component: TwoStepsBoxed },
-  { path: "/auth-two-steps-modern", component: TwoStepsModern },
-
-  // logout
-  { path: "/auth-logout-basic", component: BasicLogout },
-  { path: "/auth-logout-cover", component: LogoutCover },
-  { path: "/auth-logout-boxed", component: LogoutBoxed },
-  { path: "/auth-logout-modern", component: LogoutModern },
-
-  //Reset Password
-  { path: "/auth-reset-password-basic", component: BasicResetPassword },
-  { path: "/auth-reset-password-cover", component: ResetPasswordCover },
-  { path: "/auth-reset-password-boxed", component: ResetPasswordBoxed },
-  { path: "/auth-reset-password-modern", component: ResetPasswordModern },
-
-  //Create Password
-  { path: "/auth-create-password-basic", component: BasicCreatePassword },
-  { path: "/auth-create-password-cover", component: CreatePasswordCover },
-  { path: "/auth-create-password-boxed", component: CreatePasswordBoxed },
-  { path: "/auth-create-password-modern", component: CreatePasswordModern },
-
-  // coming soon
-  { path: "/pages-coming-soon", component: ComingSoon },
-
-  // Error
-  { path: "/pages-offline", component: Offline },
-  { path: "/pages-404", component: Pages404 },
-
-  // Maintenance
-  { path: "/pages-maintenance", component: Maintenance },
 
   // authentication
   // { path: "/logout", component: Logout },
