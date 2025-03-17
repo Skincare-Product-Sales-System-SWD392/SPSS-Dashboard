@@ -1,17 +1,17 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
 import {
-  getAllUsers as getAllUsersApi,
-  createUser as createUserApi,
-  updateUser as updateUserApi,
-  deleteUser as deleteUserApi,
+  getAllRoles as getAllRolesApi,
+  createRole as createRoleApi,
+  updateRole as updateRoleApi,
+  deleteRole as deleteRoleApi,
 } from "../../helpers/fakebackend_helper";
 
-export const getAllUsers = createAsyncThunk(
-  "user/getAllUsers",
+export const getAllRoles = createAsyncThunk(
+  "role/getAllRoles",
   async (params: { page: number, pageSize: number }) => {
     try {
-      const response = await getAllUsersApi({ 
+      const response = await getAllRolesApi({ 
         pageNumber: params.page,
         pageSize: params.pageSize 
       });
@@ -20,61 +20,61 @@ export const getAllUsers = createAsyncThunk(
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to fetch users");
+        toast.error("Failed to fetch roles");
       }
       throw error;
     }
   }
 );
 
-export const addUser = createAsyncThunk(
-  "user/addUser",
-  async (user: any) => {
+export const addRole = createAsyncThunk(
+  "role/addRole",
+  async (role: any) => {
     try {
-      const response = await createUserApi(user);
-      toast.success("User added successfully");
+      const response = await createRoleApi(role);
+      toast.success("Role added successfully");
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to add user");
+        toast.error("Failed to add role");
       }
       throw error;
     }
   }
 );
 
-export const updateUser = createAsyncThunk(
-  "user/updateUser",
-  async (user: { id: string, data: any }) => {
+export const updateRole = createAsyncThunk(
+  "role/updateRole",
+  async (role: { id: string, data: any }) => {
     try {
-      const response = await updateUserApi(user.id, user.data);
-      toast.success("User updated successfully");
+      const response = await updateRoleApi(role.id, role.data);
+      toast.success("Role updated successfully");
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to update user");
+        toast.error("Failed to update role");
       }
       throw error;
     }
   }
 );
 
-export const deleteUser = createAsyncThunk(
-  "user/deleteUser",
+export const deleteRole = createAsyncThunk(
+  "role/deleteRole",
   async (id: string) => {
     try {
-      const response = await deleteUserApi(id);
-      toast.success("User deleted successfully");
+      const response = await deleteRoleApi(id);
+      toast.success("Role deleted successfully");
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to delete user");
+        toast.error("Failed to delete role");
       }
       throw error;
     }

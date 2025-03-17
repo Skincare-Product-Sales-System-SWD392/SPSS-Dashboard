@@ -1,10 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getAllUsers, addUser, updateUser, deleteUser } from "./thunk";
+import { getAllRoles, addRole, updateRole, deleteRole } from "./thunk";
 
-interface UserState {
+interface RoleState {
   loading: boolean;
   error: string | null;
-  users: {
+  roles: {
     data: {
       items: any[];
       totalCount: number;
@@ -15,10 +15,10 @@ interface UserState {
   };
 }
 
-export const initialState: UserState = {
+export const initialState: RoleState = {
   loading: false,
   error: null,
-  users: {
+  roles: {
     data: {
       items: [],
       totalCount: 0,
@@ -29,77 +29,77 @@ export const initialState: UserState = {
   },
 };
 
-const userSlice = createSlice({
-  name: "user",
+const roleSlice = createSlice({
+  name: "role",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    // Get Users
-    builder.addCase(getAllUsers.pending, (state) => {
+    // Get Roles
+    builder.addCase(getAllRoles.pending, (state) => {
       state.loading = true;
       state.error = null;
     });
-    builder.addCase(getAllUsers.fulfilled, (state, action) => {
+    builder.addCase(getAllRoles.fulfilled, (state, action) => {
       state.loading = false;
-      state.users = {
+      state.roles = {
         data: action.payload.data
       };
       state.error = null;
     });
-    builder.addCase(getAllUsers.rejected, (state, action) => {
+    builder.addCase(getAllRoles.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message || null;
     });
 
-    // Add User
-    builder.addCase(addUser.pending, (state) => {
+    // Add Role
+    builder.addCase(addRole.pending, (state) => {
       state.loading = true;
       state.error = null;
     });
-    builder.addCase(addUser.fulfilled, (state, action) => {
+    builder.addCase(addRole.fulfilled, (state, action) => {
       state.loading = false;
-      state.users.data.items.unshift(action.payload.data);
+      state.roles.data.items.unshift(action.payload.data);
       state.error = null;
     });
-    builder.addCase(addUser.rejected, (state, action) => {
+    builder.addCase(addRole.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message || null;
     });
 
-    // Update User
-    builder.addCase(updateUser.pending, (state) => {
+    // Update Role
+    builder.addCase(updateRole.pending, (state) => {
       state.loading = true;
       state.error = null;
     });
-    builder.addCase(updateUser.fulfilled, (state, action) => {
+    builder.addCase(updateRole.fulfilled, (state, action) => {
       state.loading = false;
-      state.users.data.items = state.users.data.items.map(user =>
-        user.userId === action.payload.data.userId ? action.payload.data : user
+      state.roles.data.items = state.roles.data.items.map(role =>
+        role.roleId === action.payload.data.roleId ? action.payload.data : role
       );
       state.error = null;
     });
-    builder.addCase(updateUser.rejected, (state, action) => {
+    builder.addCase(updateRole.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message || null;
     });
 
-    // Delete User
-    builder.addCase(deleteUser.pending, (state) => {
+    // Delete Role
+    builder.addCase(deleteRole.pending, (state) => {
       state.loading = true;
       state.error = null;
     });
-    builder.addCase(deleteUser.fulfilled, (state, action) => {
+    builder.addCase(deleteRole.fulfilled, (state, action) => {
       state.loading = false;
-      state.users.data.items = state.users.data.items.filter(
-        user => user.userId !== action.payload.data
+      state.roles.data.items = state.roles.data.items.filter(
+        role => role.roleId !== action.payload.data
       );
       state.error = null;
     });
-    builder.addCase(deleteUser.rejected, (state, action) => {
+    builder.addCase(deleteRole.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message || null;
     });
   },
 });
 
-export default userSlice.reducer;
+export default roleSlice.reducer;

@@ -23,9 +23,7 @@ import Blog from "pages/Ecommerce/Blog";
 import Review from "pages/Ecommerce/Review";
 import Variation from "pages/Ecommerce/Variation";
 
-// Users
-import UserListView from "pages/Users/ListView";
-import UserGridView from "pages/Users/GridView";
+
 
 // Ui element
 import UiAlert from "pages/Components/UIElement/UiAlert";
@@ -219,11 +217,7 @@ const authProtectedRoutes: Array<RouteObject> = [
   { path: "/apps-ecommerce-variation", component: Variation },
   { path: "/apps-ecommerce-variation-option", component: VariationOption },
   { path: "/apps-ecommerce-account", component: Account },
-
-  // Users
-  { path: "/apps-users-list", component: UserListView },
-  { path: "/apps-users-grid", component: UserGridView },
-
+   
   // profile
   { path: "/user-profile", component: UserProfile },
 ];

@@ -259,6 +259,27 @@ export const updateVoucher = (id: string, data: any) =>
 export const deleteVoucher = (id: string) => 
   api.delete(`${url.DELETE_VOUCHER}/${id}`);
 
+// Users
+// List View
+export const getAllUsers = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_USERS,  params );
+export const createUser = (data: any) => api.create(url.CREATE_USER, data);
+export const updateUser =  (id: string, data: any) => api.update(`${url.UPDATE_USER}/${id}`, data);
+export const deleteUser = (id: string) => api.delete(`${url.DELETE_USER}/${id}`, { headers: { data: id } });
+
+// Role
+export const getAllRoles = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_ROLES, params);
+
+export const createRole = (data: any) => 
+  api.create(url.CREATE_ROLE, data);
+
+export const updateRole = (id: string, data: any) => 
+  api.update(`${url.UPDATE_ROLE}/${id}`, data);
+
+export const deleteRole = (id: string) => 
+  api.delete(`${url.DELETE_ROLE}/${id}`);
+
 // Orders
 export const getAllOrders = (params: { pageNumber: number; pageSize: number }) => 
   api.get(url.GET_ALL_ORDERS, params);
@@ -343,6 +364,8 @@ export const updateQuizOptionByQuestionId = (questionId: string, optionId: strin
 export const deleteQuizOptionByQuestionId = (questionId: string, optionId: string) => 
   api.delete(`${url.DELETE_QUIZ_OPTION_BY_QUIZ_QUESTION_ID}/by-quiz-question/${questionId}/${optionId}`, { headers: { data: optionId } });
 
+
+
 // Sellers
 export const getSellers = () => api.get(url.GET_SELLERS, null);
 export const addSellers = (data: any) => api.create(url.ADD_SELLERS, data);
@@ -361,100 +384,6 @@ export const updateReview = (id: string, data: any) =>
 
 export const deleteReview = (id: string) => 
   api.delete(`${url.DELETE_REVIEW}/${id}`, { headers: { data: id } });
-
-
-
-// HR Management
-// Employee List
-export const getEmployee = () => api.get(url.GET_EMPLOYEE, null);
-export const addEmployee = (data: any) => api.create(url.ADD_EMPLOYEE, data);
-export const updateEmployee = (data: any) => api.update(url.UPDATE_EMPLOYEE, data);
-export const deleteEmployee = (data: any) => api.delete(url.DELETE_EMPLOYEE, { headers: { data } });
-
-// Holidays
-export const getHolidays = () => api.get(url.GET_HOLIDAYS, null);
-export const addHolidays = (data: any) => api.create(url.ADD_HOLIDAYS, data);
-export const updateHolidays = (data: any) => api.update(url.UPDATE_HOLIDAYS, data);
-export const deleteHolidays = (data: any) => api.delete(url.DELETE_HOLIDAYS, { headers: { data } });
-
-// Leaves Manage
-
-// Leave Manage (Employee)
-export const getLeaveManageEmployee = () => api.get(url.GET_LEAVE_MANAGE_EMPLOYEE, null);
-
-// Leave Manage (HR)
-export const getLeaveManageHR = () => api.get(url.GET_LEAVE_MANAGE_HR, null);
-export const addLeaveManageHR = (data: any) => api.create(url.ADD_LEAVE_MANAGE_HR, data);
-export const updateLeaveManageHR = (data: any) => api.update(url.UPDATE_LEAVE_MANAGE_HR, data);
-export const deleteLeaveManageHR = (data: any) => api.delete(url.DELETE_LEAVE_MANAGE_HR, { headers: { data } });
-
-// Attendance
-// Attendance (HR)
-export const getAttendance = () => api.get(url.GET_ATTENDANCE, null);
-
-// Main Attendance
-export const getMainAttendance = () => api.get(url.GET_MAIN_ATTENDANCE, null);
-
-// Departments
-export const getDepartments = () => api.get(url.GET_DEPARTMENTS, null);
-export const addDepartments = (data: any) => api.create(url.ADD_DEPARTMENTS, data);
-export const updateDepartments = (data: any) => api.update(url.UPDATE_DEPARTMENTS, data);
-export const deleteDepartments = (data: any) => api.delete(url.DELETE_DEPARTMENTS, { headers: { data } });
-
-// Sales
-// Estimates
-export const getEstimates = () => api.get(url.GET_ESTIMATES, null);
-export const addEstimates = (data: any) => api.create(url.ADD_ESTIMATES, data);
-export const updateEstimates = (data: any) => api.update(url.UPDATE_ESTIMATES, data);
-export const deleteEstimates = (data: any) => api.delete(url.DELETE_ESTIMATES, { headers: { data } });
-
-// Payments
-export const getPayments = () => api.get(url.GET_PAYMENTS, null);
-
-// Expenses
-export const getExpenses = () => api.get(url.GET_EXPENSES, null);
-export const addExpenses = (data: any) => api.create(url.ADD_EXPENSES, data);
-export const updateExpenses = (data: any) => api.update(url.UPDATE_EXPENSES, data);
-export const deleteExpenses = (data: any) => api.delete(url.DELETE_EXPENSES, { headers: { data } });
-
-// Payroll
-// Employee Salary
-export const getEmployeeSalary = () => api.get(url.GET_EMPLOYEE_SALARY, null);
-export const addEmployeeSalary = (data: any) => api.create(url.ADD_EMPLOYEE_SALARY, data);
-export const updateEmployeeSalary = (data: any) => api.update(url.UPDATE_EMPLOYEE_SALARY, data);
-export const deleteEmployeeSalary = (data: any) => api.delete(url.DELETE_EMPLOYEE_SALARY, { headers: { data } });
-
-// Notes
-export const getNotes = () => api.get(url.GET_NOTES, null);
-export const addNotes = (data: any) => api.create(url.ADD_NOTES, data);
-export const updateNotes = (data: any) => api.update(url.UPDATE_NOTES, data);
-export const deleteNotes = (data: any) => api.delete(url.DELETE_NOTES, { headers: { data } });
-
-// Social
-// Friends
-export const getSocialFriends = () => api.get(url.GET_SOCIAL_FRIENDS, null);
-
-// Events
-export const getSocialEvent = () => api.get(url.GET_SOCIAL_EVENTS, null);
-export const addSocialEvent = (data: any) => api.create(url.ADD_SOCIAL_EVENTS, data);
-export const updateSocialEvent = (data: any) => api.update(url.UPDATE_SOCIAL_EVENTS, data);
-export const deleteSocialEvent = (data: any) => api.delete(url.DELETE_SOCIAL_EVENTS, { headers: { data } });
-
-// Invoices
-export const getInvoiceList = () => api.get(url.GET_INVOICE_LIST, null);
-
-// Users
-// List View
-export const getUserList = () => api.get(url.GET_USER_LIST, null);
-export const addUserList = (data: any) => api.create(url.ADD_USER_LIST, data);
-export const updateUserList = (data: any) => api.update(url.UPDATE_USER_LIST, data);
-export const deleteUserList = (user: any) => api.delete(url.DELETE_USER_LIST, { headers: { user } });
-
-// Grid View
-export const getUserGrid = () => api.get(url.GET_USER_GRID, null);
-export const addUserGrid = (data: any) => api.create(url.ADD_USER_GRID, data);
-export const updateUserGrid = (data: any) => api.update(url.UPDATE_USER_GRID, data);
-export const deleteUserGrid = (user: any) => api.delete(url.DELETE_USER_GRID, { headers: { user } });
 
 // Get Product by ID
 export const getProductById = (id: string) => 
