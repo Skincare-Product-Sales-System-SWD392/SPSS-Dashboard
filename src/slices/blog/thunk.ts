@@ -31,13 +31,25 @@ export const addBlog = createAsyncThunk(
   "blog/addBlog",
   async (blog: any) => {
     try {
+      console.log("Making API call to add blog with data:", blog);
       const response = await createBlogApi(blog);
+      console.log("API response for add blog:", response);
       toast.success("Blog added successfully");
       return response;
     } catch (error: any) {
-      if (error.response?.data?.message) {
-        toast.error(error.response.data.message);
+      console.error("Error adding blog:", error);
+      if (error.response) {
+        console.error("Error response data:", error.response.data);
+        if (error.response.data.message) {
+          toast.error(error.response.data.message);
+        } else {
+          toast.error("Failed to add blog");
+        }
+      } else if (error.request) {
+        console.error("No response received:", error.request);
+        toast.error("No response from server");
       } else {
+        console.error("Error message:", error.message);
         toast.error("Failed to add blog");
       }
       throw error;

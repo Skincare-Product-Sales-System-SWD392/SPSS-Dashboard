@@ -193,13 +193,13 @@ class FirebaseAuthBackend {
   }
 
   /**
-   * Upload file to Firebase Storage
+   * Upload file to Firebase Storage with specific directory path
    */
-  uploadFile = async (file: File, path: string) => {
+  uploadFileWithDirectory = async (file: File, directory: string = "SPSS/Brand-Image") => {
     try {
       const storageRef = firebase.storage().ref();
-      // Use the specific path: SPSS/Brand-Image
-      const fileRef = storageRef.child(`SPSS/Brand-Image/${Date.now()}_${file.name}`);
+      // Use the specified directory path
+      const fileRef = storageRef.child(`${directory}/${Date.now()}_${file.name}`);
       
       // Upload the file
       const snapshot = await fileRef.put(file);
@@ -212,6 +212,13 @@ class FirebaseAuthBackend {
       console.error("Error uploading file:", error);
       throw error;
     }
+  };
+
+  /**
+   * Upload blog image to Firebase Storage
+   */
+  uploadBlogImage = async (file: File) => {
+    return this.uploadFileWithDirectory(file, "SPSS/Blog-Image");
   };
 
   /**
