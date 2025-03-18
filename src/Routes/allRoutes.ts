@@ -7,7 +7,7 @@ import Chat from "pages/Chat";
 // Ecommerce
 import ListView from "pages/Ecommerce/Products/ListView";
 import Overview from "pages/Ecommerce/Products/Overview";
-// import AddNew from "pages/Ecommerce/Products/AddNew";
+import AddNew from "pages/Ecommerce/Products/AddNew";
 import Checkout from "pages/Ecommerce/Checkout";
 import Orders from "pages/Ecommerce/Orders";
 import OrderOverview from "pages/Ecommerce/OrderOverview";
@@ -21,8 +21,6 @@ import SurveyQuestion from "pages/Ecommerce/SurveyQuestion";
 import Blog from "pages/Ecommerce/Blog";
 import Review from "pages/Ecommerce/Review";
 import Variation from "pages/Ecommerce/Variation";
-
-
 
 // Ui element
 import UiAlert from "pages/Components/UIElement/UiAlert";
@@ -171,7 +169,7 @@ const authProtectedRoutes: Array<RouteObject> = [
   // Table
   { path: "/tables-basic", component: BasicTable },
   { path: "/tables-datatable", component: ReactDataTable },
-  
+
   //Charts
   { path: "/charts-apex-area", component: AreaCharts },
   { path: "/charts-apex-bar", component: BarCharts },
@@ -198,7 +196,7 @@ const authProtectedRoutes: Array<RouteObject> = [
   // Ecommerce
   { path: "/apps-ecommerce-product-list", component: ListView },
   { path: "/apps-ecommerce-product-overview", component: Overview },
-  // { path: "/apps-ecommerce-product-create", component: AddNew },
+  { path: "/apps-ecommerce-product-create", component: AddNew },
   { path: "/apps-ecommerce-checkout", component: Checkout },
   { path: "/apps-ecommerce-orders", component: Orders },
   { path: "/apps-ecommerce-brand", component: Brand },
@@ -215,7 +213,7 @@ const authProtectedRoutes: Array<RouteObject> = [
   { path: "/apps-ecommerce-variation", component: Variation },
   { path: "/apps-ecommerce-variation-option", component: VariationOption },
   { path: "/apps-ecommerce-account", component: Account },
-   
+
   // profile
   { path: "/user-profile", component: UserProfile },
 ];

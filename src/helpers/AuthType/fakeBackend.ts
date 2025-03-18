@@ -49,22 +49,22 @@ const fakeBackend = () => {
   const mock = new MockAdapter(axios, { onNoMatch: "passthrough" });
 
   // login
-  mock.onPost(url.POST_FAKE_LOGIN).reply(config => {
-    const user = JSON.parse(config["data"]);
-
-    const validUser = users.filter(
-      usr => usr.email === user.email && usr.password === user.password
-    );
+  mock.onPost(url.POST_LOGIN).reply(config => {
+        
+    // const user = JSON.parse(config["data"]);
+    // const validUser = users.filter(
+    //   usr => usr.email === user.email && usr.password === user.password
+    // );
 
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        if (validUser["length"] === 1) {
-          resolve([200, validUser[0]]);
-        } else {
-          reject([
-            "Username and password are invalid. Please enter correct username and password",
-          ]);
-        }
+        // resolve([200, validUser[0]]);
+        // if (validUser["length"] === 1) {
+        // } else {
+        //   reject([
+        //     "Username and password are invalid. Please enter correct username and password",
+        //   ]);
+        // }
       });
     });
   });
