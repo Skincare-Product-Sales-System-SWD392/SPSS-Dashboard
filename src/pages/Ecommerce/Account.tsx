@@ -264,7 +264,13 @@ const Account = () => {
         
         // Skin type filter
         if (filters.skinType !== 'All') {
-            result = result.filter((user: any) => user.skinTypeId === filters.skinType);
+            if (filters.skinType === 'None') {
+                // Filter for users with no skin type (null or empty skinTypeId)
+                result = result.filter((user: any) => !user.skinTypeId);
+            } else {
+                // Filter for users with the selected skin type
+                result = result.filter((user: any) => user.skinTypeId === filters.skinType);
+            }
         }
         
         // Role filter
@@ -485,6 +491,7 @@ const Account = () => {
     
     const skinTypeOptions = useMemo(() => [
         { value: 'All', label: 'All Skin Types' },
+        { value: 'None', label: 'None' },
         ...skinTypes.map((type: any) => ({ 
             value: type.id, 
             label: type.name 

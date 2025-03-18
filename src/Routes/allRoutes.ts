@@ -8,7 +8,6 @@ import Chat from "pages/Chat";
 import ListView from "pages/Ecommerce/Products/ListView";
 import Overview from "pages/Ecommerce/Products/Overview";
 // import AddNew from "pages/Ecommerce/Products/AddNew";
-import ShoppingCart from "pages/Ecommerce/ShoppingCart";
 import Checkout from "pages/Ecommerce/Checkout";
 import Orders from "pages/Ecommerce/Orders";
 import OrderOverview from "pages/Ecommerce/OrderOverview";
@@ -200,7 +199,6 @@ const authProtectedRoutes: Array<RouteObject> = [
   { path: "/apps-ecommerce-product-list", component: ListView },
   { path: "/apps-ecommerce-product-overview", component: Overview },
   // { path: "/apps-ecommerce-product-create", component: AddNew },
-  { path: "/apps-ecommerce-cart", component: ShoppingCart },
   { path: "/apps-ecommerce-checkout", component: Checkout },
   { path: "/apps-ecommerce-orders", component: Orders },
   { path: "/apps-ecommerce-brand", component: Brand },

@@ -41,6 +41,7 @@ import ProductCategoryReducer from "./productcategory/reducer";
 import VariationOptionReducer from "./variationoption/reducer";
 import promotionReducer from "./promotion/reducer";
 import CategoryReducer from "./category/reducer";
+import uploadFileReducer from "./uploadFile/reducer";
 
 const rootReducer = combineReducers({
     Layout: LayoutReducer,
@@ -69,7 +70,8 @@ const rootReducer = combineReducers({
     QuizSet: QuizSetReducer,
     quizQuestion: QuizQuestionReducer,
     quizOption: QuizOptionReducer,
-    ProductCategory: ProductCategoryReducer
+    ProductCategory: ProductCategoryReducer,
+    uploadFile: uploadFileReducer,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

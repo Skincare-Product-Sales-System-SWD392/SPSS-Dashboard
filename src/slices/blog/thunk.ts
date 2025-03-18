@@ -9,13 +9,16 @@ import {
 
 export const getAllBlogs = createAsyncThunk(
   "blog/getAllBlogs",
-  async ({ page, pageSize }: { page: number; pageSize: number }) => {
+  async (params: { pageNumber: number, pageSize: number }) => {
     try {
-      const response = await getAllBlogsApi({ Page: page, PageSize: pageSize });
+      const response = await getAllBlogsApi({ 
+        pageNumber: params.pageNumber,
+        pageSize: params.pageSize 
+      });
       return response;
     } catch (error: any) {
-      if (error.response?.data?.data) {
-        toast.error(error.response.data.data);
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
       } else {
         toast.error("Failed to fetch blogs");
       }
@@ -32,8 +35,8 @@ export const addBlog = createAsyncThunk(
       toast.success("Blog added successfully");
       return response;
     } catch (error: any) {
-      if (error.response?.data?.data) {
-        toast.error(error.response.data.data);
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
       } else {
         toast.error("Failed to add blog");
       }
@@ -50,8 +53,8 @@ export const updateBlog = createAsyncThunk(
       toast.success("Blog updated successfully");
       return response;
     } catch (error: any) {
-      if (error.response?.data?.data) {
-        toast.error(error.response.data.data);
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
       } else {
         toast.error("Failed to update blog");
       }
@@ -68,8 +71,8 @@ export const deleteBlog = createAsyncThunk(
       toast.success("Blog deleted successfully");
       return response;
     } catch (error: any) {
-      if (error.response?.data?.data) {
-        toast.error(error.response.data.data);
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
       } else {
         toast.error("Failed to delete blog");
       }
