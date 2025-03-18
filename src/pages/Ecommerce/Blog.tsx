@@ -60,7 +60,7 @@ interface BlogSection {
 const Blog = () => {
   const dispatch = useDispatch<any>();
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 5; // 6 items per page as requested
+  const pageSize = 10; // 6 items per page as requested
   const [show, setShow] = useState<boolean>(false);
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [refreshFlag, setRefreshFlag] = useState(false);
@@ -158,34 +158,23 @@ const Blog = () => {
 
   // Form validation schema
   const validationSchema = Yup.object({
-    ImageUrl: Yup.mixed()
-      .test(
-        "fileOrString",
-        "Blog thumbnail is required",
-        (value) => value && (typeof value === "string" || value instanceof File)
-      )
-      .required("Blog thumbnail is required"),
-    Title: Yup.string().required("Title is required"),
-    Description: Yup.string().required("Description is required"),
-    Sections: Yup.array()
-      .of(
-        Yup.object().shape({
-          contentType: Yup.string().required("Content type is required"),
-          subtitle: Yup.string(),
-          content: Yup.string()
-            .when("contentType", {
-              is: "text",
-              then: () => Yup.string().required("Content is required"),
-            }),
-          imageCaption: Yup.string()
-            .when("contentType", {
-              is: "image",
-              then: () => Yup.string().required("Content is required"),
-            }),
-          order: Yup.number().required("Order is required"),
-        })
-      )
-      .min(1, "At least one section is required"),
+    Title: Yup.string().required("Please enter title"),
+    Description: Yup.string().required("Please enter description"),
+    ImageUrl: Yup.string().required("Please upload a thumbnail image"),
+    Sections: Yup.array().of(
+      Yup.object().shape({
+        contentType: Yup.string().required("Content type is required"),
+        subtitle: Yup.string(),
+        // Make content validation conditional based on content type
+        content: Yup.string().when("contentType", {
+          is: "text",
+          then: (schema) => schema.required("Please enter text content"),
+          otherwise: (schema) => schema
+        }),
+        // Don't require content for image type in validation
+        // as it will be set by the upload process
+      })
+    )
   });
 
   // Form submission handling
@@ -196,41 +185,57 @@ const Blog = () => {
       Title: (eventData && eventData.Title) || "",
       Description: (eventData && eventData.Description) || "",
       Sections: (eventData && eventData.Sections) || [
-        { contentType: "text", subtitle: "", content: "", order: 1 },
+        { contentType: "text", subtitle: "", content: "", order: 0 },
       ],
     },
     validationSchema,
     onSubmit: async (values) => {
       try {
-        let imageUrl = values.ImageUrl;
-
-        // If the ImageUrl is a File object (new upload), upload it to Firebase
-        if (values.ImageUrl instanceof File) {
-          const firebaseBackend = getFirebaseBackend();
-          imageUrl = await firebaseBackend.uploadFile(
-            values.ImageUrl,
-            "SPSS/Blog-Image"
-          );
+        console.log("onSubmit triggered, processing values...");
+        
+        // Check if any image section is missing content
+        const hasInvalidImageSection = values.Sections.some(
+          (section: BlogSection) => section.contentType === "image" && !section.content && !section.previewUrl
+        );
+        
+        if (hasInvalidImageSection) {
+          toast.error("Please upload images for all image sections");
+          return;
         }
-
-        // Process sections to ensure imageCaption is used as content for image sections
-        const processedSections = values.Sections.map((section: BlogSection) => {
-          if (section.contentType === "image") {
-            return {
-              ...section,
-              content: section.content, // Keep the image URL
-              description: section.imageCaption || "" // Add the caption as description
-            };
+        
+        // Process sections to ensure proper order (starting from 1 instead of 0)
+        const processedSections = values.Sections.map((section: BlogSection, index: number) => {
+          // Make sure content is properly set for image type sections
+          let sectionContent = section.content;
+          
+          // If it's an image type but content is empty, use the previewUrl if available
+          if (section.contentType === "image" && !sectionContent && section.previewUrl) {
+            sectionContent = section.previewUrl;
           }
-          return section;
+          
+          // Only include necessary fields for the API
+          return {
+            contentType: section.contentType,
+            subtitle: section.subtitle || "",
+            content: sectionContent || "", 
+            order: index + 1 // Start from 1 instead of 0
+          };
         });
 
         if (isEdit) {
+          console.log("Updating blog with data:", {
+            id: eventData.Id,
+            title: values.Title,
+            thumbnail: values.ImageUrl,
+            description: values.Description,
+            sections: processedSections,
+          });
+          
           const updateData = {
             id: eventData.Id,
             data: {
               title: values.Title,
-              thumbnail: imageUrl,
+              thumbnail: values.ImageUrl,
               description: values.Description,
               sections: processedSections,
             },
@@ -251,14 +256,18 @@ const Blog = () => {
         } else {
           const newData = {
             title: values.Title,
-            thumbnail: imageUrl,
+            thumbnail: values.ImageUrl,
             description: values.Description,
             sections: processedSections,
           };
 
+          console.log("Submitting new blog:", newData);
+          
+          // Try directly calling the API without using dispatch
           dispatch(addBlog(newData))
             .unwrap()
-            .then(() => {
+            .then((response : any) => {
+              console.log("Blog added successfully:", response);
               validation.resetForm();
               toggle();
               setRefreshFlag((prev) => !prev);
@@ -270,84 +279,61 @@ const Blog = () => {
             });
         }
       } catch (error) {
-        console.error("Error processing image upload:", error);
-        toast.error("Error processing image upload");
+        console.error("Error processing form submission:", error);
+        toast.error("Error processing form submission");
       }
     },
   });
 
-  // Update the useEffect for handling uploaded URLs - MOVED HERE after validation is defined
-  useEffect(() => {
-    if (uploadedUrls.length > 0) {
-      // If we have an active section being edited, update that section's content
-      if (activeUploadSection !== null) {
-        const updatedSections = [...validation.values.Sections];
-        if (updatedSections[activeUploadSection]) {
-          updatedSections[activeUploadSection] = {
-            ...updatedSections[activeUploadSection],
-            content: uploadedUrls[0], // Set the Firebase URL as content
-            previewUrl: uploadedUrls[0], // Update preview to use Firebase URL
-            isPreview: false,
-          };
-          validation.setFieldValue("Sections", updatedSections);
-          toast.success("Section image uploaded successfully");
-        }
-        // Reset the active section
-        setActiveUploadSection(null);
-      }
-      // Otherwise set the thumbnail
-      else {
-        validation.setFieldValue("ImageUrl", uploadedUrls[0]);
-        setSelectfiles({
-          preview: uploadedUrls[0],
-          formattedSize: "Unknown size",
-          name: uploadedUrls[0].split("/").pop() || "thumbnail",
-        });
-        toast.success("Thumbnail uploaded successfully");
-      }
-
-      // Clear the uploaded URLs after using them
-      dispatch(clearUploadedUrls());
-    }
-  }, [uploadedUrls, activeUploadSection, dispatch, validation]);
-
-  // Handle edit click
+  // Handle edit click - updated to properly handle sections
   const handleUpdateDataClick = useCallback((data: any) => {
-    // Prepare sections with proper order if they exist
-    let sections = data.sections || [
-      {
-        contentType: "text",
-        subtitle: "",
-        content: data.content || "",
-        order: 1,
-      },
-    ];
-
-    // Ensure sections have proper order values
-    sections = sections.map((section: any, index: number) => ({
-      ...section,
-      order: index + 1,
-    }));
-
-    setEventData({
-      ...data,
-      Id: data.id,
-      Title: data.title,
-      Description: data.description,
-      ImageUrl: data.thumbnail || data.imageUrl,
-      Sections: sections,
-    });
-
-    // Set the image preview if there's an existing image
-    if (data.thumbnail || data.imageUrl) {
-      setSelectfiles({
-        preview: data.thumbnail || data.imageUrl,
-        path: (data.thumbnail || data.imageUrl).split("/").pop(), // Extract filename from URL
+    // Fetch detailed blog data to ensure we have all sections
+    getBlogById(data.id)
+      .then((response: any) => {
+        if (response.success && response.data) {
+          const blogData = response.data;
+          
+          // Prepare sections with proper order if they exist
+          let sections = blogData.sections || [];
+          
+          // If no sections but we have blogContent, create a default section
+          if (sections.length === 0 && blogData.blogContent) {
+            sections = [{
+              contentType: "text",
+              subtitle: "",
+              content: blogData.blogContent,
+              order: 1,
+            }];
+          }
+          
+          // Sort sections by order
+          sections = sections.sort((a: any, b: any) => a.order - b.order);
+          
+          // Set the event data with all details
+          setEventData({
+            Id: blogData.id,
+            Title: blogData.title,
+            Description: blogData.blogContent || blogData.description,
+            ImageUrl: blogData.thumbnail,
+            Sections: sections,
+          });
+          
+          // Set the image preview if there's an existing image
+          if (blogData.thumbnail) {
+            setSelectfiles({
+              preview: blogData.thumbnail,
+              path: blogData.thumbnail.split("/").pop(), // Extract filename from URL
+            });
+          }
+          
+          setIsEdit(true);
+          setShow(true);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching blog details for edit:", error);
+        toast.error("Error fetching blog details");
       });
-    }
-
-    setIsEdit(true);
-    setShow(true);
   }, []);
 
   // Delete modal toggle
@@ -381,7 +367,7 @@ const Blog = () => {
     }
   }, [dispatch, selectedBlog, deleteToggle]);
 
-  // Handle view click
+  // Handle view click - updated to properly handle sections
   const handleViewClick = useCallback((data: any) => {
     // First set basic data from the list view
     setEventData({
@@ -409,6 +395,20 @@ const Blog = () => {
         if (response.success && response.data) {
           const blogData = response.data;
 
+          // Sort sections by order if they exist
+          let sections = blogData.sections || [];
+          if (sections.length > 0) {
+            sections = sections.sort((a: any, b: any) => a.order - b.order);
+          } else {
+            // If no sections, create a default section from blogContent
+            sections = [{
+              contentType: "text",
+              subtitle: "",
+              content: blogData.blogContent || blogData.description || "",
+              order: 0,
+            }];
+          }
+
           setEventData((prev: any) => ({
             ...prev,
             Title: blogData.title,
@@ -416,19 +416,7 @@ const Blog = () => {
             ImageUrl: blogData.thumbnail,
             Author: blogData.author || "Unknown",
             LastUpdatedAt: blogData.lastUpdatedAt,
-            // If sections exist and have items, use them; otherwise create a default section from content
-            Sections:
-              blogData.sections && blogData.sections.length > 0
-                ? blogData.sections
-                : [
-                    {
-                      contentType: "text",
-                      subtitle: "",
-                      content:
-                        blogData.blogContent || blogData.description || "",
-                      order: 0,
-                    },
-                  ],
+            Sections: sections,
           }));
         }
       })
@@ -527,31 +515,65 @@ const Blog = () => {
           formattedSize,
           name: file.name,
         });
+        
+        // Upload thumbnail directly to Firebase
+        const firebaseBackend = getFirebaseBackend();
+        toast.loading("Uploading thumbnail...", { id: "uploading" });
+        
+        firebaseBackend.uploadBlogImage(file)
+          .then((downloadURL: string) => {
+            validation.setFieldValue("ImageUrl", downloadURL);
+            setSelectfiles({
+              preview: downloadURL,
+              formattedSize,
+              name: file.name,
+            });
+            toast.dismiss("uploading");
+            toast.success("Thumbnail uploaded successfully");
+          })
+          .catch((error : any) => {
+            console.error("Error uploading thumbnail:", error);
+            toast.dismiss("uploading");
+            toast.error("Failed to upload thumbnail");
+          });
       } else {
         // For section images, immediately update the UI with the preview
-        // But DON'T set the actual content to the blob URL
         const updatedSections = [...validation.values.Sections];
         if (updatedSections[sectionIndex]) {
-          // Store the preview URL temporarily but don't use it as the final content
+          // Store the preview URL temporarily
           updatedSections[sectionIndex] = {
             ...updatedSections[sectionIndex],
-            content: "", // Don't set blob URL as content
-            previewUrl: preview, // Store preview separately
+            previewUrl: preview,
             isPreview: true,
           };
           validation.setFieldValue("Sections", updatedSections);
         }
+        
+        // Upload section image directly to Firebase
+        const firebaseBackend = getFirebaseBackend();
+        toast.loading("Uploading image...", { id: "uploading" });
+        
+        firebaseBackend.uploadBlogImage(file)
+          .then((downloadURL: string) => {
+            const updatedSections = [...validation.values.Sections];
+            if (updatedSections[sectionIndex]) {
+              updatedSections[sectionIndex] = {
+                ...updatedSections[sectionIndex],
+                content: downloadURL,
+                previewUrl: downloadURL,
+                isPreview: false,
+              };
+              validation.setFieldValue("Sections", updatedSections);
+            }
+            toast.dismiss("uploading");
+            toast.success("Section image uploaded successfully");
+          })
+          .catch((error: any) => {
+            console.error("Error uploading section image:", error);
+            toast.dismiss("uploading");
+            toast.error("Failed to upload section image");
+          });
       }
-
-      // Upload the file to Firebase
-      dispatch(uploadFiles(files))
-        .then(() => {
-          toast.dismiss("uploading");
-        })
-        .catch(() => {
-          toast.dismiss("uploading");
-          toast.error("Failed to upload file");
-        });
     }
   };
 
@@ -669,38 +691,6 @@ const Blog = () => {
               <p className="mt-2 text-sm text-slate-500 dark:text-zink-200">
                 Note: The image URL will be automatically set as the content when uploaded.
               </p>
-              
-              {/* Add text area for content with required validation */}
-              <div className="mt-4">
-                <label className="inline-block mb-2 text-sm font-medium">
-                 Content <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Enter content"
-                  name={`Sections[${index}].imageCaption`}
-                  rows={3}
-                  value={section.imageCaption || ""}
-                  onChange={(e) => {
-                    const updatedSections = [...validation.values.Sections];
-                    updatedSections[index] = {
-                      ...updatedSections[index],
-                      imageCaption: e.target.value
-                    };
-                    validation.setFieldValue("Sections", updatedSections);
-                  }}
-                  onBlur={validation.handleBlur}
-                  disabled={isViewMode}
-                ></textarea>
-                {!isViewMode &&
-                  validation.touched.Sections &&
-                  validation.errors.Sections &&
-                  (validation.errors.Sections as any)[index]?.imageCaption ? (
-                  <p className="text-red-400">
-                    {(validation.errors.Sections as any)[index]?.imageCaption}
-                  </p>
-                ) : null}
-              </div>
             </>
           )}
         </div>
@@ -729,6 +719,7 @@ const Blog = () => {
         onSubmit={(e) => {
           e.preventDefault();
           if (!isViewMode) {
+            console.log("Form submitted, values:", validation.values);
             validation.handleSubmit();
           }
           return false;
