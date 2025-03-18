@@ -160,7 +160,7 @@ export const updateProductCategory = (id: string, data: any) =>
 export const deleteProductCategory = (id: string) => 
   api.delete(`${url.DELETE_PRODUCT_CATEGORIES}/${id}`, { headers: { data: id } });
 // Blog
-export const getAllBlogs = (params: { Page: number; PageSize: number }) => 
+export const getAllBlogs  = (params: { pageNumber: number; pageSize: number }) => 
   api.get(url.GET_ALL_BLOGS, params);
 
 export const createBlog = (data: any) => 
@@ -172,7 +172,16 @@ export const updateBlog = (id: string, data: any) =>
 export const deleteBlog = (id: string) => 
   api.delete(`${url.DELETE_BLOG}/${id}`, { headers: { data: id } });
 
+export const getBlogById = (id: string) => api.get(`${url.GET_BLOG_BY_ID}/${id}`, null)
 
+// Migrate to FireBase
+export const migrateToFireBase = (files: File[]) => {
+  const formData = new FormData();
+  files.forEach(file => {
+    formData.append('files', file);
+  });
+  return api.create(url.MIGRATE_TO_FIRE_BASE, formData);
+};
 
 // Payment Method
 export const getAllPaymentMethods = (params: { pageNumber: number; pageSize: number }) => 

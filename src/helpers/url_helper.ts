@@ -77,12 +77,16 @@ export const GET_ALL_BLOGS = "/api/blogs";
 export const CREATE_BLOG = "/api/blogs";
 export const UPDATE_BLOG = "/api/blogs";
 export const DELETE_BLOG = "/api/blogs";
+export const GET_BLOG_BY_ID = "/api/blogs"
 
 // Payment Method
 export const GET_ALL_PAYMENT_METHODS = "/api/payment-methods";
 export const CREATE_PAYMENT_METHOD = "/api/payment-methods";
 export const UPDATE_PAYMENT_METHOD = "/api/payment-methods";
 export const DELETE_PAYMENT_METHOD = "/api/payment-methods";
+
+// Migrate to Firebase
+export const MIGRATE_TO_FIRE_BASE = "/migrateToFirebaseLinks"
 
 // Skin Type
 export const GET_ALL_SKIN_TYPES = "/api/skin-types";

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import BreadCrumb from "Common/BreadCrumb";
 import { useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,6 +18,7 @@ import { Link } from "react-router-dom";
 
 // Redux
 import { getOrderById } from "slices/order/thunk";
+import { getAllPaymentMethods } from "helpers/fakebackend_helper";
 
 // Status component
 const Status = ({ status }: { status: string }) => {
@@ -48,6 +49,9 @@ const OrderOverview = () => {
     const invoiceRef = useRef<HTMLDivElement>(null);
     const [showInvoice, setShowInvoice] = useState<boolean>(false);
 
+    // Add state for payment methods
+    const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
+    
     // Format currency
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
@@ -77,6 +81,32 @@ const OrderOverview = () => {
         }
     }, [dispatch, id]);
 
+    // Add function to fetch payment methods
+    const fetchPaymentMethods = useCallback(async () => {
+        try {
+            const response = await getAllPaymentMethods({ 
+                pageNumber: 1,
+                pageSize: 10 
+            });
+            if (response.data.items) {
+                setPaymentMethods(response.data.items);
+            }
+        } catch (error) {
+            console.error("Failed to fetch payment methods:", error);
+        }
+    }, []);
+    
+    // Call fetchPaymentMethods in useEffect
+    useEffect(() => {
+        fetchPaymentMethods();
+    }, [fetchPaymentMethods]);
+    
+    // Function to get payment method name by ID
+    const getPaymentMethodName = (paymentMethodId: string) => {
+        const method = paymentMethods.find(m => m.id === paymentMethodId);
+        return method ? method.paymentType : "Cash on Delivery";
+    };
+
     // Calculate estimated delivery date (7 days from order date)
     const estimatedDeliveryDate = currentOrder?.createdTime 
         ? moment(currentOrder.createdTime).add(7, 'days').format('DD MMM, YYYY')
@@ -100,12 +130,15 @@ const OrderOverview = () => {
         const subtotal = currentOrder.orderDetails.reduce((sum: number, item: any) => 
             sum + (item.price * item.quantity), 0);
         
+        // Get payment method name
+        const paymentMethodName = getPaymentMethodName(currentOrder.paymentMethodId);
+        
         return `
             <div style="padding: 30px; font-family: Arial, sans-serif; max-width: 900px; margin: 0 auto; border: 1px solid #eee; font-size: 16px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 40px;">
                     <div>
                         <h1 style="margin: 0; color: #333; font-size: 28px;">Invoice</h1>
-                        <h2>Invoice number:${invoiceId}</h2>
+                        <h2>Invoice Number: ${invoiceId}</h2>
                         <p style="margin: 10px 0; font-size: 18px;">Date: ${formatDate(currentOrder.createdTime)}</p>
                     </div>
                     <div>
@@ -183,7 +216,7 @@ const OrderOverview = () => {
                 
                 <div style="margin-top: 40px;">
                     <h2 style="margin: 0 0 15px 0; border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 22px;">Payment Method:</h2>
-                    <p style="margin: 8px 0; font-size: 18px;">Payment Method: Cash on Delivery</p>
+                    <p style="margin: 8px 0; font-size: 18px;">Payment Method: ${paymentMethodName}</p>
                     <p style="margin: 8px 0; font-size: 18px;">Customer: ${currentOrder.address?.customerName || "N/A"}</p>
                 </div>
                 
@@ -246,34 +279,45 @@ const OrderOverview = () => {
     });
 
     // Fix the issue with PDF generation
-    const generatePDF = async () => {
-        // Create a separate reference for the invoice template
-        const invoiceTemplateRef = document.createElement('div');
-        invoiceTemplateRef.innerHTML = createInvoiceTemplate();
-        
-        document.body.appendChild(invoiceTemplateRef);
-        
-        try {
-            const canvas = await html2canvas(invoiceTemplateRef, {
-                scale: 2,
+    const generatePDF = () => {
+        if (invoiceRef.current) {
+            const invoiceContent = createInvoiceTemplate();
+            
+            // Create a temporary div to render the invoice
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = invoiceContent;
+            document.body.appendChild(tempDiv);
+            
+            // Use html2canvas with higher scale for better quality
+            html2canvas(tempDiv, {
+                scale: 2, // Increase scale for better quality
                 useCORS: true,
                 logging: false,
-                allowTaint: true
+                width: 900, // Set fixed width
+                height: 1200, // Set appropriate height
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                
+                // Create PDF with larger dimensions
+                const pdf = new jsPDF('p', 'pt', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                
+                // Calculate ratio to fit the image properly
+                const imgWidth = canvas.width;
+                const imgHeight = canvas.height;
+                const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+                
+                // Center the image on the page
+                const x = (pdfWidth - imgWidth * ratio) / 2;
+                const y = 20; // Add some top margin
+                
+                pdf.addImage(imgData, 'PNG', x, y, imgWidth * ratio, imgHeight * ratio);
+                pdf.save(`invoice-${currentOrder.id.substring(0, 8)}.pdf`);
+                
+                // Remove the temporary div
+                document.body.removeChild(tempDiv);
             });
-            
-            document.body.removeChild(invoiceTemplateRef);
-            
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const imgWidth = 210; // A4 width in mm
-            const pageHeight = 297; // A4 height in mm
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            
-            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-            pdf.save(`Invoice-${currentOrder?.id?.substring(0, 8) || 'Order'}.pdf`);
-        } catch (error) {
-            console.error('Error generating PDF:', error);
-            document.body.removeChild(invoiceTemplateRef);
         }
     };
 
@@ -366,7 +410,7 @@ const OrderOverview = () => {
                                                     <div className="size-8 flex items-center justify-center rounded-md bg-white border">
                                                         <img src={delivery1} alt="" className="h-4" />
                                                     </div>
-                                                    <h6 className="mb-0 text-sm">Cash on Delivery</h6>
+                                                    <h6 className="mb-0 text-sm">{getPaymentMethodName(currentOrder.paymentMethodId)}</h6>
                                                 </div>
                                             </td>
                                         </tr>
