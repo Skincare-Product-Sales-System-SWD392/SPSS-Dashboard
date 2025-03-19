@@ -9,12 +9,11 @@ import {
 
 export const getAllReviews = createAsyncThunk(
   "review/getAllReviews",
-  async (params: { page: number, pageSize: number, search?: string }) => {
+  async (params: { page: number, pageSize: number}) => {
     try {
       const response = await getAllReviewsApi({ 
         pageNumber: params.page,
         pageSize: params.pageSize,
-        search: params.search 
       });
       return response;
     } catch (error: any) {

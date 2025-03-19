@@ -237,8 +237,15 @@ export const updateProduct = (id: string, data: any) =>
 export const deleteProduct = (id: string) => 
   api.delete(`${url.DELETE_PRODUCT}/${id}`, { headers: { data: id } });
 
-// Dashboard
+// reply
+export const createReply = (data: any) => 
+  api.create(url.CREATE_REPLY, data);
 
+export const updateReply = (id: string, data: any) => 
+  api.update(`${url.UPDATE_REPLY}/${id}`, data);
+
+export const deleteReply = (id: string) => 
+  api.delete(`${url.DELETE_REPLY}/${id}`, { headers: { data: id } });
 
 // Country
 export const getAllCountries = (params: { Page: number; PageSize: number }) => 
@@ -384,7 +391,7 @@ export const updateSellers = (data: any) => api.update(url.UPDATE_SELLERS, data)
 export const deleteSellers = (data: any) => api.delete(url.DELETE_SELLERS, { headers: { data } });
 
 // Review
-export const getAllReviews = (params: { pageNumber: number; pageSize: number; search?: string }) => 
+export const getAllReviews = (params: { pageNumber: number; pageSize: number }) => 
   api.get(url.GET_ALL_REVIEWS, params);
 
 export const createReview = (data: any) => 
