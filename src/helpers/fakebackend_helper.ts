@@ -391,7 +391,7 @@ export const updateSellers = (data: any) => api.update(url.UPDATE_SELLERS, data)
 export const deleteSellers = (data: any) => api.delete(url.DELETE_SELLERS, { headers: { data } });
 
 // Review
-export const getAllReviews = (params: { pageNumber: number; pageSize: number; search?: string }) => 
+export const getAllReviews = (params: { pageNumber: number; pageSize: number }) => 
   api.get(url.GET_ALL_REVIEWS, params);
 
 export const createReview = (data: any) => 

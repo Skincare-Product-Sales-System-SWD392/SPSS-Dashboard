@@ -129,26 +129,6 @@ const menuData: any = [
         ]
     },
     {
-        id: 'users',
-        label: 'Users',
-        icon: <UserRound />,
-        parentId: 2,
-        subItems: [
-            {
-                id: 'userlistview',
-                label: 'List view',
-                link: '/apps-users-list',
-                parentId: 'users'
-            },
-            {
-                id: 'usergridview',
-                label: 'Grid View',
-                link: '/apps-users-grid',
-                parentId: 'users'
-            }
-        ]
-    },
-    {
         label: 'Components',
         isTitle: true,
     },

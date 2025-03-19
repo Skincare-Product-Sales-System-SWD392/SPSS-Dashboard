@@ -6,13 +6,17 @@ import * as Yup from "yup";
 import { useFormik as useFormic } from "formik";
 
 // Image
-import logoLight from "assets/images/logo-light.png";
-import logoDark from "assets/images/logo-dark.png";
+// import logoLight from "assets/images/logo-light.png";
+// import logoDark from "assets/images/logo-dark.png";
 import { loginUser, socialLogin } from "slices/thunk";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { createSelector } from "reselect";
 import AuthIcon from "./AuthIcon";
+
+// Add your SPSS logo import if it's in the assets folder
+// import spssLogo from "assets/images/spss.jpg";
+// OR if using from public folder, you don't need an import
 
 const Login = () => {
   document.title = "Login | Tailwick - React Admin & Dashboard Template";
@@ -92,20 +96,14 @@ const Login = () => {
   return (
     <React.Fragment>
       <div className="relative">
-        <AuthIcon />
 
         <div className="mb-0 w-screen lg:mx-auto lg:w-[500px] card shadow-lg border-none shadow-slate-100 relative">
           <div className="!px-10 !py-12 card-body">
             <Link to="/">
               <img
-                src={logoLight}
-                alt=""
-                className="hidden h-6 mx-auto dark:block"
-              />
-              <img
-                src={logoDark}
-                alt=""
-                className="block h-6 mx-auto dark:hidden"
+                src="/spss.jpg"  
+                alt="SPSS Logo"
+                className="h-14 mx-auto"  
               />
             </Link>
 
@@ -114,7 +112,7 @@ const Login = () => {
                 Welcome Back !
               </h4>
               <p className="text-slate-500 dark:text-zink-200">
-                Sign in to continue to Tailwick.
+                Sign in to continue to SPSS.
               </p>
             </div>
 

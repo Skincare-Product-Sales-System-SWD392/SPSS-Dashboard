@@ -43,7 +43,7 @@ import promotionReducer from "./promotion/reducer";
 import CategoryReducer from "./category/reducer";
 import uploadFileReducer from "./uploadFile/reducer";
 import dashboardReducer from '../slices/dashboard/reducer';
-import replyReducer from '../slices/reply/reducer';
+import ReplyReducer from '../slices/reply/reducer';
 
 const rootReducer = combineReducers({
     Layout: LayoutReducer,
@@ -65,7 +65,7 @@ const rootReducer = combineReducers({
     paymentMethod: PaymentMethodReducer,
     blog: BlogReducer,
     product: ProductReducer,
-    review: ReviewReducer,
+    Review: ReviewReducer,
     order: OrderReducer,
     Variation: VariationReducer,
     VariationOption: VariationOptionReducer,
@@ -75,7 +75,7 @@ const rootReducer = combineReducers({
     ProductCategory: ProductCategoryReducer,
     uploadFile: uploadFileReducer,
     dashboard: dashboardReducer,
-    reply: replyReducer,
+    Reply: ReplyReducer,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

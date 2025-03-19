@@ -19,18 +19,18 @@ const Sidebar = ({ layoutType, layoutSidebarSizeType }: any) => {
                 <div className="flex items-center justify-center px-5 text-center h-header group-data-[layout=horizontal]:hidden group-data-[sidebar-size=sm]:fixed group-data-[sidebar-size=sm]:top-0 group-data-[sidebar-size=sm]:bg-vertical-menu group-data-[sidebar-size=sm]:group-data-[sidebar=dark]:bg-vertical-menu-dark group-data-[sidebar-size=sm]:group-data-[sidebar=brand]:bg-vertical-menu-brand group-data-[sidebar-size=sm]:group-data-[sidebar=modern]:bg-vertical-menu-modern group-data-[sidebar-size=sm]:z-10 group-data-[sidebar-size=sm]:w-[calc(theme('spacing.vertical-menu-sm')_-_1px)] group-data-[sidebar-size=sm]:group-data-[sidebar=dark]:dark:bg-zink-700">
                     <Link to="#" className="group-data-[sidebar=dark]:hidden group-data-[sidebar=brand]:hidden group-data-[sidebar=modern]:hidden">
                         <span className="hidden group-data-[sidebar-size=sm]:block">
-                            <img src={logoSm} alt="" className="h-6 mx-auto" />
+                            <img src="/spss.jpg" alt="SPSS Logo" className="h-12 mx-auto" />
                         </span>
                         <span className="group-data-[sidebar-size=sm]:hidden">
-                            <img src={logoDark} alt="" className="h-6 mx-auto" />
+                            <img src="/spss.jpg" alt="SPSS Logo" className="h-14 mx-auto" />
                         </span>
                     </Link>
                     <Link to="#" className="hidden group-data-[sidebar=dark]:block group-data-[sidebar=brand]:block group-data-[sidebar=modern]:block">
                         <span className="hidden group-data-[sidebar-size=sm]:block">
-                            <img src={logoSm} alt="" className="h-6 mx-auto" />
+                            <img src="/spss.jpg" alt="SPSS Logo" className="h-12 mx-auto" />
                         </span>
                         <span className="group-data-[sidebar-size=sm]:hidden">
-                            <img src={logoLight} alt="" className="h-6 mx-auto" />
+                            <img src="/spss.jpg" alt="SPSS Logo" className="h-14 mx-auto" />
                         </span>
                     </Link>
                     <button type="button" className="hidden p-0 float-end" id="vertical-hover">

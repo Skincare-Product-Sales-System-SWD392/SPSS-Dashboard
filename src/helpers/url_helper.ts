@@ -184,9 +184,9 @@ export const DELETE_SELLERS = "/delete-sellers";
 
 // Overview
 export const GET_ALL_REVIEWS = "/api/reviews";
-export const ADD_REVIEW = "/api/review";
-export const UPDATE_REVIEW = "/api/review";
-export const DELETE_REVIEW = "/api/review";
+export const ADD_REVIEW = "/api/reviews";
+export const UPDATE_REVIEW = "/api/reviews";
+export const DELETE_REVIEW = "/api/reviews";
 
 
 
