@@ -1,8 +1,32 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Package, PackageX, Truck, Wallet2 } from 'lucide-react';
 import CountUp from 'react-countup';
+import axios from 'axios';
 
 const Widgets = () => {
+    const [totalRevenue, setTotalRevenue] = useState(0);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        // Fetch total revenue data when component mounts
+        const fetchTotalRevenue = async () => {
+            try {
+                const response = await axios.get('http://localhost:5041/api/dashboards/total-revenue');
+                console.log('API Response:', response.data); // Log the response
+                // Handle raw number response
+                const revenue = typeof response.data === 'number' 
+                    ? response.data 
+                    : parseFloat(response.data);
+                setTotalRevenue(revenue);
+                setLoading(false);
+            } catch (error) {
+                console.error('Error fetching total revenue:', error);
+                setLoading(false);
+            }
+        };
+        fetchTotalRevenue();
+    }, []);
+
     return (
         <React.Fragment>
             <div className="col-span-12 card md:col-span-6 lg:col-span-3 2xl:col-span-2">
@@ -11,7 +35,15 @@ const Widgets = () => {
                         <Wallet2 />
                     </div>
                     <h5 className="mt-4 mb-2">$
-                        <CountUp end={236.18} decimals={2} className="counter-value" />
+                        {loading ? (
+                            <span>Loading...</span>
+                        ) : (
+                            <CountUp 
+                                end={totalRevenue}
+                                decimals={2} 
+                                className="counter-value" 
+                            />
+                        )}
                         k</h5>
                     <p className="text-slate-500 dark:text-zink-200">Total Revenue</p>
                 </div>
