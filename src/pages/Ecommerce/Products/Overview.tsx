@@ -268,11 +268,6 @@ const Overview = () => {
                                         </table>
                                     </div>
                                 </div>
-
-                                <h6 className="mt-5 mb-3 text-15">Ratings & Reviews</h6>
-                                <div className="text-center py-6">
-                                    <p className="text-slate-500">No reviews available for this product.</p>
-                                </div>
                             </div>
                         </div>
                     </div>

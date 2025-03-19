@@ -5,7 +5,6 @@ import OrderStatistics from './OrderStatistics';
 import Widgets from './Widgets';
 import SalesRevenue from './SalesRevenue';
 import TrafficResources from './TrafficResources';
-import ProductsOrders from './ProductsOrders';
 import CustomerService from './CustomerService';
 import SalesMonth from './SalesMonth';
 import TopSellingProducts from './TopSellingProducts';
@@ -26,7 +25,6 @@ const Ecommerce = () => {
                 <Widgets />
                 <SalesRevenue />
                 <TrafficResources />
-                <ProductsOrders />
                 <CustomerService />
                 <SalesMonth />
                 <TopSellingProducts />

@@ -4,7 +4,7 @@ import { ex } from "@fullcalendar/core/internal-common";
 export const POST_FAKE_REGISTER = "/auth/signup";
 
 // LOGIN
-export const POST_FAKE_LOGIN = "/auth/signin";
+export const POST_LOGIN = "/authentications/signin";
 export const POST_FAKE_JWT_LOGIN = "/post-jwt-login";
 export const POST_FAKE_PASSWORD_FORGET = "/auth/forgot-password";
 export const POST_FAKE_JWT_PASSWORD_FORGET = "/jwt-forget-pwd";
@@ -107,6 +107,7 @@ export const GET_PRODUCT_BY_ID = "/api/products";
 export const CREATE_PRODUCT = "/api/products";
 export const UPDATE_PRODUCT = "/api/products";
 export const DELETE_PRODUCT = "/api/products";
+
 
 // Country
 export const GET_ALL_COUNTRIES = "/api/countries";

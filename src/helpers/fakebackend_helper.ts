@@ -21,7 +21,7 @@ export const isUserAuthenticated = () => {
 export const postFakeRegister = (data: any) => api.create(url.POST_FAKE_REGISTER, data);
 
 // Login Method
-export const postFakeLogin = (data: any) => api.create(url.POST_FAKE_LOGIN, data);
+export const postFakeLogin = (data: any) => api.create(url.POST_FAKE_JWT_LOGIN, data);
 
 // postForgetPwd
 export const postFakeForgetPwd = (data: any) => api.create(url.POST_FAKE_PASSWORD_FORGET, data);
@@ -236,6 +236,8 @@ export const updateProduct = (id: string, data: any) =>
 
 export const deleteProduct = (id: string) => 
   api.delete(`${url.DELETE_PRODUCT}/${id}`, { headers: { data: id } });
+
+// Dashboard
 
 
 // Country
