@@ -1,4 +1,4 @@
-import { postLogin } from "helpers/fakebackend_helper";
+import { postJwtLogin } from "helpers/fakebackend_helper";
 import { loginError, loginSuccess, logoutSuccess } from "./reducer";
 import { ThunkAction } from "redux-thunk";
 import { Action, Dispatch } from "redux";

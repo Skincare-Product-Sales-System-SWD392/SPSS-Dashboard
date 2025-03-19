@@ -18,458 +18,385 @@ export const isUserAuthenticated = () => {
 };
 
 // Register Method
-export const postFakeRegister = (data: any) =>
-  api.create(url.POST_FAKE_REGISTER, data);
+export const postFakeRegister = (data: any) => api.create(url.POST_FAKE_REGISTER, data);
 
 // Login Method
-export const postLogin = (data: any) => api.create(url.POST_LOGIN, data);
+export const postFakeLogin = (data: any) => api.create(url.POST_FAKE_JWT_LOGIN, data);
 
 // postForgetPwd
-export const postFakeForgetPwd = (data: any) =>
-  api.create(url.POST_FAKE_PASSWORD_FORGET, data);
+export const postFakeForgetPwd = (data: any) => api.create(url.POST_FAKE_PASSWORD_FORGET, data);
 
 // Edit profile
-export const postJwtProfile = (data: any) =>
-  api.create(url.POST_EDIT_JWT_PROFILE, data);
+export const postJwtProfile = (data: any) => api.create(url.POST_EDIT_JWT_PROFILE, data);
 
-export const postFakeProfile = (data: any) =>
-  api.create(url.POST_EDIT_PROFILE, data);
+export const postFakeProfile = (data: any) => api.create(url.POST_EDIT_PROFILE, data);
 // export const postFakeProfile = (data: any) => api.update(url.POST_EDIT_PROFILE + '/' + data.idx, data);
 
 // Register Method
 export const postJwtRegister = (url: any, data: any) => {
-  return api.create(url, data).catch((err: any) => {
-    var message;
-    if (err.response && err.response.status) {
-      switch (err.response.status) {
-        case 404:
-          message = "Sorry! the page you are looking for could not be found";
-          break;
-        case 500:
-          message =
-            "Sorry! something went wrong, please contact our support team";
-          break;
-        case 401:
-          message = "Invalid credentials";
-          break;
-        default:
-          message = err[1];
-          break;
+  return api.create(url, data)
+    .catch((err: any) => {
+      var message;
+      if (err.response && err.response.status) {
+        switch (err.response.status) {
+          case 404:
+            message = "Sorry! the page you are looking for could not be found";
+            break;
+          case 500:
+            message = "Sorry! something went wrong, please contact our support team";
+            break;
+          case 401:
+            message = "Invalid credentials";
+            break;
+          default:
+            message = err[1];
+            break;
+        }
       }
-    }
-    throw message;
-  });
+      throw message;
+    });
 };
 // Login Method
-export const postJwtLogin = (data: any) =>
-  api.create(url.POST_FAKE_JWT_LOGIN, data);
+export const postJwtLogin = (data: any) => api.create(url.POST_FAKE_JWT_LOGIN, data);
 
 // postForgetPwd
-export const postJwtForgetPwd = (data: any) =>
-  api.create(url.POST_FAKE_JWT_PASSWORD_FORGET, data);
+export const postJwtForgetPwd = (data: any) => api.create(url.POST_FAKE_JWT_PASSWORD_FORGET, data);
 
 // postSocialLogin
-export const postSocialLogin = (data: any) =>
-  api.create(url.SOCIAL_LOGIN, data);
+export const postSocialLogin = (data: any) => api.create(url.SOCIAL_LOGIN, data);
 
 // Chat
-export const getChat = (roomId: any) =>
-  api.get(`${url.GET_CHAT}/${roomId}`, { params: { roomId } });
+export const getChat = (roomId: any) => api.get(`${url.GET_CHAT}/${roomId}`, { params: { roomId } });
 export const addChat = (data: any) => api.create(url.ADD_CHAT, data);
-export const deleteChat = (data: any) =>
-  api.delete(url.DELETE_CHAT, { headers: { data } });
-export const bookmarkChat = (data: any) =>
-  api.delete(url.BOOKMARK_CHAT, { headers: { data } });
+export const deleteChat = (data: any) => api.delete(url.DELETE_CHAT, { headers: { data } });
+export const bookmarkChat = (data: any) => api.delete(url.BOOKMARK_CHAT, { headers: { data } });
 
 // Mailbox
 export const getMail = () => api.get(url.GET_MAIL, null);
-export const deleteMail = (data: any) =>
-  api.delete(url.DELETE_MAIL, { headers: { data } });
-export const unreadMail = (data: any) =>
-  api.delete(url.UNREAD_MAIL, { headers: { data } });
-export const staredMail = (data: any) =>
-  api.delete(url.STARED_MAIL, { headers: { data } });
-export const trashMail = (data: any) =>
-  api.delete(url.TRASH_MAIL, { headers: { data } });
+export const deleteMail = (data: any) => api.delete(url.DELETE_MAIL, { headers: { data } });
+export const unreadMail = (data: any) => api.delete(url.UNREAD_MAIL, { headers: { data } });
+export const staredMail = (data: any) => api.delete(url.STARED_MAIL, { headers: { data } });
+export const trashMail = (data: any) => api.delete(url.TRASH_MAIL, { headers: { data } });
 
 // Calendar
 export const getEvents = () => api.get(url.GET_EVENT, null);
 export const addEvents = (data: any) => api.create(url.ADD_EVENT, data);
 export const updateEvents = (data: any) => api.update(url.UPDATE_EVENT, data);
-export const deleteEvents = (data: any) =>
-  api.delete(url.DELETE_EVENT, { headers: { data } });
+export const deleteEvents = (data: any) => api.delete(url.DELETE_EVENT, { headers: { data } });
 
 // Category
-export const getAllCategories = (params: { Page: number; PageSize: number }) =>
+export const getAllCategories = (params: { Page: number; PageSize: number }) => 
   api.get(url.GET_ALL_CATEGORIES, params);
 
-export const createCategory = (data: any) =>
+export const createCategory = (data: any) => 
   api.create(url.CREATE_CATEGORY, data);
 
-export const updateCategory = (id: string, data: any) =>
+export const updateCategory = (id: string, data: any) => 
   api.update(`${url.UPDATE_CATEGORY}/${id}`, data);
 
-export const deleteCategory = (id: string) =>
+export const deleteCategory = (id: string) => 
   api.delete(`${url.DELETE_CATEGORY}/${id}`, { headers: { data: id } });
 
 // User
 
 // Promotion
-export const getAllPromotions = (params: { Page: number; PageSize: number }) =>
+export const getAllPromotions = (params: { Page: number; PageSize: number }) => 
   api.get(url.GET_ALL_PROMOTIONS, params);
 
-export const createPromotion = (data: any) =>
+export const createPromotion = (data: any) => 
   api.create(url.CREATE_PROMOTION, data);
 
-export const updatePromotion = (id: string, data: any) =>
+export const updatePromotion = (id: string, data: any) => 
   api.update(`${url.UPDATE_PROMOTION}/${id}`, data);
 
-export const deletePromotion = (id: string) =>
+export const deletePromotion = (id: string) => 
   api.delete(`${url.DELETE_PROMOTION}/${id}`, { headers: { data: id } });
 
 // Variation
-export const getAllVariations = (params: {
-  pageNumber: number;
-  pageSize: number;
-}) => api.get(url.GET_ALL_VARIATIONS, params);
+export const getAllVariations = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_VARIATIONS, params);
 
-export const createVariation = (data: any) =>
+export const createVariation = (data: any) => 
   api.create(url.CREATE_VARIATION, data);
 
-export const updateVariation = (id: string, data: any) =>
+export const updateVariation = (id: string, data: any) => 
   api.update(`${url.UPDATE_VARIATION}/${id}`, data);
 
-export const deleteVariation = (id: string) =>
+export const deleteVariation = (id: string) => 
   api.delete(`${url.DELETE_VARIATION}/${id}`, { headers: { data: id } });
 
 // Variation Option
-export const getAllVariationOptions = (params: {
-  pageNumber: number;
-  pageSize: number;
-}) => api.get(url.GET_ALL_VARIATION_OPTION, params);
-export const createVariationOption = (data: any) =>
+export const getAllVariationOptions = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_VARIATION_OPTION, params);
+export const createVariationOption =  (data: any) => 
   api.create(url.CREATE_VARIATION_OPTION, data);
-export const updateVariationOption = (id: string, data: any) =>
+export const updateVariationOption = (id: string, data: any) => 
   api.update(`${url.UPDATE_VARIATION_OPTION}/${id}`, data);
-export const deleteVariationOption = (id: string) =>
+export const deleteVariationOption = (id: string) => 
   api.delete(`${url.DELETE_VARIATION_OPTION}/${id}`, { headers: { data: id } });
 
 // Product Status
-export const getAllProductStatus = (params: {
-  pageNumber: number;
-  pageSize: number;
-}) => api.get(url.GET_ALL_PRODUCT_STATUS, params);
+export const getAllProductStatus = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_PRODUCT_STATUS, params);
 
-export const createProductStatus = (data: any) =>
+export const createProductStatus = (data: any) => 
   api.create(url.CREATE_PRODUCT_STATUS, data);
 
-export const updateProductStatus = (id: string, data: any) =>
+export const updateProductStatus = (id: string, data: any) => 
   api.update(`${url.UPDATE_PRODUCT_STATUS}/${id}`, data);
 
-export const deleteProductStatus = (id: string) =>
+export const deleteProductStatus = (id: string) => 
   api.delete(`${url.DELETE_PRODUCT_STATUES}/${id}`, { headers: { data: id } });
 // Product Category
-export const getAllProductCategories = (params: {
-  pageNumber: number;
-  pageSize: number;
-}) => api.get(url.GET_ALL_PRODUCT_CATEGORIES, params);
+export const getAllProductCategories = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_PRODUCT_CATEGORIES, params);
 
-export const createProductCategory = (data: any) =>
+export const createProductCategory = (data: any) => 
   api.create(url.CREATE_PRODUCT_CATEGORIES, data);
 
-export const updateProductCategory = (id: string, data: any) =>
+export const updateProductCategory = (id: string, data: any) => 
   api.update(`${url.UPDATE_PRODUCT_CATEGORIES}/${id}`, data);
 
-export const deleteProductCategory = (id: string) =>
-  api.delete(`${url.DELETE_PRODUCT_CATEGORIES}/${id}`, {
-    headers: { data: id },
-  });
+export const deleteProductCategory = (id: string) => 
+  api.delete(`${url.DELETE_PRODUCT_CATEGORIES}/${id}`, { headers: { data: id } });
 // Blog
-export const getAllBlogs = (params: { pageNumber: number; pageSize: number }) =>
+export const getAllBlogs  = (params: { pageNumber: number; pageSize: number }) => 
   api.get(url.GET_ALL_BLOGS, params);
 
-export const createBlog = (data: any) => api.create(url.CREATE_BLOG, data);
+export const createBlog = (data: any) => 
+  api.create(url.CREATE_BLOG, data);
 
-export const updateBlog = (id: string, data: any) =>
+export const updateBlog = (id: string, data: any) => 
   api.update(`${url.UPDATE_BLOG}/${id}`, data);
 
-export const deleteBlog = (id: string) =>
+export const deleteBlog = (id: string) => 
   api.delete(`${url.DELETE_BLOG}/${id}`, { headers: { data: id } });
 
-export const getBlogById = (id: string) =>
-  api.get(`${url.GET_BLOG_BY_ID}/${id}`, null);
+export const getBlogById = (id: string) => api.get(`${url.GET_BLOG_BY_ID}/${id}`, null)
 
 // Migrate to FireBase
 export const migrateToFireBase = (files: File[]) => {
   const formData = new FormData();
-  files.forEach((file) => {
-    formData.append("files", file);
+  files.forEach(file => {
+    formData.append('files', file);
   });
   return api.create(url.MIGRATE_TO_FIRE_BASE, formData);
 };
 
 // Payment Method
-export const getAllPaymentMethods = (params: {
-  pageNumber: number;
-  pageSize: number;
-}) => api.get(url.GET_ALL_PAYMENT_METHODS, params);
+export const getAllPaymentMethods = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_PAYMENT_METHODS, params);
 
-export const createPaymentMethod = (data: any) =>
+export const createPaymentMethod = (data: any) => 
   api.create(url.CREATE_PAYMENT_METHOD, data);
 
-export const updatePaymentMethod = (id: string, data: any) =>
+export const updatePaymentMethod = (id: string, data: any) => 
   api.update(`${url.UPDATE_PAYMENT_METHOD}/${id}`, data);
 
-export const deletePaymentMethod = (id: string) =>
+export const deletePaymentMethod = (id: string) => 
   api.delete(`${url.DELETE_PAYMENT_METHOD}/${id}`, { headers: { data: id } });
 
 // Skin Type
-export const getAllSkinTypes = (params: {
-  pageNumber: number;
-  pageSize: number;
-}) => api.get(url.GET_ALL_SKIN_TYPES, params);
+export const getAllSkinTypes = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_SKIN_TYPES, params);
 
-export const createSkinType = (data: any) =>
+export const createSkinType = (data: any) => 
   api.create(url.CREATE_SKIN_TYPE, data);
 
-export const updateSkinType = (id: string, data: any) =>
+export const updateSkinType = (id: string, data: any) => 
   api.update(`${url.UPDATE_SKIN_TYPE}/${id}`, data);
 
-export const deleteSkinType = (id: string) =>
+export const deleteSkinType = (id: string) => 
   api.delete(`${url.DELETE_SKIN_TYPE}/${id}`, { headers: { data: id } });
 
 // Cancel Reason
-export const getAllCancelReasons = (params: {
-  pageNumber: number;
-  pageSize: number;
-}) => api.get(url.GET_ALL_CANCEL_REASONS, params);
+export const getAllCancelReasons = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_CANCEL_REASONS, params);
 
-export const createCancelReason = (data: any) =>
+export const createCancelReason = (data: any) => 
   api.create(url.CREATE_CANCEL_REASON, data);
 
-export const updateCancelReason = (id: string, data: any) =>
+export const updateCancelReason = (id: string, data: any) => 
   api.update(`${url.UPDATE_CANCEL_REASON}/${id}`, data);
 
-export const deleteCancelReason = (id: string) =>
+export const deleteCancelReason = (id: string) => 
   api.delete(`${url.DELETE_CANCEL_REASON}/${id}`, { headers: { data: id } });
 
-// Product
-export const getAllProducts = (params: {
-  pageNumber: number;
-  pageSize: number;
-}) => api.get(url.GET_ALL_PRODUCTS, params);
 
-export const createProduct = (data: any) =>
+
+// Product
+export const getAllProducts = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_PRODUCTS, params);
+
+export const createProduct = (data: any) => 
   api.create(url.CREATE_PRODUCT, data);
 
-export const updateProduct = (id: string, data: any) =>
+export const updateProduct = (id: string, data: any) => 
   api.update(`${url.UPDATE_PRODUCT}/${id}`, data);
 
-export const deleteProduct = (id: string) =>
+export const deleteProduct = (id: string) => 
   api.delete(`${url.DELETE_PRODUCT}/${id}`, { headers: { data: id } });
 
+// Dashboard
+
+
 // Country
-export const getAllCountries = (params: { Page: number; PageSize: number }) =>
+export const getAllCountries = (params: { Page: number; PageSize: number }) => 
   api.get(url.GET_ALL_COUNTRIES, params);
 
 // Brand
-export const getAllBrands = (params: {
-  pageNumber: number;
-  pageSize: number;
-}) => api.get(url.GET_ALL_BRANDS, params);
+export const getAllBrands = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_BRANDS, params);
 
-export const createBrand = (data: any) => api.create(url.CREATE_BRAND, data);
+export const createBrand = (data: any) => 
+  api.create(url.CREATE_BRAND, data);
 
-export const updateBrand = (id: string, data: any) =>
+export const updateBrand = (id: string, data: any) => 
   api.update(`${url.UPDATE_BRAND}/${id}`, data);
 
-export const deleteBrand = (id: string) =>
+export const deleteBrand = (id: string) => 
   api.delete(`${url.DELETE_BRAND}/${id}`, { headers: { data: id } });
 
 // Voucher
-export const getAllVouchers = (params: {
-  pageNumber: number;
-  pageSize: number;
-}) => api.get(url.GET_ALL_VOUCHERS, params);
+export const getAllVouchers = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_VOUCHERS, params);
 
-export const createVoucher = (data: any) =>
+export const createVoucher = (data: any) => 
   api.create(url.CREATE_VOUCHER, data);
 
-export const updateVoucher = (id: string, data: any) =>
+export const updateVoucher = (id: string, data: any) => 
   api.update(`${url.UPDATE_VOUCHER}/${id}`, data);
 
-export const deleteVoucher = (id: string) =>
+export const deleteVoucher = (id: string) => 
   api.delete(`${url.DELETE_VOUCHER}/${id}`);
 
 // Users
 // List View
-export const getAllUsers = (params: { pageNumber: number; pageSize: number }) =>
-  api.get(url.GET_ALL_USERS, params);
+export const getAllUsers = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_USERS,  params );
 export const createUser = (data: any) => api.create(url.CREATE_USER, data);
-export const updateUser = (id: string, data: any) =>
-  api.update(`${url.UPDATE_USER}/${id}`, data);
-export const deleteUser = (id: string) =>
-  api.delete(`${url.DELETE_USER}/${id}`, { headers: { data: id } });
+export const updateUser =  (id: string, data: any) => api.update(`${url.UPDATE_USER}/${id}`, data);
+export const deleteUser = (id: string) => api.delete(`${url.DELETE_USER}/${id}`, { headers: { data: id } });
 
 // Role
-export const getAllRoles = (params: { pageNumber: number; pageSize: number }) =>
+export const getAllRoles = (params: { pageNumber: number; pageSize: number }) => 
   api.get(url.GET_ALL_ROLES, params);
 
-export const createRole = (data: any) => api.create(url.CREATE_ROLE, data);
+export const createRole = (data: any) => 
+  api.create(url.CREATE_ROLE, data);
 
-export const updateRole = (id: string, data: any) =>
+export const updateRole = (id: string, data: any) => 
   api.update(`${url.UPDATE_ROLE}/${id}`, data);
 
-export const deleteRole = (id: string) =>
+export const deleteRole = (id: string) => 
   api.delete(`${url.DELETE_ROLE}/${id}`);
 
 // Orders
-export const getAllOrders = (params: {
-  pageNumber: number;
-  pageSize: number;
-}) => api.get(url.GET_ALL_ORDERS, params);
+export const getAllOrders = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_ORDERS, params);
 
-export const createOrder = (data: any) => api.create(url.CREATE_ORDERS, data);
+export const createOrder = (data: any) => 
+  api.create(url.CREATE_ORDERS, data);
 
-export const updateOrder = (id: string, data: any) =>
+export const updateOrder = (id: string, data: any) => 
   api.update(`${url.UPDATE_ORDERS}/${id}`, data);
 
-export const deleteOrder = (id: string) =>
+export const deleteOrder = (id: string) => 
   api.delete(`${url.DELETE_ORDERS}/${id}`, { headers: { data: id } });
 
-export const getOrderById = (id: string) =>
+export const getOrderById = (id: string) => 
   api.get(`${url.GET_ORDER_BY_ID}/${id}`, null);
 
 // Quiz Set
-export const getAllQuizSets = (params: {
-  pageNumber: number;
-  pageSize: number;
-}) => api.get(url.GET_ALL_QUIZ_SETS, params);
+export const getAllQuizSets = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_QUIZ_SETS, params);
 
-export const createQuizSets = (data: any) =>
+export const createQuizSets = (data: any) => 
   api.create(url.CREATE_QUIZ_SETS, data);
 
-export const updateQuizSets = (id: string, data: any) =>
+export const updateQuizSets = (id: string, data: any) => 
   api.update(`${url.UPDATE_QUIZ_SETS}/${id}`, data);
 
-export const deleteQuizSets = (id: string) =>
+export const deleteQuizSets = (id: string) => 
   api.delete(`${url.DELETE_QUIZ_SETS}/${id}`, { headers: { data: id } });
 
-export const setQuizSetAsDefault = (id: string) =>
-  api.update(`${url.SET_QUIZ_SETS_DEFAULT}/set-default/${id}`, {
-    isDefault: true,
-  });
+export const setQuizSetAsDefault = (id: string) => 
+  api.update(`${url.SET_QUIZ_SETS_DEFAULT}/set-default/${id}`, { isDefault: true });
 
 // Quiz Questions
-export const getAllQuizQuestions = (params: {
-  pageNumber: number;
-  pageSize: number;
-}) => api.get(url.GET_ALL_QUIZ_QUESTIONS, params);
+export const getAllQuizQuestions = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_QUIZ_QUESTIONS, params);
 
-export const createQuizQuestion = (data: any) =>
+export const createQuizQuestion = (data: any) => 
   api.create(url.CREATE_QUIZ_QUESTIONS, data);
 
-export const updateQuizQuestion = (id: string, data: any) =>
+export const updateQuizQuestion = (id: string, data: any) => 
   api.update(`${url.UPDATE_QUIZ_QUESTIONS}/${id}`, data);
 
-export const deleteQuizQuestion = (id: string) =>
+export const deleteQuizQuestion = (id: string) => 
   api.delete(`${url.DELETE_QUIZ_QUESTIONS}/${id}`, { headers: { data: id } });
 
-export const getQuizQuestionByQuizSetId = (id: string) =>
+export const getQuizQuestionByQuizSetId = (id: string) => 
   api.get(`${url.GET_QUIZ_QUESTION_BY_QUIZ_SET_ID}/by-quiz-set/${id}`);
 
 // New APIs for quiz questions by quiz set ID
-export const createQuizQuestionByQuizSetId = (setId: string, data: any) =>
-  api.create(
-    `${url.CREATE_QUIZ_QUESTION_BY_QUIZ_SET_ID}/by-quiz-set/${setId}`,
-    data
-  );
+export const createQuizQuestionByQuizSetId = (setId: string, data: any) => 
+  api.create(`${url.CREATE_QUIZ_QUESTION_BY_QUIZ_SET_ID}/by-quiz-set/${setId}`, data);
 
-export const updateQuizQuestionByQuizSetId = (
-  setId: string,
-  questionId: string,
-  data: any
-) =>
-  api.update(
-    `${url.UPDATE_QUIZ_QUESTION_BY_QUIZ_SET_ID}/by-quiz-set/${setId}/${questionId}`,
-    data
-  );
+export const updateQuizQuestionByQuizSetId = (setId: string, questionId: string, data: any) => 
+  api.update(`${url.UPDATE_QUIZ_QUESTION_BY_QUIZ_SET_ID}/by-quiz-set/${setId}/${questionId}`, data);
 
-export const deleteQuizQuestionByQuizSetId = (
-  setId: string,
-  questionId: string
-) =>
-  api.delete(
-    `${url.DELETE_QUIZ_QUESTION_BY_QUIZ_SET_ID}/by-quiz-set/${setId}/${questionId}`
-  );
+export const deleteQuizQuestionByQuizSetId = (setId: string, questionId: string) => 
+  api.delete(`${url.DELETE_QUIZ_QUESTION_BY_QUIZ_SET_ID}/by-quiz-set/${setId}/${questionId}`);
 
 // Quiz Options
-export const getAllQuizOptions = (params: {
-  pageNumber: number;
-  pageSize: number;
-}) => api.get(url.GET_ALL_QUIZ_OPTIONS, params);
+export const getAllQuizOptions = (params: { pageNumber: number; pageSize: number }) => 
+  api.get(url.GET_ALL_QUIZ_OPTIONS, params);
 
-export const createQuizOption = (data: any) =>
+export const createQuizOption = (data: any) => 
   api.create(url.CREATE_QUIZ_OPTIONS, data);
 
-export const updateQuizOption = (id: string, data: any) =>
+export const updateQuizOption = (id: string, data: any) => 
   api.update(`${url.UPDATE_QUIZ_OPTIONS}/${id}`, data);
 
-export const deleteQuizOption = (id: string) =>
+export const deleteQuizOption = (id: string) => 
   api.delete(`${url.DELETE_QUIZ_OPTIONS}/${id}`, { headers: { data: id } });
 
-export const getQuizOptionByQuizQuestionId = (id: string) =>
+export const getQuizOptionByQuizQuestionId = (id: string) => 
   api.get(`${url.GET_QUIZ_OPTION_BY_QUIZ_QUESTION_ID}/by-quiz-question/${id}`);
 
 // New APIs for quiz options by question ID
-export const createQuizOptionByQuestionId = (questionId: string, data: any) =>
-  api.create(
-    `${url.CREATE_QUIZ_OPTION_BY_QUIZ_QUESTION_ID}/by-quiz-question/${questionId}`,
-    data
-  );
+export const createQuizOptionByQuestionId = (questionId: string, data: any) => 
+  api.create(`${url.CREATE_QUIZ_OPTION_BY_QUIZ_QUESTION_ID}/by-quiz-question/${questionId}`, data);
 
-export const updateQuizOptionByQuestionId = (
-  questionId: string,
-  optionId: string,
-  data: any
-) =>
-  api.update(
-    `${url.UPDATE_QUIZ_OPTION_BY_QUIZ_QUESTION_ID}/by-quiz-question/${questionId}/${optionId}`,
-    data
-  );
+export const updateQuizOptionByQuestionId = (questionId: string, optionId: string, data: any) => 
+  api.update(`${url.UPDATE_QUIZ_OPTION_BY_QUIZ_QUESTION_ID}/by-quiz-question/${questionId}/${optionId}`, data);
 
-export const deleteQuizOptionByQuestionId = (
-  questionId: string,
-  optionId: string
-) =>
-  api.delete(
-    `${url.DELETE_QUIZ_OPTION_BY_QUIZ_QUESTION_ID}/by-quiz-question/${questionId}/${optionId}`,
-    { headers: { data: optionId } }
-  );
+export const deleteQuizOptionByQuestionId = (questionId: string, optionId: string) => 
+  api.delete(`${url.DELETE_QUIZ_OPTION_BY_QUIZ_QUESTION_ID}/by-quiz-question/${questionId}/${optionId}`, { headers: { data: optionId } });
+
+
 
 // Sellers
 export const getSellers = () => api.get(url.GET_SELLERS, null);
 export const addSellers = (data: any) => api.create(url.ADD_SELLERS, data);
-export const updateSellers = (data: any) =>
-  api.update(url.UPDATE_SELLERS, data);
-export const deleteSellers = (data: any) =>
-  api.delete(url.DELETE_SELLERS, { headers: { data } });
+export const updateSellers = (data: any) => api.update(url.UPDATE_SELLERS, data);
+export const deleteSellers = (data: any) => api.delete(url.DELETE_SELLERS, { headers: { data } });
 
 // Review
-export const getAllReviews = (params: {
-  pageNumber: number;
-  pageSize: number;
-  search?: string;
-}) => api.get(url.GET_ALL_REVIEWS, params);
+export const getAllReviews = (params: { pageNumber: number; pageSize: number; search?: string }) => 
+  api.get(url.GET_ALL_REVIEWS, params);
 
-export const createReview = (data: any) => api.create(url.ADD_REVIEW, data);
+export const createReview = (data: any) => 
+  api.create(url.ADD_REVIEW, data);
 
-export const updateReview = (id: string, data: any) =>
+export const updateReview = (id: string, data: any) => 
   api.update(`${url.UPDATE_REVIEW}/${id}`, data);
 
-export const deleteReview = (id: string) =>
+export const deleteReview = (id: string) => 
   api.delete(`${url.DELETE_REVIEW}/${id}`, { headers: { data: id } });
 
 // Get Product by ID
-export const getProductById = (id: string) =>
+export const getProductById = (id: string) => 
   api.get(`${url.GET_PRODUCT_BY_ID}/${id}`, null);
+

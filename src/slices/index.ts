@@ -42,6 +42,7 @@ import VariationOptionReducer from "./variationoption/reducer";
 import promotionReducer from "./promotion/reducer";
 import CategoryReducer from "./category/reducer";
 import uploadFileReducer from "./uploadFile/reducer";
+import dashboardReducer from '../slices/dashboard/reducer';
 
 const rootReducer = combineReducers({
     Layout: LayoutReducer,
@@ -72,6 +73,7 @@ const rootReducer = combineReducers({
     quizOption: QuizOptionReducer,
     ProductCategory: ProductCategoryReducer,
     uploadFile: uploadFileReducer,
+    dashboard: dashboardReducer,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

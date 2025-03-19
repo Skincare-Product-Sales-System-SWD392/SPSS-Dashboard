@@ -1,22 +1,38 @@
-import React from 'react';
-
-//import images
-import img02 from "assets/images/product/img-02.png";
-import img03 from "assets/images/product/img-03.png";
-import img04 from "assets/images/product/img-04.png";
-import img05 from "assets/images/product/img-05.png";
-import img06 from "assets/images/product/img-06.png";
+import React, { useEffect } from 'react';
 import { MoreVertical, ShoppingCart } from 'lucide-react';
 import { Dropdown } from 'Common/Components/Dropdown';
 import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from 'slices/store';
+import { fetchBestSellers, fetchTotalRevenue } from 'slices/dashboard/reducer';
 
 const TopSellingProducts = () => {
+    const dispatch = useDispatch<AppDispatch>();
+    const { bestSellers, loading, error, totalRevenue } = useSelector((state: RootState) => {
+        console.log("Redux state:", state.dashboard);
+        return state.dashboard;
+    });
+
+    useEffect(() => {
+        console.log("Dispatching fetchBestSellers action");
+        dispatch(fetchBestSellers({ pageNumber: 1, pageSize: 6 }));
+        dispatch(fetchTotalRevenue({ pageNumber: 1, pageSize: 10 }));
+    }, [dispatch]);
+
+    // Debug log
+    useEffect(() => {
+        console.log("bestSellers state:", bestSellers);
+    }, [bestSellers]);
+
     return (
         <React.Fragment>
             <div className="col-span-12 card lg:col-span-6 2xl:col-span-3">
                 <div className="card-body">
                     <div className="flex items-center mb-3">
-                        <h6 className="grow text-15">Top Selling Products</h6>
+                        <div className="grow">
+                            <h6 className="text-15">Top Selling Products</h6>
+                            <p className="text-slate-500">Total Revenue: ₫{totalRevenue.toLocaleString('vi-VN')}</p>
+                        </div>
                         <Dropdown className="relative shrink-0">
                             <Dropdown.Trigger type="button" className="flex items-center justify-center size-[30px] p-0 bg-white text-slate-500 btn hover:text-slate-500 hover:bg-slate-100 focus:text-slate-500 focus:bg-slate-100 active:text-slate-500 active:bg-slate-100 dark:bg-zink-700 dark:hover:bg-slate-500/10 dark:focus:bg-slate-500/10 dark:active:bg-slate-500/10 dropdown-toggle" id="sellingProductDropdown" data-bs-toggle="dropdown">
                                 <MoreVertical className="inline-block size-4"></MoreVertical>
@@ -41,104 +57,45 @@ const TopSellingProducts = () => {
                             </Dropdown.Content>
                         </Dropdown>
                     </div>
-                    <ul className="flex flex-col gap-5">
-                        <li className="flex items-center gap-3">
-                            <div className="flex items-center justify-center size-10 rounded-md bg-slate-100 dark:bg-zink-600">
-                                <img src={img02} alt="" className="h-6" />
-                            </div>
-                            <div className="overflow-hidden grow">
-                                <h6 className="truncate">Mesh Ergonomic Black Chair</h6>
-                                <div className="text-yellow-500">
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-half-fill"></i>
-                                </div>
-                            </div>
-                            <h6 className="shrink-0"><ShoppingCart className="inline-block size-4 align-middle text-slate-500 dark:text-zink-200 ltr:mr-1 rtl:ml-1"></ShoppingCart> 798</h6>
-                        </li>
-                        <li className="flex items-center gap-3">
-                            <div className="flex items-center justify-center size-10 rounded-md bg-slate-100 dark:bg-zink-600">
-                                <img src={img03} alt="" className="h-6" />
-                            </div>
-                            <div className="overflow-hidden grow">
-                                <h6 className="truncate">Fastcolors Typography Men</h6>
-                                <div className="text-yellow-500">
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-half-fill"></i>
-                                </div>
-                            </div>
-                            <h6 className="shrink-0"><ShoppingCart className="inline-block size-4 align-middle text-slate-500 dark:text-zink-200 ltr:mr-1 rtl:ml-1"></ShoppingCart> 695</h6>
-                        </li>
-                        <li className="flex items-center gap-3">
-                            <div className="flex items-center justify-center size-10 rounded-md bg-slate-100 dark:bg-zink-600">
-                                <img src={img04} alt="" className="h-6" />
-                            </div>
-                            <div className="overflow-hidden grow">
-                                <h6 className="truncate">Mesh Ergonomic Green Chair</h6>
-                                <div className="text-yellow-500">
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-half-fill"></i>
-                                </div>
-                            </div>
-                            <h6 className="shrink-0"><ShoppingCart className="inline-block size-4 align-middle text-slate-500 dark:text-zink-200 ltr:mr-1 rtl:ml-1"></ShoppingCart> 985</h6>
-                        </li>
-                        <li className="flex items-center gap-3">
-                            <div className="flex items-center justify-center size-10 rounded-md bg-slate-100 dark:bg-zink-600">
-                                <img src={img05} alt="" className="h-6" />
-                            </div>
-                            <div className="overflow-hidden grow">
-                                <h6 className="truncate">Techel Black Bluetooth Soundbar</h6>
-                                <div className="text-yellow-500">
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-half-fill"></i>
-                                </div>
-                            </div>
-                            <h6 className="shrink-0"><ShoppingCart className="inline-block size-4 align-middle text-slate-500 dark:text-zink-200 ltr:mr-1 rtl:ml-1"></ShoppingCart> 813</h6>
-                        </li>
-                        <li className="flex items-center gap-3">
-                            <div className="flex items-center justify-center size-10 rounded-md bg-slate-100 dark:bg-zink-600">
-                                <img src={img06} alt="" className="h-6" />
-                            </div>
-                            <div className="overflow-hidden grow">
-                                <h6 className="truncate">Bovet Fleurier AIFSQ029</h6>
-                                <div className="text-yellow-500">
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-half-fill"></i>
-                                </div>
-                            </div>
-                            <h6 className="shrink-0"><ShoppingCart className="inline-block size-4 align-middle text-slate-500 dark:text-zink-200 ltr:mr-1 rtl:ml-1"></ShoppingCart> 915</h6>
-                        </li>
-                        <li className="flex items-center gap-3">
-                            <div className="flex items-center justify-center size-10 rounded-md bg-slate-100 dark:bg-zink-600">
-                                <img src={img03} alt="" className="h-6" />
-                            </div>
-                            <div className="overflow-hidden grow">
-                                <h6 className="truncate">Fastcolors Typography Men</h6>
-                                <div className="text-yellow-500">
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-fill"></i>
-                                    <i className="ri-star-half-fill"></i>
-                                </div>
-                            </div>
-                            <h6 className="shrink-0"><ShoppingCart className="inline-block size-4 align-middle text-slate-500 dark:text-zink-200 ltr:mr-1 rtl:ml-1"></ShoppingCart> 785</h6>
-                        </li>
-                    </ul>
+                    {loading ? (
+                        <div className="flex justify-center items-center h-40">
+                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-500"></div>
+                        </div>
+                    ) : error ? (
+                        <div className="text-center py-4 text-red-500">
+                            Error loading products: {error}
+                        </div>
+                    ) : (
+                        <ul className="flex flex-col gap-5">
+                            {bestSellers && bestSellers.items && bestSellers.items.length > 0 ? (
+                                bestSellers.items.map((product) => (
+                                    <li key={product.id} className="flex items-center gap-3">
+                                        <div className="flex items-center justify-center size-10 rounded-md bg-slate-100 dark:bg-zink-600">
+                                            <img src={product.thumbnail} alt={product.name} className="h-6" />
+                                        </div>
+                                        <div className="overflow-hidden grow">
+                                            <h6 className="truncate">{product.name}</h6>
+                                            <div className="text-yellow-500">
+                                                <i className="ri-star-fill"></i>
+                                                <i className="ri-star-fill"></i>
+                                                <i className="ri-star-fill"></i>
+                                                <i className="ri-star-fill"></i>
+                                                <i className="ri-star-half-fill"></i>
+                                            </div>
+                                        </div>
+                                        <h6 className="shrink-0">
+                                            ₫{(product.marketPrice || 0).toLocaleString('vi-VN')}
+                                        </h6>
+                                    </li>
+                                ))
+                            ) : (
+                                <li className="text-center py-4">
+                                    No products found
+                                    {bestSellers ? " (API returned empty data)" : " (bestSellers is null)"}
+                                </li>
+                            )}
+                        </ul>
+                    )}
                 </div>
             </div>
         </React.Fragment>
