@@ -36,6 +36,13 @@ interface RevenueResponse {
   errors: null | string[];
 }
 
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message: string;
+  errors: null | string[];
+}
+
 interface DashboardState {
   totalRevenue: number;
   bestSellers: BestSellersResponse | null;
@@ -46,7 +53,13 @@ interface DashboardState {
 // Initial state
 const initialState: DashboardState = {
   totalRevenue: 0,
-  bestSellers: null,
+  bestSellers: {
+    items: [],
+    totalCount: 0,
+    pageNumber: 1,
+    pageSize: 10,
+    totalPages: 0
+  },
   loading: false,
   error: null
 };
@@ -72,32 +85,25 @@ export const fetchBestSellers = createAsyncThunk(
   'dashboard/fetchBestSellers',
   async ({ pageNumber = 1, pageSize = 10 }: { pageNumber?: number; pageSize?: number }) => {
     try {
-      console.log('Fetching best sellers with params:', { pageNumber, pageSize });
-      const response = await axios.get(`http://localhost:5041/api/dashboards/best-sellers`, {
-        params: { pageNumber, pageSize }
-      });
+      const response = await axios.get<BestSellersResponse>(
+        `http://localhost:5041/api/dashboards/best-sellers`,
+        {
+          params: { pageNumber, pageSize }
+        }
+      );
+      
       console.log('Best sellers API response:', response.data);
       
-      // Check if response.data has a data property
-      if (response.data && response.data.data) {
-        return response.data.data;
+      if (!response.data || !response.data.items) {
+        throw new Error('Invalid response format');
       }
       
-      // If not, return the response.data directly if it has the expected structure
-      if (response.data && Array.isArray(response.data.items)) {
-        return response.data;
-      }
-      
-      // If neither structure matches, create a default structure
-      return {
-        items: [],
-        totalCount: 0,
-        pageNumber,
-        pageSize,
-        totalPages: 0
-      };
+      return response.data;
     } catch (error) {
-      console.error('Error fetching best sellers:', error);
+      console.error('Error in fetchBestSellers:', error);
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.message || error.message);
+      }
       throw error;
     }
   }
@@ -133,13 +139,13 @@ const dashboardSlice = createSlice({
       })
       .addCase(fetchBestSellers.fulfilled, (state, action) => {
         state.loading = false;
-        console.log('Setting bestSellers state with:', action.payload);
         state.bestSellers = action.payload;
+        state.error = null;
       })
       .addCase(fetchBestSellers.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch best sellers';
-        console.error('Best sellers fetch failed:', action.error);
+        state.bestSellers = state.bestSellers || initialState.bestSellers;
       });
   }
 });

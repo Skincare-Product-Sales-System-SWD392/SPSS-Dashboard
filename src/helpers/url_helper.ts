@@ -108,8 +108,6 @@ export const CREATE_PRODUCT = "/api/products";
 export const UPDATE_PRODUCT = "/api/products";
 export const DELETE_PRODUCT = "/api/products";
 
-// Dashboard
-export const GET_TOTAL_REVENUE = "/api/dashboards/total-revenue"
 
 // Country
 export const GET_ALL_COUNTRIES = "/api/countries";

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { MoreVertical, ShoppingCart } from 'lucide-react';
+import { MoreVertical } from 'lucide-react';
 import { Dropdown } from 'Common/Components/Dropdown';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,21 +8,24 @@ import { fetchBestSellers, fetchTotalRevenue } from 'slices/dashboard/reducer';
 
 const TopSellingProducts = () => {
     const dispatch = useDispatch<AppDispatch>();
-    const { bestSellers, loading, error, totalRevenue } = useSelector((state: RootState) => {
-        console.log("Redux state:", state.dashboard);
+    const { bestSellers, loading, error, totalRevenue = 0 } = useSelector((state: RootState) => {
+        console.log('Current dashboard state:', state.dashboard); // Debug log
         return state.dashboard;
     });
 
     useEffect(() => {
-        console.log("Dispatching fetchBestSellers action");
-        dispatch(fetchBestSellers({ pageNumber: 1, pageSize: 6 }));
+        dispatch(fetchBestSellers({ pageNumber: 1, pageSize: 6 }))
+            .unwrap()
+            .then(response => console.log('Fetch success:', response))
+            .catch(error => console.error('Fetch error:', error));
+            
         dispatch(fetchTotalRevenue({ pageNumber: 1, pageSize: 10 }));
     }, [dispatch]);
 
-    // Debug log
-    useEffect(() => {
-        console.log("bestSellers state:", bestSellers);
-    }, [bestSellers]);
+    // Safely access items with fallback to empty array
+    const products = bestSellers?.items ?? [];
+    
+    console.log('Render state:', { bestSellers, products, loading, error }); // Debug log
 
     return (
         <React.Fragment>
@@ -31,7 +34,6 @@ const TopSellingProducts = () => {
                     <div className="flex items-center mb-3">
                         <div className="grow">
                             <h6 className="text-15">Top Selling Products</h6>
-                            <p className="text-slate-500">Total Revenue: ₫{totalRevenue.toLocaleString('vi-VN')}</p>
                         </div>
                         <Dropdown className="relative shrink-0">
                             <Dropdown.Trigger type="button" className="flex items-center justify-center size-[30px] p-0 bg-white text-slate-500 btn hover:text-slate-500 hover:bg-slate-100 focus:text-slate-500 focus:bg-slate-100 active:text-slate-500 active:bg-slate-100 dark:bg-zink-700 dark:hover:bg-slate-500/10 dark:focus:bg-slate-500/10 dark:active:bg-slate-500/10 dropdown-toggle" id="sellingProductDropdown" data-bs-toggle="dropdown">
@@ -63,12 +65,18 @@ const TopSellingProducts = () => {
                         </div>
                     ) : error ? (
                         <div className="text-center py-4 text-red-500">
-                            Error loading products: {error}
+                            <p>Error loading products: {error}</p>
+                            <button 
+                                className="mt-2 px-4 py-2 bg-primary-500 text-white rounded"
+                                onClick={() => dispatch(fetchBestSellers({ pageNumber: 1, pageSize: 6 }))}
+                            >
+                                Retry
+                            </button>
                         </div>
                     ) : (
                         <ul className="flex flex-col gap-5">
-                            {bestSellers && bestSellers.items && bestSellers.items.length > 0 ? (
-                                bestSellers.items.map((product) => (
+                            {products.length > 0 ? (
+                                products.map((product) => (
                                     <li key={product.id} className="flex items-center gap-3">
                                         <div className="flex items-center justify-center size-10 rounded-md bg-slate-100 dark:bg-zink-600">
                                             <img src={product.thumbnail} alt={product.name} className="h-6" />
@@ -91,7 +99,6 @@ const TopSellingProducts = () => {
                             ) : (
                                 <li className="text-center py-4">
                                     No products found
-                                    {bestSellers ? " (API returned empty data)" : " (bestSellers is null)"}
                                 </li>
                             )}
                         </ul>
