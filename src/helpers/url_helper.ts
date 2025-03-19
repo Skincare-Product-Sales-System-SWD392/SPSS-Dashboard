@@ -100,6 +100,11 @@ export const CREATE_CANCEL_REASON = "/api/cancel-reasons";
 export const UPDATE_CANCEL_REASON = "/api/cancel-reasons";
 export const DELETE_CANCEL_REASON = "/api/cancel-reasons";
 
+// Reply
+export const CREATE_REPLY = "/api/replies"
+export const DELETE_REPLY = "/api/replies"
+export const UPDATE_REPLY = "/api/replies"
+
 // Products
 // List View
 export const GET_ALL_PRODUCTS = "/api/products";

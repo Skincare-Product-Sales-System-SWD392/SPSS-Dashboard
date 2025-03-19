@@ -15,6 +15,8 @@ import * as Yup from "yup";
 import { createSelector } from "reselect";
 import { ToastContainer } from "react-toastify";
 import filterDataBySearch from "Common/filterDataBySearch";
+import { createReply, updateReply, deleteReply } from "../../slices/reply/thunk";
+import { resetReplyState, setReplyEditing } from "../../slices/reply/reducer";
 
 const { Text, Title, Paragraph } = Typography;
 const { Option } = Select;
@@ -23,6 +25,7 @@ const { TextArea } = Input;
 const Review = () => {
     const dispatch = useDispatch();
     const { reviews, loading, selectedReview } = useSelector((state: any) => state.review);
+    const { loading: replyLoading, success: replySuccess, error: replyError, isEditing: isReplyEditing } = useSelector((state: any) => state.reply);
     
     const [searchText, setSearchText] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
@@ -43,6 +46,9 @@ const Review = () => {
     const [show, setShow] = useState<boolean>(false);
     const [isEdit, setIsEdit] = useState<boolean>(false);
     const [isOverview, setIsOverview] = useState<boolean>(false);
+    const [replyForm] = Form.useForm();
+    const [replyModalVisible, setReplyModalVisible] = useState(false);
+    const [currentReviewId, setCurrentReviewId] = useState<string | null>(null);
 
     useEffect(() => {
         loadReviews();
@@ -53,6 +59,15 @@ const Review = () => {
                 }
             });
     }, [dispatch]);
+
+    useEffect(() => {
+        if (replySuccess) {
+            setReplyModalVisible(false);
+            replyForm.resetFields();
+            loadReviews();
+            dispatch(resetReplyState());
+        }
+    }, [replySuccess]);
 
     const loadReviews = () => {
         dispatch(getAllReviews({ 
@@ -208,12 +223,75 @@ const Review = () => {
         </div>
     );
 
+    const showReplyModal = (review: any) => {
+        setCurrentReviewId(review.id);
+        setReplyModalVisible(true);
+        
+        if (review.reply) {
+            dispatch(setReplyEditing(true));
+            replyForm.setFieldsValue({
+                replyContent: review.reply.replyContent
+            });
+        } else {
+            dispatch(setReplyEditing(false));
+            replyForm.resetFields();
+        }
+    };
+
+    const handleReplyModalClose = () => {
+        setReplyModalVisible(false);
+        replyForm.resetFields();
+        dispatch(setReplyEditing(false));
+    };
+
+    const handleReplySubmit = async () => {
+        try {
+            const values = await replyForm.validateFields();
+            if (isReplyEditing && selectedReview?.reply) {
+                dispatch(updateReply({
+                    id: selectedReview.reply.id,
+                    data: {
+                        replyContent: values.replyContent
+                    }
+                }) as any);
+            } else if (currentReviewId) {
+                dispatch(createReply({
+                    reviewId: currentReviewId,
+                    replyContent: values.replyContent
+                }) as any);
+            }
+        } catch (error) {
+            console.error("Form validation failed:", error);
+        }
+    };
+
+    const handleReplyDelete = (replyId: string) => {
+        Modal.confirm({
+            title: "Delete Reply",
+            content: "Are you sure you want to delete this reply?",
+            okText: "Yes",
+            okType: "danger",
+            cancelText: "No",
+            onOk: () => {
+                dispatch(deleteReply(replyId) as any)
+                    .then(() => {
+                        loadReviews();
+                    });
+            }
+        });
+    };
+
     const renderReviewCard = (review : any) => {
         return (
             <Card 
                 key={review.id}
                 className="mb-4 review-card"
                 actions={[
+                    <Tooltip title="Reply" key="reply">
+                        <button className="transition-all duration-150 ease-linear text-slate-500 dark:text-zink-200 hover:text-custom-500 dark:hover:text-custom-500" onClick={() => showReplyModal(review)}>
+                            <CommentOutlined />
+                        </button>
+                    </Tooltip>,
                     <Tooltip title="View Details" key="view">
                         <button className="transition-all duration-150 ease-linear text-slate-500 dark:text-zink-200 hover:text-custom-500 dark:hover:text-custom-500" onClick={() => showViewModal(review)}>
                             <EyeOutlined />
@@ -316,7 +394,24 @@ const Review = () => {
                                 <div className="flex gap-2">
                                     <CommentOutlined className="mt-1" />
                                     <div>
-                                        <div className="font-medium">{review.reply.userName}</div>
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <span className="font-medium">{review.reply.userName}</span>
+                                            </div>
+                                            <Space>
+                                                <Button 
+                                                    type="text" 
+                                                    icon={<EditOutlined />}
+                                                    onClick={() => showReplyModal(review)}
+                                                />
+                                                <Button 
+                                                    type="text" 
+                                                    danger 
+                                                    icon={<DeleteOutlined />}
+                                                    onClick={() => handleReplyDelete(review.reply.id)}
+                                                />
+                                            </Space>
+                                        </div>
                                         <p className="my-1">{review.reply.replyContent}</p>
                                         {review.reply.lastUpdatedTime && (
                                             <span className="text-xs text-slate-500 dark:text-zink-200">
@@ -336,210 +431,305 @@ const Review = () => {
     const renderModal = () => {
         return (
             isModalOpen && (
-                <div className="fixed inset-0 z-[1005] flex items-center justify-center overflow-hidden">
+                <div className="fixed inset-0 z-[1005] flex items-center justify-center overflow-y-auto">
                     <div className="fixed inset-0 bg-black bg-opacity-50"></div>
-                    <div className="relative w-full max-w-2xl max-h-full p-4 bg-white dark:bg-zink-700 rounded-lg shadow-lg">
+                    <div className="relative w-full max-w-2xl my-6 mx-auto p-4">
+                        <div className="relative bg-white dark:bg-zink-700 rounded-lg shadow-lg flex flex-col max-h-[90vh]">
+                            <div className="flex items-center justify-between p-4 border-b rounded-t border-slate-200 dark:border-zink-500">
+                                <h5 className="text-16 font-medium">{modalMode === 'view' ? 'Review Details' : modalMode === 'edit' ? 'Edit Review' : 'Add Review'}</h5>
+                                <button 
+                                    className="transition-all duration-200 ease-linear text-slate-500 hover:text-red-500"
+                                    onClick={handleModalClose}
+                                >
+                                    ×
+                                </button>
+                            </div>
+                            <div className="p-4 overflow-y-auto">
+                                {modalMode === 'view' ? (
+                                    <div>
+                                        <Row gutter={16}>
+                                            <Col span={24}>
+                                                <div className="flex items-center gap-3 mb-4">
+                                                    <Avatar src={selectedReview.avatarUrl} size={64} />
+                                                    <div>
+                                                        <h5 className="text-16 mb-1 font-medium">{selectedReview.userName}</h5>
+                                                        <p className="text-slate-500 dark:text-zink-200">
+                                                            {selectedReview.lastUpdatedTime ? 
+                                                                moment(selectedReview.lastUpdatedTime).format("YYYY-MM-DD HH:mm") : 
+                                                                "N/A"}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </Col>
+                                            <Col span={24}>
+                                                <Card className="mb-4">
+                                                    <div className="flex flex-col gap-3">
+                                                        <div>
+                                                            <span className="font-medium">Product:</span>
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                <Image 
+                                                                    src={selectedReview.productImage || "https://via.placeholder.com/150"}
+                                                                    alt={selectedReview.productName}
+                                                                    className="w-[50px] h-[50px] object-contain"
+                                                                    fallback="https://via.placeholder.com/150"
+                                                                    preview={false}
+                                                                />
+                                                                <span>{selectedReview.productName}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <span className="font-medium">Variation:</span>
+                                                            <div>{selectedReview.variationOptionValues?.join(", ") || "N/A"}</div>
+                                                        </div>
+                                                        <div>
+                                                            <span className="font-medium">Rating:</span>
+                                                            <div><Rate disabled defaultValue={selectedReview.ratingValue} /></div>
+                                                        </div>
+                                                        <div>
+                                                            <span className="font-medium">Comment:</span>
+                                                            <div>{selectedReview.comment}</div>
+                                                        </div>
+                                                        {selectedReview.reviewImages && selectedReview.reviewImages.length > 0 && (
+                                                            <div>
+                                                                <span className="font-medium">Images:</span>
+                                                                <div className="flex flex-wrap gap-2 mt-2">
+                                                                    {selectedReview.reviewImages.map((image: string, index: number) => (
+                                                                        <Image 
+                                                                            key={index}
+                                                                            src={image}
+                                                                            alt={`Review image ${index + 1}`}
+                                                                            className="w-[80px] h-[80px] object-cover"
+                                                                            preview={true}
+                                                                        />
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </Card>
+                                            </Col>
+                                            {selectedReview.reply && (
+                                                <Col span={24}>
+                                                    <Card title="Reply" className="border-0 shadow-none bg-slate-50 dark:bg-zink-600">
+                                                        <div className="flex flex-col gap-2">
+                                                            <div className="flex justify-between items-start">
+                                                                <div>
+                                                                    <span className="font-medium">From:</span>
+                                                                    <div>{selectedReview.reply.userName}</div>
+                                                                </div>
+                                                                <Space>
+                                                                    <Button 
+                                                                        type="text" 
+                                                                        icon={<EditOutlined />}
+                                                                        onClick={() => showReplyModal(selectedReview)}
+                                                                    />
+                                                                    <Button 
+                                                                        type="text" 
+                                                                        danger 
+                                                                        icon={<DeleteOutlined />}
+                                                                        onClick={() => handleReplyDelete(selectedReview.reply.id)}
+                                                                    />
+                                                                </Space>
+                                                            </div>
+                                                            <div>
+                                                                <span className="font-medium">Content:</span>
+                                                                <div>{selectedReview.reply.replyContent}</div>
+                                                            </div>
+                                                            <div>
+                                                                <span className="font-medium">Date:</span>
+                                                                <div>
+                                                                    {selectedReview.reply.lastUpdatedTime ? 
+                                                                        moment(selectedReview.reply.lastUpdatedTime).format("YYYY-MM-DD HH:mm") : 
+                                                                        "N/A"}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </Card>
+                                                </Col>
+                                            )}
+                                            
+                                            <Col span={24} className="mt-4">
+                                                <Card title={isReplyEditing ? "Edit Reply" : "Add Reply"} className="border-slate-200 dark:border-zink-500">
+                                                    <Form
+                                                        form={replyForm}
+                                                        layout="vertical"
+                                                        name="replyForm"
+                                                    >
+                                                        <Form.Item
+                                                            name="replyContent"
+                                                            rules={[{ required: true, message: 'Please enter your reply' }]}
+                                                        >
+                                                            <Input.TextArea 
+                                                                rows={4} 
+                                                                placeholder="Write your reply here..." 
+                                                                className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200" 
+                                                            />
+                                                        </Form.Item>
+                                                    </Form>
+                                                </Card>
+                                            </Col>
+                                        </Row>
+                                    </div>
+                                ) : (
+                                    <Form
+                                        form={form}
+                                        layout="vertical"
+                                        name="reviewForm"
+                                    >
+                                        <Row gutter={16}>
+                                            <Col span={12}>
+                                                <Form.Item
+                                                    name="userName"
+                                                    label={<span className="inline-block mb-2 text-base font-medium">User Name <span className="text-red-500 ml-1">*</span></span>}
+                                                    rules={[{ required: true, message: 'Please enter user name' }]}
+                                                >
+                                                    <Input placeholder="Enter user name" className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200" />
+                                                </Form.Item>
+                                            </Col>
+                                            <Col span={12}>
+                                                <Form.Item
+                                                    name="productItemId"
+                                                    label={<span className="inline-block mb-2 text-base font-medium">Product <span className="text-red-500 ml-1">*</span></span>}
+                                                    rules={[{ required: true, message: 'Please select a product' }]}
+                                                >
+                                                    <Select 
+                                                        placeholder="Select a product" 
+                                                        className="form-select border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800"
+                                                        showSearch
+                                                        optionFilterProp="children"
+                                                        filterOption={(input, option) =>
+                                                            (option?.label?.toString().toLowerCase() ?? '').includes(input.toLowerCase())
+                                                        }
+                                                        options={products.map(product => ({
+                                                            value: product.id,
+                                                            label: product.name
+                                                        }))}
+                                                    />
+                                                </Form.Item>
+                                            </Col>
+                                        </Row>
+                                        
+                                        <Form.Item
+                                            name="productName"
+                                            label={<span className="inline-block mb-2 text-base font-medium">Product Name <span className="text-red-500 ml-1">*</span></span>}
+                                            rules={[{ required: true, message: 'Please enter product name' }]}
+                                        >
+                                            <Input placeholder="Enter product name" className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200" />
+                                        </Form.Item>
+                                        
+                                        <Form.Item
+                                            name="ratingValue"
+                                            label={<span className="inline-block mb-2 text-base font-medium">Rating <span className="text-red-500 ml-1">*</span></span>}
+                                            rules={[{ required: true, message: 'Please select rating' }]}
+                                        >
+                                            <Rate />
+                                        </Form.Item>
+                                        
+                                        <Form.Item
+                                            name="comment"
+                                            label={<span className="inline-block mb-2 text-base font-medium">Comment <span className="text-red-500 ml-1">*</span></span>}
+                                            rules={[{ required: true, message: 'Please enter comment' }]}
+                                        >
+                                            <Input.TextArea rows={4} placeholder="Enter comment" className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200" />
+                                        </Form.Item>
+                                        
+                                        <Form.Item
+                                            name="reviewImages"
+                                            label={<span className="inline-block mb-2 text-base font-medium">Review Images</span>}
+                                        >
+                                            <Upload
+                                                listType="picture-card"
+                                                fileList={fileList}
+                                                onPreview={handlePreview}
+                                                onChange={handleChange}
+                                                customRequest={handleUpload}
+                                                multiple={true}
+                                            >
+                                                {fileList.length >= 8 ? null : (
+                                                    <div>
+                                                        <PlusOutlined />
+                                                        <div style={{ marginTop: 8 }}>Upload</div>
+                                                    </div>
+                                                )}
+                                            </Upload>
+                                        </Form.Item>
+                                    </Form>
+                                )}
+                            </div>
+                            <div className="flex items-center justify-end p-4 border-t gap-2 border-slate-200 dark:border-zink-500">
+                                <button
+                                    type="button"
+                                    className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10"
+                                    onClick={handleModalClose}
+                                >
+                                    {modalMode === 'view' ? 'Close' : 'Cancel'}
+                                </button>
+                                {modalMode !== 'view' && (
+                                    <button
+                                        type="button"
+                                        className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
+                                        onClick={handleFormSubmit}
+                                    >
+                                        {modalMode === 'add' ? 'Add' : 'Update'}
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )
+        );
+    };
+
+    const renderReplyModal = () => {
+        return (
+            replyModalVisible && (
+                <div className="fixed inset-0 z-[1005] flex items-center justify-center overflow-hidden">
+                    <div className="fixed inset-0 bg-black bg-opacity-50" onClick={handleReplyModalClose}></div>
+                    <div className="relative w-full max-w-md max-h-full p-4 bg-white dark:bg-zink-700 rounded-lg shadow-lg">
                         <div className="flex items-center justify-between p-4 border-b rounded-t border-slate-200 dark:border-zink-500">
-                            <h5 className="text-16 font-medium">{modalMode === 'view' ? 'Review Details' : modalMode === 'edit' ? 'Edit Review' : 'Add Review'}</h5>
+                            <h5 className="text-16 font-medium">{isReplyEditing ? 'Edit Reply' : 'Add Reply'}</h5>
                             <button 
                                 className="transition-all duration-200 ease-linear text-slate-500 hover:text-red-500"
-                                onClick={handleModalClose}
+                                onClick={handleReplyModalClose}
                             >
                                 ×
                             </button>
                         </div>
-                        <div className="p-4 overflow-y-auto">
-                            {modalMode === 'view' ? (
-                                <div>
-                                    <Row gutter={16}>
-                                        <Col span={24}>
-                                            <div className="flex items-center gap-3 mb-4">
-                                                <Avatar src={selectedReview.avatarUrl} size={64} />
-                                                <div>
-                                                    <h5 className="text-16 mb-1 font-medium">{selectedReview.userName}</h5>
-                                                    <p className="text-slate-500 dark:text-zink-200">
-                                                        {selectedReview.lastUpdatedTime ? 
-                                                            moment(selectedReview.lastUpdatedTime).format("YYYY-MM-DD HH:mm") : 
-                                                            "N/A"}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </Col>
-                                        <Col span={24}>
-                                            <Card className="mb-4">
-                                                <div className="flex flex-col gap-3">
-                                                    <div>
-                                                        <span className="font-medium">Product:</span>
-                                                        <div className="flex items-center gap-2 mt-1">
-                                                            <Image 
-                                                                src={selectedReview.productImage || "https://via.placeholder.com/150"}
-                                                                alt={selectedReview.productName}
-                                                                className="w-[50px] h-[50px] object-contain"
-                                                                fallback="https://via.placeholder.com/150"
-                                                                preview={false}
-                                                            />
-                                                            <span>{selectedReview.productName}</span>
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <span className="font-medium">Variation:</span>
-                                                        <div>{selectedReview.variationOptionValues?.join(", ") || "N/A"}</div>
-                                                    </div>
-                                                    <div>
-                                                        <span className="font-medium">Rating:</span>
-                                                        <div><Rate disabled defaultValue={selectedReview.ratingValue} /></div>
-                                                    </div>
-                                                    <div>
-                                                        <span className="font-medium">Comment:</span>
-                                                        <div>{selectedReview.comment}</div>
-                                                    </div>
-                                                    {selectedReview.reviewImages && selectedReview.reviewImages.length > 0 && (
-                                                        <div>
-                                                            <span className="font-medium">Images:</span>
-                                                            <div className="flex flex-wrap gap-2 mt-2">
-                                                                {selectedReview.reviewImages.map((image: string, index: number) => (
-                                                                    <Image 
-                                                                        key={index}
-                                                                        src={image}
-                                                                        alt={`Review image ${index + 1}`}
-                                                                        className="w-[80px] h-[80px] object-cover"
-                                                                        preview={true}
-                                                                    />
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </Card>
-                                        </Col>
-                                        {selectedReview.reply && (
-                                            <Col span={24}>
-                                                <Card title="Reply" className="border-0 shadow-none bg-slate-50 dark:bg-zink-600">
-                                                    <div className="flex flex-col gap-2">
-                                                        <div>
-                                                            <span className="font-medium">From:</span>
-                                                            <div>{selectedReview.reply.userName}</div>
-                                                        </div>
-                                                        <div>
-                                                            <span className="font-medium">Content:</span>
-                                                            <div>{selectedReview.reply.replyContent}</div>
-                                                        </div>
-                                                        <div>
-                                                            <span className="font-medium">Date:</span>
-                                                            <div>{selectedReview.reply.lastUpdatedTime ? 
-                                                                moment(selectedReview.reply.lastUpdatedTime).format("YYYY-MM-DD HH:mm") : 
-                                                                "N/A"}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </Card>
-                                            </Col>
-                                        )}
-                                    </Row>
-                                </div>
-                            ) : (
-                                <Form
-                                    form={form}
-                                    layout="vertical"
-                                    name="reviewForm"
+                        <div className="p-4">
+                            <Form
+                                form={replyForm}
+                                layout="vertical"
+                                name="replyForm"
+                            >
+                                <Form.Item
+                                    name="replyContent"
+                                    rules={[{ required: true, message: 'Please enter your reply' }]}
                                 >
-                                    <Row gutter={16}>
-                                        <Col span={12}>
-                                            <Form.Item
-                                                name="userName"
-                                                label={<span className="inline-block mb-2 text-base font-medium">User Name <span className="text-red-500 ml-1">*</span></span>}
-                                                rules={[{ required: true, message: 'Please enter user name' }]}
-                                            >
-                                                <Input placeholder="Enter user name" className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200" />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={12}>
-                                            <Form.Item
-                                                name="productItemId"
-                                                label={<span className="inline-block mb-2 text-base font-medium">Product <span className="text-red-500 ml-1">*</span></span>}
-                                                rules={[{ required: true, message: 'Please select a product' }]}
-                                            >
-                                                <Select 
-                                                    placeholder="Select a product" 
-                                                    className="form-select border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800"
-                                                    showSearch
-                                                    optionFilterProp="children"
-                                                    filterOption={(input, option) =>
-                                                        (option?.label?.toString().toLowerCase() ?? '').includes(input.toLowerCase())
-                                                    }
-                                                    options={products.map(product => ({
-                                                        value: product.id,
-                                                        label: product.name
-                                                    }))}
-                                                />
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
-                                    
-                                    <Form.Item
-                                        name="productName"
-                                        label={<span className="inline-block mb-2 text-base font-medium">Product Name <span className="text-red-500 ml-1">*</span></span>}
-                                        rules={[{ required: true, message: 'Please enter product name' }]}
-                                    >
-                                        <Input placeholder="Enter product name" className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200" />
-                                    </Form.Item>
-                                    
-                                    <Form.Item
-                                        name="ratingValue"
-                                        label={<span className="inline-block mb-2 text-base font-medium">Rating <span className="text-red-500 ml-1">*</span></span>}
-                                        rules={[{ required: true, message: 'Please select rating' }]}
-                                    >
-                                        <Rate />
-                                    </Form.Item>
-                                    
-                                    <Form.Item
-                                        name="comment"
-                                        label={<span className="inline-block mb-2 text-base font-medium">Comment <span className="text-red-500 ml-1">*</span></span>}
-                                        rules={[{ required: true, message: 'Please enter comment' }]}
-                                    >
-                                        <Input.TextArea rows={4} placeholder="Enter comment" className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200" />
-                                    </Form.Item>
-                                    
-                                    <Form.Item
-                                        name="reviewImages"
-                                        label={<span className="inline-block mb-2 text-base font-medium">Review Images</span>}
-                                    >
-                                        <Upload
-                                            listType="picture-card"
-                                            fileList={fileList}
-                                            onPreview={handlePreview}
-                                            onChange={handleChange}
-                                            customRequest={handleUpload}
-                                            multiple={true}
-                                        >
-                                            {fileList.length >= 8 ? null : (
-                                                <div>
-                                                    <PlusOutlined />
-                                                    <div style={{ marginTop: 8 }}>Upload</div>
-                                                </div>
-                                            )}
-                                        </Upload>
-                                    </Form.Item>
-                                </Form>
-                            )}
+                                    <Input.TextArea 
+                                        rows={4} 
+                                        placeholder="Write your reply here..." 
+                                        className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200" 
+                                    />
+                                </Form.Item>
+                            </Form>
                         </div>
                         <div className="flex items-center justify-end p-4 border-t gap-2 border-slate-200 dark:border-zink-500">
                             <button
                                 type="button"
                                 className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10"
-                                onClick={handleModalClose}
+                                onClick={handleReplyModalClose}
                             >
-                                {modalMode === 'view' ? 'Close' : 'Cancel'}
+                                Cancel
                             </button>
-                            {modalMode !== 'view' && (
-                                <button
-                                    type="button"
-                                    className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
-                                    onClick={handleFormSubmit}
-                                >
-                                    {modalMode === 'add' ? 'Add' : 'Update'}
-                                </button>
-                            )}
+                            <button
+                                type="button"
+                                className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
+                                onClick={handleReplySubmit}
+                                disabled={replyLoading}
+                            >
+                                {replyLoading ? <Spin size="small" /> : isReplyEditing ? 'Update Reply' : 'Submit Reply'}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -628,215 +818,9 @@ const Review = () => {
                 </div>
             </div>
             
-            {isModalOpen && (
-                <div className="fixed inset-0 z-[1005] flex items-center justify-center overflow-hidden">
-                    <div className="fixed inset-0 bg-black bg-opacity-50"></div>
-                    <div className="relative w-full max-w-2xl max-h-full p-4 bg-white dark:bg-zink-700 rounded-lg shadow-lg">
-                        <div className="flex items-center justify-between p-4 border-b rounded-t border-slate-200 dark:border-zink-500">
-                            <h5 className="text-16 font-medium">{modalMode === 'view' ? 'Review Details' : modalMode === 'edit' ? 'Edit Review' : 'Add Review'}</h5>
-                            <button 
-                                className="transition-all duration-200 ease-linear text-slate-500 hover:text-red-500"
-                                onClick={handleModalClose}
-                            >
-                                ×
-                            </button>
-                        </div>
-                        <div className="p-4 overflow-y-auto">
-                            {modalMode === 'view' ? (
-                                <div>
-                                    <Row gutter={16}>
-                                        <Col span={24}>
-                                            <div className="flex items-center gap-3 mb-4">
-                                                <Avatar src={selectedReview.avatarUrl} size={64} />
-                                                <div>
-                                                    <h5 className="text-16 mb-1 font-medium">{selectedReview.userName}</h5>
-                                                    <p className="text-slate-500 dark:text-zink-200">
-                                                        {selectedReview.lastUpdatedTime ? 
-                                                            moment(selectedReview.lastUpdatedTime).format("YYYY-MM-DD HH:mm") : 
-                                                            "N/A"}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </Col>
-                                        <Col span={24}>
-                                            <Card className="mb-4">
-                                                <div className="flex flex-col gap-3">
-                                                    <div>
-                                                        <span className="font-medium">Product:</span>
-                                                        <div className="flex items-center gap-2 mt-1">
-                                                            <Image 
-                                                                src={selectedReview.productImage || "https://via.placeholder.com/150"}
-                                                                alt={selectedReview.productName}
-                                                                className="w-[50px] h-[50px] object-contain"
-                                                                fallback="https://via.placeholder.com/150"
-                                                                preview={false}
-                                                            />
-                                                            <span>{selectedReview.productName}</span>
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <span className="font-medium">Variation:</span>
-                                                        <div>{selectedReview.variationOptionValues?.join(", ") || "N/A"}</div>
-                                                    </div>
-                                                    <div>
-                                                        <span className="font-medium">Rating:</span>
-                                                        <div><Rate disabled defaultValue={selectedReview.ratingValue} /></div>
-                                                    </div>
-                                                    <div>
-                                                        <span className="font-medium">Comment:</span>
-                                                        <div>{selectedReview.comment}</div>
-                                                    </div>
-                                                    {selectedReview.reviewImages && selectedReview.reviewImages.length > 0 && (
-                                                        <div>
-                                                            <span className="font-medium">Images:</span>
-                                                            <div className="flex flex-wrap gap-2 mt-2">
-                                                                {selectedReview.reviewImages.map((image: string, index: number) => (
-                                                                    <Image 
-                                                                        key={index}
-                                                                        src={image}
-                                                                        alt={`Review image ${index + 1}`}
-                                                                        className="w-[80px] h-[80px] object-cover"
-                                                                        preview={true}
-                                                                    />
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </Card>
-                                        </Col>
-                                        {selectedReview.reply && (
-                                            <Col span={24}>
-                                                <Card title="Reply" className="border-0 shadow-none bg-slate-50 dark:bg-zink-600">
-                                                    <div className="flex flex-col gap-2">
-                                                        <div>
-                                                            <span className="font-medium">From:</span>
-                                                            <div>{selectedReview.reply.userName}</div>
-                                                        </div>
-                                                        <div>
-                                                            <span className="font-medium">Content:</span>
-                                                            <div>{selectedReview.reply.replyContent}</div>
-                                                        </div>
-                                                        <div>
-                                                            <span className="font-medium">Date:</span>
-                                                            <div>{selectedReview.reply.lastUpdatedTime ? 
-                                                                moment(selectedReview.reply.lastUpdatedTime).format("YYYY-MM-DD HH:mm") : 
-                                                                "N/A"}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </Card>
-                                            </Col>
-                                        )}
-                                    </Row>
-                                </div>
-                            ) : (
-                                <Form
-                                    form={form}
-                                    layout="vertical"
-                                    name="reviewForm"
-                                >
-                                    <Row gutter={16}>
-                                        <Col span={12}>
-                                            <Form.Item
-                                                name="userName"
-                                                label={<span className="inline-block mb-2 text-base font-medium">User Name <span className="text-red-500 ml-1">*</span></span>}
-                                                rules={[{ required: true, message: 'Please enter user name' }]}
-                                            >
-                                                <Input placeholder="Enter user name" className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200" />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={12}>
-                                            <Form.Item
-                                                name="productItemId"
-                                                label={<span className="inline-block mb-2 text-base font-medium">Product <span className="text-red-500 ml-1">*</span></span>}
-                                                rules={[{ required: true, message: 'Please select a product' }]}
-                                            >
-                                                <Select 
-                                                    placeholder="Select a product" 
-                                                    className="form-select border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800"
-                                                    showSearch
-                                                    optionFilterProp="children"
-                                                    filterOption={(input, option) =>
-                                                        (option?.label?.toString().toLowerCase() ?? '').includes(input.toLowerCase())
-                                                    }
-                                                    options={products.map(product => ({
-                                                        value: product.id,
-                                                        label: product.name
-                                                    }))}
-                                                />
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
-                                    
-                                    <Form.Item
-                                        name="productName"
-                                        label={<span className="inline-block mb-2 text-base font-medium">Product Name <span className="text-red-500 ml-1">*</span></span>}
-                                        rules={[{ required: true, message: 'Please enter product name' }]}
-                                    >
-                                        <Input placeholder="Enter product name" className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200" />
-                                    </Form.Item>
-                                    
-                                    <Form.Item
-                                        name="ratingValue"
-                                        label={<span className="inline-block mb-2 text-base font-medium">Rating <span className="text-red-500 ml-1">*</span></span>}
-                                        rules={[{ required: true, message: 'Please select rating' }]}
-                                    >
-                                        <Rate />
-                                    </Form.Item>
-                                    
-                                    <Form.Item
-                                        name="comment"
-                                        label={<span className="inline-block mb-2 text-base font-medium">Comment <span className="text-red-500 ml-1">*</span></span>}
-                                        rules={[{ required: true, message: 'Please enter comment' }]}
-                                    >
-                                        <Input.TextArea rows={4} placeholder="Enter comment" className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200" />
-                                    </Form.Item>
-                                    
-                                    <Form.Item
-                                        name="reviewImages"
-                                        label={<span className="inline-block mb-2 text-base font-medium">Review Images</span>}
-                                    >
-                                        <Upload
-                                            listType="picture-card"
-                                            fileList={fileList}
-                                            onPreview={handlePreview}
-                                            onChange={handleChange}
-                                            customRequest={handleUpload}
-                                            multiple={true}
-                                        >
-                                            {fileList.length >= 8 ? null : (
-                                                <div>
-                                                    <PlusOutlined />
-                                                    <div style={{ marginTop: 8 }}>Upload</div>
-                                                </div>
-                                            )}
-                                        </Upload>
-                                    </Form.Item>
-                                </Form>
-                            )}
-                        </div>
-                        <div className="flex items-center justify-end p-4 border-t gap-2 border-slate-200 dark:border-zink-500">
-                            <button
-                                type="button"
-                                className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10"
-                                onClick={handleModalClose}
-                            >
-                                {modalMode === 'view' ? 'Close' : 'Cancel'}
-                            </button>
-                            {modalMode !== 'view' && (
-                                <button
-                                    type="button"
-                                    className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
-                                    onClick={handleFormSubmit}
-                                >
-                                    {modalMode === 'add' ? 'Add' : 'Update'}
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
+            {renderModal()}
+            
+            {renderReplyModal()}
             
             {previewVisible && (
                 <div className="fixed inset-0 z-[1005] flex items-center justify-center overflow-hidden">
