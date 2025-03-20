@@ -6,6 +6,7 @@ import { RootState } from "slices";
 import { getFirebaseBackend } from "helpers/firebase_helper";
 import axios from "axios";
 import { decodeJWT } from "helpers/jwtDecode";
+import { setAuthorization } from "helpers/api_helper";
 
 interface User {
   email: string;
@@ -19,7 +20,7 @@ export const loginUser =
   ): ThunkAction<void, RootState, unknown, Action<string>> =>
   async (dispatch: Dispatch) => {
     axios
-      .post("http://localhost:5041/api/authentications/login", {
+      .post("https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/authentications/login", {
         usernameOrEmail: user.email,
         password: user.password,
       })
@@ -32,12 +33,17 @@ export const loginUser =
         localStorage.setItem(
           "authUser",
           JSON.stringify({
+            accessToken: res.accessToken,
             token: res.accessToken,
+            refreshToken: res.refreshToken,
             imageUrl: decodedToken?.AvatarUrl,
             name: decodedToken?.UserName,
             role: decodedToken?.Role,
           })
         );
+        
+        setAuthorization(res.accessToken);
+        
         history("/dashboard");
       })
       .catch((error) => {
@@ -72,6 +78,9 @@ export const loginUser =
 export const logoutUser = () => async (dispatch: Dispatch) => {
   try {
     localStorage.removeItem("authUser");
+    
+    // Clear the authorization header
+    setAuthorization(null);
 
     let fireBaseBackend = await getFirebaseBackend();
 

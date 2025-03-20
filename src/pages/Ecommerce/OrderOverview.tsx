@@ -645,19 +645,6 @@ const OrderOverview = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="card">
-                        <div className="card-body">
-                            <h6 className="mb-4 text-15">Order Actions</h6>
-                            <div className="flex flex-col gap-2">
-                                <Link to={`/ecommerce/orders/edit?id=${currentOrder.id}`} className="w-full text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20">
-                                    Edit Order
-                                </Link>
-                                <button className="w-full text-white btn bg-red-500 border-red-500 hover:text-white hover:bg-red-600 hover:border-red-600 focus:text-white focus:bg-red-600 focus:border-red-600 focus:ring focus:ring-red-100 active:text-white active:bg-red-600 active:border-red-600 active:ring active:ring-red-100 dark:ring-red-400/20">
-                                    Cancel Order
-                                </button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </React.Fragment>

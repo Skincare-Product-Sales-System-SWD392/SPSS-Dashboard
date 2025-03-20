@@ -10,13 +10,17 @@ const LanguageDropdown = () => {
     const [selectedLang, setSelectedLang] = useState("");
 
     useEffect(() => {
-        const currentLanguage: any = localStorage.getItem("I18N_LANGUAGE");
+        // Get the current language from localStorage or default to 'en'
+        const currentLanguage = localStorage.getItem("I18N_LANGUAGE") || "en";
         setSelectedLang(currentLanguage);
+        // Initialize the language
+        i18n.changeLanguage(currentLanguage);
     }, []);
 
-    const changeLanguageAction = (lang: any) => {
-        //set language as i18n
+    const changeLanguageAction = (lang: string) => {
+        // Change language using i18n
         i18n.changeLanguage(lang);
+        // Store the selected language
         localStorage.setItem("I18N_LANGUAGE", lang);
         setSelectedLang(lang);
     };
