@@ -4,7 +4,6 @@ import CountUp from 'react-countup';
 import Flatpickr from "react-flatpickr";
 import moment from "moment";
 import { Link, useNavigate } from "react-router-dom";
-import TableContainer from "Common/TableContainer";
 import { Dropdown } from "Common/Components/Dropdown";
 import DeleteModal from "Common/DeleteModal";
 import Modal from "Common/Components/Modal";
@@ -212,6 +211,8 @@ const Orders = () => {
                 return (<span className="delivery_status px-2.5 py-0.5 text-xs inline-block font-medium rounded border bg-sky-100 border-sky-200 text-sky-500 dark:bg-sky-500/20 dark:border-sky-500/20">{item}</span>);
             case "Return":
                 return (<span className="delivery_status px-2.5 py-0.5 text-xs inline-block font-medium rounded border bg-slate-100 border-slate-200 text-slate-500 dark:bg-slate-500/20 dark:border-slate-500/20 dark:text-zink-200">{item}</span>);
+            case "Processing":
+                return (<span className="delivery_status px-2.5 py-0.5 text-xs inline-block font-medium rounded border bg-green-100 border-green-200 text-green-500 dark:bg-green-500/20 dark:border-green-500/20">{item}</span>);
             default:
                 return (<span className="delivery_status px-2.5 py-0.5 text-xs inline-block font-medium rounded border bg-green-100 border-green-200 text-green-500 dark:bg-green-500/20 dark:border-green-500/20">{item}</span>);
         }
@@ -412,6 +413,13 @@ const Orders = () => {
                                         onClick={() => toggleTab('all', 'all')}
                                     >
                                         All
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        className={`btn border-slate-200 dark:border-zink-500 ${activeTab === 'Processing' ? 'bg-green-500 text-white' : 'bg-white dark:bg-zink-700 text-slate-500 dark:text-zink-200'}`}
+                                        onClick={() => toggleTab('Processing', 'Processing')}
+                                    >
+                                        Processing
                                     </button>
                                     <button 
                                         type="button" 
@@ -626,6 +634,7 @@ const Orders = () => {
                                     onChange={validation.handleChange}
                                     value={validation.values.status || ""}
                                 >
+                                    <option value="Processing">Processing</option>
                                     <option value="Awaiting Payment">Awaiting Payment</option>
                                     <option value="Pending">Pending</option>
                                     <option value="Shipping">Shipping</option>

@@ -391,7 +391,7 @@ const CancelReason = () => {
                   name="refundRate"
                   onChange={validation.handleChange}
                   onBlur={validation.handleBlur}
-                  value={validation.values.refundRate || ""}
+                  value={validation.values.refundRate !== undefined ? validation.values.refundRate : ""}
                   min="0"
                   max="100"
                   disabled={isOverview}

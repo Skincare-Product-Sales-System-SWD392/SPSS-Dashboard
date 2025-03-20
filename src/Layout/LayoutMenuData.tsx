@@ -24,13 +24,6 @@ const menuData: any = [
         isTitle: true,
     },
     {
-        id: 'chat',
-        label: 'Chat',
-        icon: <MessageSquare />,
-        link: '/apps-chat',
-        parentId: 2
-    },
-    {
         id: "ecommerce",
         label: 'Ecommerce',
         link: "/#",
@@ -42,12 +35,12 @@ const menuData: any = [
                 link: '/apps-ecommerce-account',
                 parentId: 'ecommerce'
             },
-            {
-                id: 'blog',
-                label: 'Blog',
-                link: '/apps-ecommerce-blog',
-                parentId: 'ecommerce'
-            },
+            // {
+            //     id: 'blog',
+            //     label: 'Blog',
+            //     link: '/apps-ecommerce-blog',
+            //     parentId: 'ecommerce'
+            // },
             {
                 id: 'brand',
                 label: 'Brand',

@@ -19,7 +19,7 @@ export const loginUser =
   ): ThunkAction<void, RootState, unknown, Action<string>> =>
   async (dispatch: Dispatch) => {
     axios
-      .post("http://localhost:5041/api/authentications/login", {
+      .post("https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/authentications/login", {
         usernameOrEmail: user.email,
         password: user.password,
       })
