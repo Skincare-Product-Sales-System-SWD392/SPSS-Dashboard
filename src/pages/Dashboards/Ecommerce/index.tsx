@@ -1,12 +1,5 @@
 import React, { useEffect } from 'react';
 import BreadCrumb from 'Common/BreadCrumb';
-import Widgets from './Widgets';
-import SalesRevenue from './SalesRevenue';
-import TrafficResources from './TrafficResources';
-import CustomerService from './CustomerService';
-import SalesMonth from './SalesMonth';
-import TopSellingProducts from './TopSellingProducts';
-import Audience from './Audience';
 import ProductPriceAnalysis from './ProductPriceAnalysis';
 import ProductCategoryAnalysis from './ProductCategoryAnalysis';
 import PriceDiscountAnalysis from './PriceDiscountAnalysis';
@@ -15,6 +8,7 @@ import { AppDispatch } from 'slices/store';
 import { fetchBestSellers} from 'slices/dashboard/reducer';
 import WelcomeBanner from './WelcomeBanner';
 import ProductRatingsChart from './ProductRatingsChart';
+import TopSellingProducts from './TopSellingProducts';
 
 const Ecommerce = () => {
     const dispatch = useDispatch<AppDispatch>();

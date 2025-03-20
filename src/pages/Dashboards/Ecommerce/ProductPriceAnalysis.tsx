@@ -2,8 +2,6 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from 'slices/store';
 import { ProductPriceComparisonChart } from './Charts';
-import { MoveRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 const ProductPriceAnalysis = () => {
     const { bestSellers, loading } = useSelector((state: RootState) => state.dashboard);
@@ -15,11 +13,6 @@ const ProductPriceAnalysis = () => {
                 <div className="card-body">
                     <div className="flex items-center mb-3">
                         <h6 className="grow text-15">Top Products Price Analysis</h6>
-                        <div className="relative">
-                            <Link to="/ecommerce/products" className="transition-all duration-300 ease-linear text-custom-500 hover:text-custom-700">View All
-                                <MoveRight className="inline-block size-4 align-middle ltr:ml-2 rtl:mr-2"></MoveRight>
-                            </Link>
-                        </div>
                     </div>
                     
                     {loading ? (
