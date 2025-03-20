@@ -4,9 +4,9 @@ import { getAllCountries } from "../../helpers/fakebackend_helper";
 
 export const getCountries = createAsyncThunk(
   "country/getCountries",
-  async ({ page, pageSize }: { page: number; pageSize: number }) => {
+  async () => {
     try {
-      const response = await getAllCountries({ Page: page, PageSize: pageSize });
+      const response = await getAllCountries();
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {

@@ -8,7 +8,7 @@ axios.defaults.headers.post["Content-Type"] = "application/json";
 
 // content type
 const authUser: any = localStorage.getItem("authUser");
-const token = JSON.parse(authUser) ? JSON.parse(authUser).token : null;
+const token = authUser ? JSON.parse(authUser).token || JSON.parse(authUser).accessToken : null;
 if (token) axios.defaults.headers.common["Authorization"] = "Bearer " + token;
 
 // intercepting to capture errors
@@ -59,7 +59,11 @@ class APIClient {
 }
 
 const setAuthorization = (token: any) => {
-  axios.defaults.headers.common["Authorization"] = "Bearer " + token;
+  if (token) {
+    axios.defaults.headers.common["Authorization"] = "Bearer " + token;
+  } else {
+    delete axios.defaults.headers.common["Authorization"];
+  }
 };
 
 export { APIClient, setAuthorization };

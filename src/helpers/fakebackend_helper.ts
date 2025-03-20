@@ -248,8 +248,8 @@ export const deleteReply = (id: string) =>
   api.delete(`${url.DELETE_REPLY}/${id}`, { headers: { data: id } });
 
 // Country
-export const getAllCountries = (params: { Page: number; PageSize: number }) => 
-  api.get(url.GET_ALL_COUNTRIES, params);
+export const getAllCountries = () => 
+  api.get(url.GET_ALL_COUNTRIES, null);
 
 // Brand
 export const getAllBrands = (params: { pageNumber: number; pageSize: number }) => 

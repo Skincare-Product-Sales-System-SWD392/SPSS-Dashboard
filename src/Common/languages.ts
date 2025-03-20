@@ -7,6 +7,7 @@ import flagchina from "assets/images/flags/20/china.svg";
 import flagitaly from "assets/images/flags/20/it.svg";
 import flagrussia from "assets/images/flags/20/ru.svg";
 import flagarabic from "assets/images/flags/20/ae.svg";
+import flagvietnam from "assets/images/flags/20/vn.svg";
 
 
 const languages = {
@@ -45,6 +46,10 @@ const languages = {
   jp: {
     label: "日本語",
     flag: flagjapan,
+  },
+  vn: {
+    label: "Vietnam",
+    flag: flagvietnam,
   },
 }
 
