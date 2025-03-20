@@ -1,21 +1,12 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import BreadCrumb from 'Common/BreadCrumb';
 import ProductPriceAnalysis from './ProductPriceAnalysis';
 import PriceDiscountAnalysis from './PriceDiscountAnalysis';
-import { useDispatch } from 'react-redux';
-import { AppDispatch } from 'slices/store';
-import { fetchBestSellers} from 'slices/dashboard/reducer';
 import WelcomeBanner from './WelcomeBanner';
 import TopSellingProducts from './TopSellingProducts';
+import NewProductsAnalysis from './NewProductsAnalysis';
 
 const Ecommerce = () => {
-    const dispatch = useDispatch<AppDispatch>();
-
-    useEffect(() => {
-        // Fetch data when the dashboard loads
-        dispatch(fetchBestSellers({ pageNumber: 1, pageSize: 10 }));
-    }, [dispatch]);
-
     return (
         <React.Fragment>
             <div className="page-content">
@@ -24,9 +15,10 @@ const Ecommerce = () => {
                 <div className="grid grid-cols-12 gap-x-5">
                     <ProductPriceAnalysis />
                     <PriceDiscountAnalysis />
+                    <NewProductsAnalysis />
                     <TopSellingProducts />
                 </div>
-            </div>
+           </div>
         </React.Fragment>
     );
 };

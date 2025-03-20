@@ -673,6 +673,151 @@ const PriceDiscountChart = ({ chartId, products }: { chartId: string, products: 
     );
 };
 
+const NewProductsPriceRangeChart = ({ chartId, products }: { chartId: string, products: any[] }) => {
+    const chartColors = useChartColors(chartId);
+    
+    // Group products by price ranges
+    const priceRanges = {
+        '0-300K': 0,
+        '300K-400K': 0,
+        '400K-500K': 0,
+        '500K+': 0
+    };
+    
+    products.forEach(product => {
+        if (product.price < 300000) {
+            priceRanges['0-300K']++;
+        } else if (product.price < 400000) {
+            priceRanges['300K-400K']++;
+        } else if (product.price < 500000) {
+            priceRanges['400K-500K']++;
+        } else {
+            priceRanges['500K+']++;
+        }
+    });
+    
+    // New Products Price Range Chart
+    const series = Object.values(priceRanges);
+    
+    const options: any = {
+        chart: {
+            type: 'donut',
+            height: 350,
+        },
+        labels: Object.keys(priceRanges),
+        responsive: [{
+            breakpoint: 480,
+            options: {
+                chart: {
+                    width: 200
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }],
+        colors: chartColors,
+        title: {
+            text: 'New Products by Price Range',
+            align: 'center',
+            style: {
+                fontSize: '16px',
+                fontWeight: 'bold'
+            }
+        }
+    };
+    
+    return (
+        <React.Fragment>
+            <ReactApexChart
+                options={options}
+                series={series}
+                data-chart-colors='["bg-sky-500", "bg-purple-500", "bg-green-500", "bg-yellow-500"]'
+                id={chartId}
+                className="apex-charts"
+                type='donut'
+                height={350}
+            />
+        </React.Fragment>
+    );
+};
+
+const NewProductsDiscountChart = ({ chartId, products }: { chartId: string, products: any[] }) => {
+    const chartColors = useChartColors(chartId);
+    
+    // Calculate discount percentages and sort by highest discount
+    const productData = products.map(product => {
+        const discountPercent = ((product.marketPrice - product.price) / product.marketPrice * 100).toFixed(1);
+        return {
+            name: product.name.substring(0, 15) + '...',
+            discount: parseFloat(discountPercent)
+        };
+    }).sort((a, b) => b.discount - a.discount).slice(0, 5); // Get top 5 discounted products
+    
+    // New Products Discount Chart
+    const series = [{
+        name: 'Discount %',
+        data: productData.map(item => item.discount)
+    }];
+    
+    const options: any = {
+        chart: {
+            type: 'bar',
+            height: 350,
+            toolbar: {
+                show: false,
+            }
+        },
+        plotOptions: {
+            bar: {
+                borderRadius: 4,
+                horizontal: true,
+            }
+        },
+        dataLabels: {
+            enabled: true,
+            formatter: function(val: number) {
+                return val.toFixed(1) + '%';
+            },
+            style: {
+                fontSize: '12px',
+                colors: ['#fff']
+            }
+        },
+        xaxis: {
+            categories: productData.map(item => item.name),
+            labels: {
+                formatter: function(val: number) {
+                    return val.toFixed(1) + '%';
+                }
+            }
+        },
+        title: {
+            text: 'Top Discounted New Products',
+            align: 'center',
+            style: {
+                fontSize: '16px',
+                fontWeight: 'bold'
+            }
+        },
+        colors: chartColors
+    };
+    
+    return (
+        <React.Fragment>
+            <ReactApexChart
+                options={options}
+                series={series}
+                data-chart-colors='["bg-green-500"]'
+                id={chartId}
+                className="apex-charts"
+                type='bar'
+                height={350}
+            />
+        </React.Fragment>
+    );
+};
+
 export {
     OrderStatisticsChart,
     SalesRevenueOverviewChart,
@@ -681,5 +826,7 @@ export {
     AudienceChart,
     ProductPriceComparisonChart,
     ProductCategoryChart,
-    PriceDiscountChart
+    PriceDiscountChart,
+    NewProductsPriceRangeChart,
+    NewProductsDiscountChart
 };

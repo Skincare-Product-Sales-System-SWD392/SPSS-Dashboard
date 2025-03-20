@@ -19,7 +19,7 @@ import AuthIcon from "./AuthIcon";
 // OR if using from public folder, you don't need an import
 
 const Login = () => {
-  document.title = "Login | Tailwick - React Admin & Dashboard Template";
+  document.title = "Login | SPSS";
 
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
