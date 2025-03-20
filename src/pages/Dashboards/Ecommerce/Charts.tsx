@@ -466,10 +466,220 @@ const AudienceChart = ({ chartId }: any) => {
     );
 };
 
+const ProductPriceComparisonChart = ({ chartId, products }: { chartId: string, products: any[] }) => {
+    const chartColors = useChartColors(chartId);
+    
+    // Extract data from products
+    const productNames = products.slice(0, 5).map(product => product.name.substring(0, 15) + '...');
+    const actualPrices = products.slice(0, 5).map(product => product.price / 1000); // Convert to K
+    const marketPrices = products.slice(0, 5).map(product => product.marketPrice / 1000); // Convert to K
+    
+    // Product Price Comparison Chart
+    const series = [
+        {
+            name: 'Actual Price',
+            data: actualPrices
+        },
+        {
+            name: 'Market Price',
+            data: marketPrices
+        }
+    ];
+    
+    const options: any = {
+        chart: {
+            type: 'bar',
+            height: 350,
+            toolbar: {
+                show: false,
+            }
+        },
+        plotOptions: {
+            bar: {
+                horizontal: false,
+                columnWidth: '55%',
+                endingShape: 'rounded'
+            },
+        },
+        dataLabels: {
+            enabled: false
+        },
+        stroke: {
+            show: true,
+            width: 2,
+            colors: ['transparent']
+        },
+        xaxis: {
+            categories: productNames,
+        },
+        yaxis: {
+            title: {
+                text: 'Price (K)'
+            }
+        },
+        fill: {
+            opacity: 1
+        },
+        tooltip: {
+            y: {
+                formatter: function (val: number) {
+                    return val + "K"
+                }
+            }
+        },
+        legend: {
+            position: 'top',
+        },
+        colors: chartColors
+    };
+    
+    return (
+        <React.Fragment>
+            <ReactApexChart
+                options={options}
+                series={series}
+                data-chart-colors='["bg-custom-500", "bg-orange-500"]'
+                id={chartId}
+                className="apex-charts"
+                type='bar'
+                height={350}
+            />
+        </React.Fragment>
+    );
+};
+
+const ProductCategoryChart = ({ chartId, products }: { chartId: string, products: any[] }) => {
+    const chartColors = useChartColors(chartId);
+    
+    // For this example, we'll simulate categories by grouping products by first word
+    const categoryCounts: Record<string, number> = {};
+    
+    products.forEach(product => {
+        // Extract first word as a simple category simulation
+        const firstWord = product.name.split(' ')[0];
+        if (categoryCounts[firstWord]) {
+            categoryCounts[firstWord]++;
+        } else {
+            categoryCounts[firstWord] = 1;
+        }
+    });
+    
+    const categories = Object.keys(categoryCounts);
+    const counts = Object.values(categoryCounts);
+    
+    // Product Category Chart
+    const series = counts;
+    
+    const options: any = {
+        chart: {
+            type: 'pie',
+            height: 350,
+        },
+        labels: categories,
+        responsive: [{
+            breakpoint: 480,
+            options: {
+                chart: {
+                    width: 200
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }],
+        colors: chartColors
+    };
+    
+    return (
+        <React.Fragment>
+            <ReactApexChart
+                options={options}
+                series={series}
+                data-chart-colors='["bg-sky-500", "bg-purple-500", "bg-green-500", "bg-yellow-500", "bg-red-500", "bg-blue-500"]'
+                id={chartId}
+                className="apex-charts"
+                type='pie'
+                height={350}
+            />
+        </React.Fragment>
+    );
+};
+
+const PriceDiscountChart = ({ chartId, products }: { chartId: string, products: any[] }) => {
+    const chartColors = useChartColors(chartId);
+    
+    // Calculate discount percentages
+    const productData = products.slice(0, 6).map(product => {
+        const discountPercent = ((product.marketPrice - product.price) / product.marketPrice * 100).toFixed(1);
+        return {
+            name: product.name.substring(0, 12) + '...',
+            discount: parseFloat(discountPercent)
+        };
+    }).sort((a, b) => b.discount - a.discount); // Sort by discount percentage
+    
+    // Price Discount Chart
+    const series = [{
+        name: 'Discount %',
+        data: productData.map(item => item.discount)
+    }];
+    
+    const options: any = {
+        chart: {
+            type: 'bar',
+            height: 350,
+            toolbar: {
+                show: false,
+            }
+        },
+        plotOptions: {
+            bar: {
+                borderRadius: 4,
+                horizontal: true,
+            }
+        },
+        dataLabels: {
+            enabled: true,
+            formatter: function(val: number) {
+                return val.toFixed(1) + '%';
+            },
+            style: {
+                fontSize: '12px',
+                colors: ['#fff']
+            }
+        },
+        xaxis: {
+            categories: productData.map(item => item.name),
+            labels: {
+                formatter: function(val: number) {
+                    return val.toFixed(1) + '%';
+                }
+            }
+        },
+        colors: chartColors
+    };
+    
+    return (
+        <React.Fragment>
+            <ReactApexChart
+                options={options}
+                series={series}
+                data-chart-colors='["bg-green-500"]'
+                id={chartId}
+                className="apex-charts"
+                type='bar'
+                height={350}
+            />
+        </React.Fragment>
+    );
+};
+
 export {
     OrderStatisticsChart,
     SalesRevenueOverviewChart,
     TrafficResourcesChart,
     SalesMonthChart,
-    AudienceChart
+    AudienceChart,
+    ProductPriceComparisonChart,
+    ProductCategoryChart,
+    PriceDiscountChart
 };

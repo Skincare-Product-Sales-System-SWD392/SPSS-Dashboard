@@ -8,22 +8,18 @@ import { fetchBestSellers, fetchTotalRevenue } from 'slices/dashboard/reducer';
 
 const TopSellingProducts = () => {
     const dispatch = useDispatch<AppDispatch>();
-    const { bestSellers, loading, error, totalRevenue = 0 } = useSelector((state: RootState) => {
-        console.log('Current dashboard state:', state.dashboard); // Debug log
+    const { bestSellers, loading, error } = useSelector((state: RootState) => {
         return state.dashboard;
     });
 
     useEffect(() => {
         dispatch(fetchBestSellers({ pageNumber: 1, pageSize: 6 }))
             .unwrap()
-            .then(response => console.log('Fetch success:', response))
-            .catch(error => console.error('Fetch error:', error));
-            
-        dispatch(fetchTotalRevenue({ pageNumber: 1, pageSize: 10 }));
+            .catch(error => console.error('Error fetching best sellers:', error));
     }, [dispatch]);
 
-    // Safely access items with fallback to empty array
-    const products = bestSellers?.items ?? [];
+    // Transform data for display
+    const products = bestSellers?.items || [];
     
     console.log('Render state:', { bestSellers, products, loading, error }); // Debug log
 
