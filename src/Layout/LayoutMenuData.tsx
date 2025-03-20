@@ -78,21 +78,9 @@ const menuData: any = [
                 link: "/apps-ecommerce-product-list",
             },
             {
-                id: 'promotion',
-                label: 'Promotion',
-                link: '/apps-ecommerce-promotion',
-                parentId: 'ecommerce'
-            },
-            {
                 id: 'reviews',
                 label: 'Reviews',
                 link: '/apps-ecommerce-reviews',
-                parentId: 'ecommerce'
-            },
-            {
-                id: 'skin-type',
-                label: 'Skin Type',
-                link: '/apps-ecommerce-skin-type',
                 parentId: 'ecommerce'
             },
             {

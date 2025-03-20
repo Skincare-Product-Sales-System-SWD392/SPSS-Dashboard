@@ -12,9 +12,7 @@ import Checkout from "pages/Ecommerce/Checkout";
 import Orders from "pages/Ecommerce/Orders";
 import OrderOverview from "pages/Ecommerce/OrderOverview";
 import Brand from "pages/Ecommerce/Brand";
-import Promotion from "pages/Ecommerce/Promotion";
 import Voucher from "pages/Ecommerce/Voucher";
-import SkinType from "pages/Ecommerce/SkinType";
 import CancelReason from "pages/Ecommerce/CancelReason";
 import PaymentMethod from "pages/Ecommerce/PaymentMethod";
 import SurveyQuestion from "pages/Ecommerce/SurveyQuestion";
@@ -200,10 +198,8 @@ const authProtectedRoutes: Array<RouteObject> = [
   { path: "/apps-ecommerce-checkout", component: Checkout },
   { path: "/apps-ecommerce-orders", component: Orders },
   { path: "/apps-ecommerce-brand", component: Brand },
-  { path: "/apps-ecommerce-promotion", component: Promotion },
   { path: "/apps-ecommerce-category", component: Category },
   { path: "/apps-ecommerce-voucher", component: Voucher },
-  { path: "/apps-ecommerce-skin-type", component: SkinType },
   { path: "/apps-ecommerce-cancel-reason", component: CancelReason },
   { path: "/apps-ecommerce-payment-method", component: PaymentMethod },
   { path: "/apps-ecommerce-survey-question", component: SurveyQuestion },

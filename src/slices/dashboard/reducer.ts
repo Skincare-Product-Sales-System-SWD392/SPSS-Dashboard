@@ -85,7 +85,7 @@ export const fetchTotalRevenue = createAsyncThunk(
   async ({ pageNumber = 1, pageSize = 10 }: { pageNumber?: number; pageSize?: number }) => {
     try {
       const { data } = await axios.get<RevenueResponse>(
-        'http://localhost:5041/api/dashboards/total-revenue',
+        'https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/dashboards/total-revenue',
         { params: { pageNumber, pageSize } }
       );
       return data.data.items[0]?.totalRevenue ?? 0;
@@ -101,7 +101,7 @@ export const fetchBestSellers = createAsyncThunk(
   async ({ pageNumber = 1, pageSize = 10 }: { pageNumber?: number; pageSize?: number }) => {
     try {
       const response = await axios.get(
-        `http://localhost:5041/api/dashboards/best-sellers`,
+        `https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/dashboards/best-sellers`,
         {
           params: { pageNumber, pageSize }
         }
@@ -151,7 +151,7 @@ export const fetchNewProducts = createAsyncThunk(
   async ({ pageNumber = 1, pageSize = 10 }: { pageNumber?: number; pageSize?: number }) => {
     try {
       const response = await axios.get(
-        `http://localhost:5041/api/products`,
+        `https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/products`,
         {
           params: { pageNumber, pageSize, sortBy: 'news' }
         }
