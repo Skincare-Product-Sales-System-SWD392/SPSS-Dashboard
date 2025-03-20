@@ -1,13 +1,11 @@
 import React, { useEffect } from 'react';
 import BreadCrumb from 'Common/BreadCrumb';
 import ProductPriceAnalysis from './ProductPriceAnalysis';
-import ProductCategoryAnalysis from './ProductCategoryAnalysis';
 import PriceDiscountAnalysis from './PriceDiscountAnalysis';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from 'slices/store';
 import { fetchBestSellers} from 'slices/dashboard/reducer';
 import WelcomeBanner from './WelcomeBanner';
-import ProductRatingsChart from './ProductRatingsChart';
 import TopSellingProducts from './TopSellingProducts';
 
 const Ecommerce = () => {
@@ -25,10 +23,8 @@ const Ecommerce = () => {
                 <WelcomeBanner />
                 <div className="grid grid-cols-12 gap-x-5">
                     <ProductPriceAnalysis />
-                    <ProductCategoryAnalysis />
                     <PriceDiscountAnalysis />
                     <TopSellingProducts />
-                    <ProductRatingsChart /> 
                 </div>
             </div>
         </React.Fragment>
