@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from 'slices/store';
-import { fetchBestSellers } from './reducer';
+import { fetchBestSellers, fetchNewProducts } from './reducer';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
@@ -47,5 +47,6 @@ const Dashboard = () => {
   useEffect(() => {
     dispatch(fetchTotalRevenue());
     dispatch(fetchBestSellers({ pageNumber: 1, pageSize: 10 }));
+    dispatch(fetchNewProducts({ pageNumber: 1, pageSize: 10 }));
   }, [dispatch]);
 };

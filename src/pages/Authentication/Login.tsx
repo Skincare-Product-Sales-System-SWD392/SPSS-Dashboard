@@ -19,7 +19,7 @@ import AuthIcon from "./AuthIcon";
 // OR if using from public folder, you don't need an import
 
 const Login = () => {
-  document.title = "Login | Tailwick - React Admin & Dashboard Template";
+  document.title = "Login | SPSS";
 
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
@@ -101,9 +101,9 @@ const Login = () => {
           <div className="!px-10 !py-12 card-body">
             <Link to="/">
               <img
-                src="/spss.jpg"  
+                src="/spss.png"  
                 alt="SPSS Logo"
-                className="h-14 mx-auto"  
+                className="h-14 mx-auto object-contain"  
               />
             </Link>
 
