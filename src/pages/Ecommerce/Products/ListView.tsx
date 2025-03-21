@@ -165,9 +165,8 @@ const ListView = () => {
 
   // Update Data
   const handleUpdateDataClick = (ele: any) => {
-    setEventData({ ...ele });
-    setIsEdit(true);
-    setShow(true);
+    // Navigate to the edit product page with the product ID as a query parameter
+    window.location.href = `/apps-ecommerce-product-edit?id=${ele.id}`;
   };
 
   // Update handleOverviewClick to pass the ID in the URL

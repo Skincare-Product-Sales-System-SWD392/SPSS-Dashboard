@@ -132,6 +132,7 @@ const Voucher = () => {
   const validation: any = useFormik({
     enableReinitialize: true,
     initialValues: {
+      code: (eventData && eventData.code) || "",
       description: (eventData && eventData.description) || "",
       status: (eventData && eventData.status) || "Active",
       discountRate:
@@ -153,6 +154,7 @@ const Voucher = () => {
           : "",
     },
     validationSchema: Yup.object({
+      code: Yup.string().required("Voucher code is required"),
       description: Yup.string(),
       status: Yup.string()
         .required("Status is required")
@@ -181,7 +183,7 @@ const Voucher = () => {
         const updateData = {
           id: eventData.id,
           data: {
-            code: eventData.code || "",
+            code: values.code,
             description: values.description,
             status: values.status,
             discountRate: Number(values.discountRate),
@@ -201,7 +203,7 @@ const Voucher = () => {
           });
       } else {
         const newData = {
-          code: "",
+          code: values.code,
           description: values.description,
           status: values.status,
           discountRate: Number(values.discountRate),
@@ -510,6 +512,29 @@ const Voucher = () => {
                   />
                 </div>
               )}
+
+              <div className="xl:col-span-6">
+                <label
+                  htmlFor="codeInput"
+                  className="inline-block mb-2 text-base font-medium"
+                >
+                  Code <span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="codeInput"
+                  className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
+                  placeholder="Enter voucher code"
+                  name="code"
+                  onChange={validation.handleChange}
+                  onBlur={validation.handleBlur}
+                  value={validation.values.code || ""}
+                  disabled={isOverview}
+                />
+                {validation.touched.code && validation.errors.code && (
+                  <p className="text-red-400">{validation.errors.code}</p>
+                )}
+              </div>
 
               <div className="xl:col-span-12">
                 <label

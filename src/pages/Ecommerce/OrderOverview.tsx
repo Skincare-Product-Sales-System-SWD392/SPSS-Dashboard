@@ -75,6 +75,13 @@ const ORDER_STATUSES = [
         color: "red",
         bgClass: "bg-red-100 dark:bg-red-500/20",
         textClass: "text-red-500"
+    },
+    { 
+        value: "Awaiting Payment", 
+        label: "Awaiting Payment", 
+        color: "sky",
+        bgClass: "bg-sky-100 dark:bg-sky-500/20",
+        textClass: "text-sky-500"
     }
 ];
 

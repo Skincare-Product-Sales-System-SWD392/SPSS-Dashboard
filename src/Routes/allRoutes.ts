@@ -46,6 +46,7 @@ import UserProfile from "pages/Authentication/UserProfile";
 
 import VariationOption from "pages/Ecommerce/VariationOption";
 import Account from "pages/Ecommerce/Account";
+import EditProduct from "pages/Ecommerce/Products/EditProduct";
 
 interface RouteObject {
   path: string;
@@ -96,6 +97,7 @@ const authProtectedRoutes: Array<RouteObject> = [
   { path: "/apps-ecommerce-variation", component: Variation },
   { path: "/apps-ecommerce-variation-option", component: VariationOption },
   { path: "/apps-ecommerce-account", component: Account },
+  { path: "/apps-ecommerce-product-edit", component: EditProduct },
 
   // profile
   { path: "/user-profile", component: UserProfile },

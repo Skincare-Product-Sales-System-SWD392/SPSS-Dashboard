@@ -221,6 +221,18 @@ class FirebaseAuthBackend {
     return this.uploadFileWithDirectory(file, "SPSS/Blog-Image");
   };
 
+  //
+  uploadPaymentMethodImage = async (file: File) => {
+    return this.uploadFileWithDirectory(file, "SPSS/PaymentMethod-Image");
+  };
+
+  /**
+   * Upload product item image to Firebase Storage
+   */
+  uploadProductItemImage = async (file: File) => {
+    return this.uploadFileWithDirectory(file, "SPSS/Product-Item-Images");
+  };
+
   /**
    * Upload multiple files to Firebase Storage
    */

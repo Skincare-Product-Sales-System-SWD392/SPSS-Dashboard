@@ -91,26 +91,32 @@ const Overview = () => {
                         <div className="card">
                             <div className="card-body">
                                 <div className="grid grid-cols-1 gap-5 md:grid-cols-12">
-                                    {/* Main product image */}
+                                    {/* Main product image - use first product item image if available */}
                                     <div className="rounded-md md:col-span-12 md:row-span-2 bg-slate-100 dark:bg-zink-600">
                                         <img 
-                                            src={productData.productImageUrls && productData.productImageUrls.length > 0 
-                                                ? productData.productImageUrls[0] 
-                                                : "https://placehold.co/600x400/gray/white?text=No+Image"} 
+                                            src={
+                                                selectedVariation?.imageUrl || 
+                                                (productData.productItems && productData.productItems.length > 0 && productData.productItems[0].imageUrl) || 
+                                                productData.thumbnail || 
+                                                "https://placehold.co/600x400/gray/white?text=No+Image"
+                                            } 
                                             alt={productData.name} 
                                             className="w-full h-full object-contain p-4" 
                                         />
                                     </div>
                                     
-                                    {/* Additional product images */}
-                                    {productData.productImageUrls && productData.productImageUrls.slice(1).map((imageUrl: string, index: number) => (
-                                        <div key={index} className="rounded-md md:col-span-6 bg-slate-100 dark:bg-zink-600">
-                                            <img 
-                                                src={imageUrl} 
-                                                alt={`${productData.name} ${index + 1}`} 
-                                                className="w-full h-full object-contain p-2" 
-                                            />
-                                        </div>
+                                    {/* Additional product item images */}
+                                    {productData.productItems && productData.productItems.map((item: any, index: number) => (
+                                        item.imageUrl && (
+                                            <div key={index} className="rounded-md md:col-span-6 bg-slate-100 dark:bg-zink-600 cursor-pointer"
+                                                onClick={() => handleVariationSelect(item)}>
+                                                <img 
+                                                    src={item.imageUrl} 
+                                                    alt={`${productData.name} ${index + 1}`} 
+                                                    className="w-full h-full object-contain p-2" 
+                                                />
+                                            </div>
+                                        )
                                     ))}
                                 </div>
                             </div>

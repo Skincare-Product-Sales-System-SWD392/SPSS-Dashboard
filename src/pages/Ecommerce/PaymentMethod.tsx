@@ -28,6 +28,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { createSelector } from "reselect";
 import { getAllPaymentMethods, addPaymentMethod, updatePaymentMethod, deletePaymentMethod } from "slices/paymentmethod/thunk";
 import { ToastContainer } from "react-toastify";
+
+// Import the Firebase helper instead of direct Firebase imports
 import { getFirebaseBackend } from "helpers/firebase_helper";
 
 const PaymentMethod = () => {
@@ -158,10 +160,14 @@ const PaymentMethod = () => {
       try {
         let imageUrl = values.imageUrl;
         
-        // If the imageUrl is a File object (new upload), upload it to Firebase
+        // If there's a new file to upload
         if (selectfiles && selectfiles instanceof File) {
+          // Use the Firebase helper to upload the payment method image
           const firebaseBackend = getFirebaseBackend();
-          imageUrl = await firebaseBackend.uploadFile(selectfiles, 'SPSS/PaymentMethod-Image');
+          imageUrl = await firebaseBackend.uploadPaymentMethodImage(selectfiles);
+        } else if (selectfiles && selectfiles.priview) {
+          // If it's already an uploaded file with preview, use the existing URL
+          imageUrl = selectfiles.priview;
         }
 
         if (isEdit) {
@@ -189,7 +195,7 @@ const PaymentMethod = () => {
             });
         }
       } catch (error) {
-        // console.error removed
+        console.error("Error processing payment method:", error);
       }
     },
   });
@@ -243,83 +249,80 @@ const PaymentMethod = () => {
     }
   }, [show, validation]);
 
-  // Table columns
-  const columns = useMemo(
-    () => [
-      {
-        header: "Payment Type",
-        accessorKey: "paymentType",
-        enableColumnFilter: false,
-        enableSorting: true,
-        cell: (cell: any) => (
-          <Link
-            to="#"
-            className="flex items-center gap-2"
-            onClick={() => handleOverviewClick(cell.row.original)}
-          >
-            {cell.getValue()}
-          </Link>
-        ),
-        size: 200,
-      },
-      {
-        header: () => <div className="text-center">Image</div>,
-        accessorKey: "imageUrl",
-        enableColumnFilter: false,
-        enableSorting: false,
-        cell: (cell: any) => (
-          <div className="flex items-center justify-center px-4">
-            {cell.getValue() ? (
-              <img 
-                src={cell.getValue()} 
-                alt={cell.row.original.paymentType} 
-                className="h-10 w-auto object-contain"
-              />
-            ) : (
-              <span className="text-slate-500">No image</span>
-            )}
-          </div>
-        ),
-        size: 150,
-      },
-      {
-        header: () => <div className="text-right pr-16">Action</div>,
-        accessorKey: "action",
-        enableColumnFilter: false,
-        enableSorting: false,
-        cell: (cell: any) => (
-          <div className="flex justify-end items-center gap-2 pr-4">
-            <button
-              type="button"
-              className="flex items-center justify-center size-8 p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400 dark:hover:bg-slate-500 dark:hover:text-white dark:focus:bg-slate-500 dark:focus:text-white dark:active:bg-slate-500 dark:active:text-white dark:ring-slate-400/20 rounded-full"
-              onClick={() => handleOverviewClick(cell.row.original)}
-            >
-              <Eye className="size-4" />
-            </button>
-            <button
-              type="button"
-              className="flex items-center justify-center size-8 p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400 dark:hover:bg-slate-500 dark:hover:text-white dark:focus:bg-slate-500 dark:focus:text-white dark:active:bg-slate-500 dark:active:text-white dark:ring-slate-400/20 rounded-full"
-              onClick={() => handleUpdateDataClick(cell.row.original)}
-            >
-              <FileEdit className="size-4" />
-            </button>
-            <button
-              type="button"
-              className="flex items-center justify-center size-8 p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400 dark:hover:bg-slate-500 dark:hover:text-white dark:focus:bg-slate-500 dark:focus:text-white dark:active:bg-slate-500 dark:active:text-white dark:ring-slate-400/20 rounded-full"
-              onClick={() => onClickDelete(cell.row.original)}
-            >
-              <Trash2 className="size-4" />
-            </button>
-          </div>
-        ),
-        size: 150,
-      },
-    ],
-    []
-  );
-
   // Define pageCount variable from the selector
   const pageCount = totalPages;
+
+  // Define columns here, after handleOverviewClick is declared
+  const columns = [
+    {
+      header: "Payment Type",
+      accessorKey: "paymentType",
+      enableColumnFilter: false,
+      enableSorting: true,
+      cell: (cell: any) => (
+        <Link
+          to="#"
+          className="flex items-center gap-2"
+          onClick={() => handleOverviewClick(cell.row.original)}
+        >
+          {cell.getValue()}
+        </Link>
+      ),
+      size: 200,
+    },
+    {
+      header: () => <div className="text-center">Image</div>,
+      accessorKey: "imageUrl",
+      enableColumnFilter: false,
+      enableSorting: false,
+      cell: (cell: any) => (
+        <div className="flex items-center justify-center px-4">
+          {cell.getValue() ? (
+            <img 
+              src={cell.getValue()} 
+              alt={cell.row.original.paymentType} 
+              className="h-10 w-auto object-contain"
+            />
+          ) : (
+            <span className="text-slate-500">No image</span>
+          )}
+        </div>
+      ),
+      size: 150,
+    },
+    {
+      header: () => <div className="text-right pr-16">Action</div>,
+      accessorKey: "action",
+      enableColumnFilter: false,
+      enableSorting: false,
+      cell: (cell: any) => (
+        <div className="flex justify-end items-center gap-2 pr-4">
+          <button
+            type="button"
+            className="flex items-center justify-center size-8 p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400 dark:hover:bg-slate-500 dark:hover:text-white dark:focus:bg-slate-500 dark:focus:text-white dark:active:bg-slate-500 dark:active:text-white dark:ring-slate-400/20 rounded-full"
+            onClick={() => handleOverviewClick(cell.row.original)}
+          >
+            <Eye className="size-4" />
+          </button>
+          <button
+            type="button"
+            className="flex items-center justify-center size-8 p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400 dark:hover:bg-slate-500 dark:hover:text-white dark:focus:bg-slate-500 dark:focus:text-white dark:active:bg-slate-500 dark:active:text-white dark:ring-slate-400/20 rounded-full"
+            onClick={() => handleUpdateDataClick(cell.row.original)}
+          >
+            <FileEdit className="size-4" />
+          </button>
+          <button
+            type="button"
+            className="flex items-center justify-center size-8 p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400 dark:hover:bg-slate-500 dark:hover:text-white dark:focus:bg-slate-500 dark:focus:text-white dark:active:bg-slate-500 dark:active:text-white dark:ring-slate-400/20 rounded-full"
+            onClick={() => onClickDelete(cell.row.original)}
+          >
+            <Trash2 className="size-4" />
+          </button>
+        </div>
+      ),
+      size: 150,
+    },
+  ];
 
   return (
     <React.Fragment>
