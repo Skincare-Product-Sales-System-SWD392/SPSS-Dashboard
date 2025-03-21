@@ -7,6 +7,8 @@ import Dropzone from "react-dropzone";
 import { UploadCloud, Plus, Trash2 } from "lucide-react";
 import BreadCrumb from "Common/BreadCrumb";
 import { getFirebaseBackend } from "../../../helpers/firebase_helper";
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Define interfaces
 interface ProductImage {
@@ -42,8 +44,7 @@ interface ProductItem {
 }
 
 export default function AddNew() {
-  const [thumbnail, setThumbnail] = useState<any>(null);
-  const [productImages, setProductImages] = useState<ProductImage[]>([]);
+  const [productImage, setProductImage] = useState<ProductImage | null>(null);
   const [brandOptions, setBrandOptions] = useState<any[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<any[]>([]);
   const [skinTypeOptions, setSkinTypeOptions] = useState<any[]>([]);
@@ -51,17 +52,15 @@ export default function AddNew() {
   const [variations, setVariations] = useState<Variation[]>([]);
   const [productItems, setProductItems] = useState<ProductItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [productVariations, setProductVariations] = useState<any[]>([]);
+  const [selectedVariation, setSelectedVariation] = useState<{variationId: string, variationOptionId: string}>({variationId: "", variationOptionId: ""});
   const [productItemImages, setProductItemImages] = useState<{[key: number]: ProductImage | null}>({});
   const [productItemErrors, setProductItemErrors] = useState<{ [key: number]: { [key: string]: string } }>({});
   const [availableVariations, setAvailableVariations] = useState<Variation[]>([]);
 
-  const handleThumbnailUpload = (files: File[]) => {
-    if (files && files[0]) {
+  const handleProductImageUpload = (files: File[]) => {
+    if (files && files.length > 0) {
       const file = files[0];
-      setThumbnail({
+      setProductImage({
         file,
         preview: URL.createObjectURL(file),
         formattedSize: formatBytes(file.size),
@@ -69,31 +68,11 @@ export default function AddNew() {
     }
   };
 
-  const handleProductImagesUpload = (files: File[]) => {
-    const newImages = files.map((file: File) => ({
-      file,
-      preview: URL.createObjectURL(file),
-      formattedSize: formatBytes(file.size),
-    }));
-    setProductImages([...productImages, ...newImages].slice(0, 3)); // Limit to 3 images
-  };
-
-  const removeProductImage = (index: number) => {
-    setProductImages(productImages.filter((_, i) => i !== index));
+  const removeProductImage = () => {
+    setProductImage(null);
   };
 
   const formatBytes = (bytes: number, decimals = 2) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
-  };
-
-  // Add this function to format file sizes
-  const formatFileSize = (bytes: number, decimals = 2) => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
     const dm = decimals < 0 ? 0 : decimals;
@@ -170,28 +149,21 @@ export default function AddNew() {
       }
     } catch (error) {
       console.error("Error fetching options:", error);
-      setErrorMessage("Failed to load form options. Please refresh the page.");
+      alert("Failed to load form options. Please refresh the page.");
     }
   };
 
-  // Update the addProductItem function to use the selected variation options
+  // Update the addProductItem function to use the selected variation option
   const addProductItem = () => {
-    // Get all selected variation options from the variations
-    const allSelectedVariationOptions: string[] = [];
-    productVariations.forEach(variation => {
-      if (variation.variationOptionIds && variation.variationOptionIds.length > 0) {
-        allSelectedVariationOptions.push(...variation.variationOptionIds);
-      }
-    });
-    
-    // If no variation options are selected, show an error
-    if (allSelectedVariationOptions.length === 0) {
-      setErrorMessage("Please add and select variation options before adding product items");
+    // Check if variation and variation option are selected
+    if (!selectedVariation.variationId || !selectedVariation.variationOptionId) {
+      // Use MUI notification instead of toast
+      alert("Please select a variation and variation option before adding product items");
       return;
     }
     
     const newItem = {
-      variationOptionIds: allSelectedVariationOptions, // Use all selected variation options
+      variationOptionIds: [selectedVariation.variationOptionId], // Use selected variation option
       quantityInStock: 0,
       price: 0,
       marketPrice: 0,
@@ -248,110 +220,15 @@ export default function AddNew() {
     productFormik.setFieldValue(fieldName, numericValue);
   };
 
-  // Add function to add a new variation
-  const addVariation = () => {
-    setProductVariations([
-      ...productVariations,
-      {
-        id: Date.now().toString(), // Temporary ID for UI purposes
-        variationId: "", // Add this field
-        variationOptionIds: []
-      }
-    ]);
-  };
-
-  // Add function to remove a variation
-  const removeVariation = (index: number) => {
-    setProductVariations(productVariations.filter((_, i) => i !== index));
-  };
-
-  // Update the updateVariation function to also update product items
-  const updateVariation = (index: number, field: string, value: any) => {
-    const updatedVariations = [...productVariations];
-    updatedVariations[index] = { ...updatedVariations[index], [field]: value };
-    
-    // If the variation is changed, clear the selected options
-    if (field === 'variationId') {
-      updatedVariations[index].variationOptionIds = [];
-    }
-    
-    setProductVariations(updatedVariations);
-    
-    // No need to update product items here as the useEffect will handle it
-  };
-
-  // Add function to handle product item image upload
-  const handleProductItemImageUpload = (index: number, acceptedFiles: File[]) => {
-    if (acceptedFiles && acceptedFiles.length > 0) {
-      const file = acceptedFiles[0];
-      const formattedSize = formatFileSize(file.size);
-      
-      setProductItemImages({
-        ...productItemImages,
-        [index]: {
-          file,
-          preview: URL.createObjectURL(file),
-          formattedSize
-        }
-      });
-      
-      // Update the product item with the file info
-      const updatedItems = [...productItems];
-      updatedItems[index] = { 
-        ...updatedItems[index], 
-        imageFile: file 
-      };
-      setProductItems(updatedItems);
-      
-      // Clear any existing image error for this item
-      if (productItemErrors[index]?.image) {
-        const updatedErrors = { ...productItemErrors };
-        delete updatedErrors[index].image;
-        if (Object.keys(updatedErrors[index]).length === 0) {
-          delete updatedErrors[index];
-        }
-        setProductItemErrors(updatedErrors);
-      }
-    }
-  };
-
-  // Add function to remove product item image
-  const removeProductItemImage = (index: number) => {
-    const updatedImages = { ...productItemImages };
-    if (updatedImages[index]) {
-      URL.revokeObjectURL(updatedImages[index]!.preview);
-      delete updatedImages[index];
-      setProductItemImages(updatedImages);
-      
-      // Clear the image file from the product item
-      updateProductItem(index, 'imageFile', undefined);
-    }
-  };
-
-  // Update the validateProductItem function to check if variation options match
+  // Update the validateProductItem function to fix image validation
   const validateProductItem = (item: any, index: number) => {
     const errors: { [key: string]: string } = {};
     
-    // Get all selected variation options from the variations
-    const allSelectedVariationOptions: string[] = [];
-    productVariations.forEach(variation => {
-      if (variation.variationOptionIds && variation.variationOptionIds.length > 0) {
-        allSelectedVariationOptions.push(...variation.variationOptionIds);
-      }
-    });
-    
     // Validate variation options
     if (!item.variationOptionIds || item.variationOptionIds.length === 0) {
-      errors.variationOptionIds = "Variation options are required";
-    } else {
-      // Check if all variation options in the item are in the selected variation options
-      const invalidOptions = item.variationOptionIds.filter(
-        (optionId: string) => !allSelectedVariationOptions.includes(optionId)
-      );
-      
-      if (invalidOptions.length > 0) {
-        errors.variationOptionIds = "Some selected options are not available in the variations";
-      }
+      errors.variationOptionIds = "Variation option is required";
+    } else if (!selectedVariation.variationOptionId) {
+      errors.variationOptionIds = "Please select a variation option";
     }
     
     // Validate quantity
@@ -375,45 +252,38 @@ export default function AddNew() {
       errors.marketPrice = "Market price cannot be negative";
     }
     
-    // Validate image
-    if (!item.imageUrl && !productItemImages[index] && !item.imageFile) {
+    // Only validate image if no image URL exists
+    if (!item.imageUrl && !productItemImages[index] && !item.imageFile && productImage === null) {
       errors.image = "Product image is required";
     }
     
     return errors;
   };
 
-  // Add an effect to update product items when variations change
-  useEffect(() => {
-    // Get all selected variation options from the variations
-    const allSelectedVariationOptions: string[] = [];
-    productVariations.forEach(variation => {
-      if (variation.variationOptionIds && variation.variationOptionIds.length > 0) {
-        allSelectedVariationOptions.push(...variation.variationOptionIds);
-      }
+  // Replace toast notifications with MUI alerts
+  const showSuccessAlert = (message: string) => {
+    toast.success(message, {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true
     });
-    
-    // Update all product items to use the selected variation options
-    if (productItems.length > 0 && allSelectedVariationOptions.length > 0) {
-      const updatedItems = productItems.map(item => ({
-        ...item,
-        variationOptionIds: allSelectedVariationOptions
-      }));
-      
-      setProductItems(updatedItems);
-      
-      // Validate all updated items
-      const newErrors: { [key: number]: { [key: string]: string } } = {};
-      updatedItems.forEach((item, index) => {
-        const errors = validateProductItem(item, index);
-        if (Object.keys(errors).length > 0) {
-          newErrors[index] = errors;
-        }
-      });
-      
-      setProductItemErrors(newErrors);
-    }
-  }, [productVariations]);
+    console.log("SUCCESS:", message);
+  };
+
+  const showErrorAlert = (message: string) => {
+    toast.error(message, {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true
+    });
+    console.error("ERROR:", message);
+  };
 
   // Create a simplified form with Formik
   const productFormik = useFormik({
@@ -458,7 +328,7 @@ export default function AddNew() {
       keyActiveIngredients: Yup.string().required('Key active ingredients are required'),
       storageInstruction: Yup.string().required('Storage instruction is required'),
       usageInstruction: Yup.string().required('Usage instruction is required'),
-      expiryDate: Yup.date().required('Expiry date is required').min(new Date(), 'Expiry date cannot be in the past'),
+      expiryDate: Yup.string().required('Expiry date is required'),
       skinIssues: Yup.string().required('Skin issues are required'),
     }),
     onSubmit: async (values) => {
@@ -471,7 +341,7 @@ export default function AddNew() {
         const allProductItemErrors: { [key: number]: { [key: string]: string } } = {};
         
         if (productItems.length === 0) {
-          setErrorMessage("At least one product item is required");
+          showErrorAlert("At least one product item is required");
           console.error("Validation failed: No product items");
           return;
         }
@@ -487,49 +357,29 @@ export default function AddNew() {
         
         if (hasProductItemErrors) {
           setProductItemErrors(allProductItemErrors);
-          setErrorMessage("Please fix all errors in product items");
+          showErrorAlert("Please fix all errors in product items");
           return;
         }
         
         setIsSubmitting(true);
-        setErrorMessage("");
         
         // Get Firebase backend instance
         const firebaseBackend = getFirebaseBackend();
         console.log("Firebase backend initialized");
         
-        // Upload thumbnail if exists
-        let thumbnailUrl = "";
-        if (thumbnail?.file) {
-          console.log("Uploading thumbnail...");
+        // Upload product image if exists
+        let productImageUrl = "";
+        if (productImage?.file) {
+          console.log("Uploading product image...");
           try {
-            thumbnailUrl = await firebaseBackend.uploadFileWithDirectory(thumbnail.file, "SPSS/Product-Thumbnail");
-            console.log("Thumbnail uploaded successfully:", thumbnailUrl);
-          } catch (uploadError) {
-            console.error("Error uploading thumbnail:", uploadError);
-            setErrorMessage("Failed to upload thumbnail. Please try again.");
-            setIsSubmitting(false);
-            return;
-          }
-        }
-        
-        // Upload product images if exist
-        let productImageUrls: string[] = [];
-        if (productImages.length > 0) {
-          console.log("Uploading product images...");
-          try {
-            const imageFiles = productImages.map(image => image.file);
-            const uploadPromises = imageFiles.map(file => 
-              firebaseBackend.uploadFileWithDirectory(file, "SPSS/Product-Images")
+            productImageUrl = await firebaseBackend.uploadFileWithDirectory(
+              productImage.file, 
+              "SPSS/Product-Images"
             );
-            
-            // Wait for all uploads to complete
-            const uploadedUrls = await Promise.all(uploadPromises);
-            productImageUrls = uploadedUrls;
-            console.log("Product images uploaded successfully:", productImageUrls);
+            console.log("Product image uploaded successfully:", productImageUrl);
           } catch (uploadError) {
-            console.error("Error uploading product images:", uploadError);
-            setErrorMessage("Failed to upload product images. Please try again.");
+            console.error("Error uploading product image:", uploadError);
+            showErrorAlert("Failed to upload product image. Please try again.");
             setIsSubmitting(false);
             return;
           }
@@ -561,21 +411,6 @@ export default function AddNew() {
           };
         }));
         
-        // Combine all image URLs - ensure thumbnail and all product images are included
-        const allProductImageUrls = [];
-        
-        // Add thumbnail if exists
-        if (thumbnailUrl) {
-          allProductImageUrls.push(thumbnailUrl);
-        }
-        
-        // Add all product images
-        if (productImageUrls.length > 0) {
-          allProductImageUrls.push(...productImageUrls);
-        }
-        
-        console.log("All product image URLs:", allProductImageUrls);
-        
         // Prepare data for API submission in the required format
         const productData = {
           brandId: values.brand,
@@ -585,11 +420,11 @@ export default function AddNew() {
           price: parseFloat(values.price.replace(/\s/g, '')),
           marketPrice: parseFloat(values.marketPrice.toString().replace(/\s/g, '')),
           skinTypeIds: values.skinType,
-          productImageUrls: allProductImageUrls,
-          variations: productVariations.map(variation => ({
-            id: variation.variationId,
-            variationOptionIds: variation.variationOptionIds
-          })),
+          productImageUrls: productImageUrl ? [productImageUrl] : [], // Use single image URL
+          variations: selectedVariation.variationId ? [{
+            id: selectedVariation.variationId,
+            variationOptionIds: [selectedVariation.variationOptionId]
+          }] : [],
           productItems: updatedProductItems.map(item => ({
             variationOptionIds: item.variationOptionIds,
             price: parseFloat(item.price.toString().replace(/\s/g, '')),
@@ -626,20 +461,20 @@ export default function AddNew() {
           
           console.log("API response:", response.data);
           
-          if (response.data && response.data.success) {
-            setSuccessMessage("Product created successfully!");
-            // Reset form after successful submission
-            productFormik.resetForm();
-            setThumbnail(null);
-            setProductImages([]);
-            setProductItems([]);
-            setProductVariations([]);
-            setProductItemImages({});
-            setProductItemErrors({});
+          // More robust success check
+          if (response.data || response.data.success === true) {
+            console.log("SUCCESS DETECTED! Redirecting to product list...");
+            showSuccessAlert("Product created successfully!");
+            
+            // Redirect to list view after successful submission
+            setTimeout(() => {
+              window.location.href = "/apps-ecommerce-product-list";
+            }, 2000);
+            return;
           } else {
+            console.error("API returned success=false:", response.data);
             const errorMsg = response.data?.message || "Failed to create product. Please try again.";
-            console.error("API error message:", errorMsg);
-            setErrorMessage(errorMsg);
+            showErrorAlert(errorMsg);
           }
         } catch (apiError: any) {
           console.error("API error:", apiError);
@@ -673,18 +508,18 @@ export default function AddNew() {
               }
             }
             
-            setErrorMessage(`Error (${apiError.response.status}): ${errorMessage}`);
+            showErrorAlert(`Error (${apiError.response.status}): ${errorMessage}`);
           } else if (apiError.request) {
             console.error("API error request:", apiError.request);
-            setErrorMessage("No response received from server. Please check your internet connection and try again.");
+            showErrorAlert("No response received from server. Please check your internet connection and try again.");
           } else {
             console.error("API error message:", apiError.message);
-            setErrorMessage("An error occurred while creating the product. Please try again.");
+            showErrorAlert("An error occurred while creating the product. Please try again.");
           }
         }
       } catch (error: any) {
         console.error("Error creating product:", error);
-        setErrorMessage(error.message || "Failed to create product. Please try again.");
+        showErrorAlert(error.message || "Failed to create product. Please try again.");
       } finally {
         setIsSubmitting(false);
       }
@@ -702,40 +537,64 @@ export default function AddNew() {
     console.log("Product item errors:", productItemErrors);
   };
 
+  const handleProductItemImageUpload = (index: number, files: File[]) => {
+    if (files.length > 0) {
+      const file = files[0]; // Take only the first file
+      setProductItemImages({
+        ...productItemImages,
+        [index]: {
+          file,
+          preview: URL.createObjectURL(file),
+          formattedSize: formatBytes(file.size)
+        }
+      });
+      
+      // Update the product item with the file reference
+      const updatedItems = [...productItems];
+      updatedItems[index] = { 
+        ...updatedItems[index], 
+        imageFile: file 
+      };
+      setProductItems(updatedItems);
+    }
+  };
+
+  const removeProductItemImage = (index: number) => {
+    const updatedImages = { ...productItemImages };
+    delete updatedImages[index];
+    setProductItemImages(updatedImages);
+    
+    // Remove the file reference from the product item
+    const updatedItems = [...productItems];
+    const updatedItem = { ...updatedItems[index] };
+    delete updatedItem.imageFile;
+    updatedItems[index] = updatedItem;
+    setProductItems(updatedItems);
+  };
+
   return (
     <React.Fragment>
       <BreadCrumb title="Add New Product" pageTitle="Products" />
+      <ToastContainer />
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-x-5">
         <div className="xl:col-span-12">
           <div className="card">
             <div className="card-body">
               <h6 className="mb-4 text-15">Create Product</h6>
               
-              {successMessage && (
-                <div className="p-4 mb-4 text-sm text-green-700 bg-green-100 rounded-lg">
-                  {successMessage}
-                </div>
-              )}
-              
-              {errorMessage && (
-                <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg">
-                  {errorMessage}
-                </div>
-              )}
-
               <form onSubmit={productFormik.handleSubmit}>
                 <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-12 mb-5">
-                  {/* Product Images Section */}
-                  <div className="xl:col-span-6">
+                  {/* Product Image Section - Single Image */}
+                  <div className="xl:col-span-12">
                     <label className="inline-block mb-2 text-base font-medium">
-                      Product Thumbnail
+                      Product Image
                     </label>
                     <Dropzone
-                      onDrop={(acceptedFiles) => handleThumbnailUpload(acceptedFiles)}
+                      onDrop={(acceptedFiles) => handleProductImageUpload(acceptedFiles)}
+                      accept={{
+                        "image/*": [".png", ".jpg", ".jpeg"],
+                      }}
                       maxFiles={1}
-                      accept={{
-                        "image/*": [".png", ".jpg", ".jpeg"],
-                      }}
                     >
                       {({ getRootProps, getInputProps }) => (
                         <div
@@ -744,83 +603,42 @@ export default function AddNew() {
                         >
                           <input {...getInputProps()} />
                           <div className="p-4 text-center">
-                            <UploadCloud className="size-6 mx-auto mb-3" />
-                            <h5 className="mb-1">
-                              Drop thumbnail here or click to upload.
-                            </h5>
-                            <p className="text-slate-500 dark:text-zink-200">
-                              Maximum size: 2MB
-                            </p>
+                            {productImage ? (
+                              <div className="relative">
+                                <img
+                                  src={productImage.preview}
+                                  alt="Product"
+                                  className="h-32 mx-auto object-contain"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeProductImage();
+                                  }}
+                                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 size-5 flex items-center justify-center"
+                                >
+                                  ×
+                                </button>
+                                <p className="mt-1 text-sm text-slate-500">
+                                  {productImage.formattedSize}
+                                </p>
+                              </div>
+                            ) : (
+                              <>
+                                <UploadCloud className="size-6 mx-auto mb-3" />
+                                <h5 className="mb-1">
+                                  Drop image here or click to upload.
+                                </h5>
+                                <p className="text-slate-500 dark:text-zink-200">
+                                  Maximum size: 2MB
+                                </p>
+                              </>
+                            )}
                           </div>
                         </div>
                       )}
                     </Dropzone>
-                    {thumbnail && (
-                      <div className="mt-3">
-                        <img
-                          src={thumbnail?.preview}
-                          alt="Thumbnail"
-                          className="h-20 rounded object-cover"
-                        />
-                        <p className="mt-1 text-sm text-slate-500">
-                          {thumbnail?.formattedSize}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="xl:col-span-6">
-                    <label className="inline-block mb-2 text-base font-medium">
-                      Product Images (Max 3)
-                    </label>
-                    <Dropzone
-                      onDrop={(acceptedFiles) => handleProductImagesUpload(acceptedFiles)}
-                      accept={{
-                        "image/*": [".png", ".jpg", ".jpeg"],
-                      }}
-                      maxFiles={3}
-                    >
-                      {({ getRootProps, getInputProps }) => (
-                        <div
-                          className="border-2 border-dashed rounded-lg border-slate-200 dark:border-zink-500"
-                          {...getRootProps()}
-                        >
-                          <input {...getInputProps()} />
-                          <div className="p-4 text-center">
-                            <UploadCloud className="size-6 mx-auto mb-3" />
-                            <h5 className="mb-1">
-                              Drop images here or click to upload.
-                            </h5>
-                            <p className="text-slate-500 dark:text-zink-200">
-                              Maximum size: 2MB per image
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </Dropzone>
-                    {productImages.length > 0 && (
-                      <div className="flex gap-3 mt-3">
-                        {productImages.map((image, index) => (
-                          <div key={index} className="relative">
-                            <img
-                              src={image.preview}
-                              alt={`Product ${index + 1}`}
-                              className="h-20 rounded object-cover"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => removeProductImage(index)}
-                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 size-5 flex items-center justify-center"
-                            >
-                              ×
-                            </button>
-                            <p className="mt-1 text-sm text-slate-500">
-                              {image.formattedSize}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 </div>
 
@@ -845,9 +663,6 @@ export default function AddNew() {
                     {productFormik.touched.title && productFormik.errors.title && (
                       <p className="mt-1 text-sm text-red-500">{productFormik.errors.title}</p>
                     )}
-                    <p className="mt-1 text-sm text-slate-400">
-                      Do not exceed 20 characters when entering the product name.
-                    </p>
                   </div>
 
                   <div className="xl:col-span-6">
@@ -868,25 +683,6 @@ export default function AddNew() {
                     ></textarea>
                     {productFormik.touched.description && productFormik.errors.description && (
                       <p className="mt-1 text-sm text-red-500">{productFormik.errors.description}</p>
-                    )}
-                  </div>
-
-                  <div className="xl:col-span-6">
-                    <label htmlFor="quantity" className="inline-block mb-2 text-base font-medium">
-                      Quantity <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      id="quantity"
-                      name="quantity"
-                      className="form-input w-full border-slate-200"
-                      placeholder="Enter quantity"
-                      value={productFormik.values.quantity}
-                      onChange={productFormik.handleChange}
-                      onBlur={productFormik.handleBlur}
-                    />
-                    {productFormik.touched.quantity && productFormik.errors.quantity && (
-                      <p className="mt-1 text-sm text-red-500">{productFormik.errors.quantity}</p>
                     )}
                   </div>
 
@@ -979,7 +775,7 @@ export default function AddNew() {
                   <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-12">
                     <div className="xl:col-span-12">
                       <label htmlFor="skinType" className="inline-block mb-2 text-base font-medium">
-                        Skin Type
+                        Skin Type <span className="text-red-500">*</span>
                       </label>
                       <Select
                         className="react-select w-full"
@@ -1003,104 +799,89 @@ export default function AddNew() {
                           const selectedIds = selectedOptions ? selectedOptions.map((option: any) => option.value) : [];
                           productFormik.setFieldValue('skinType', selectedIds);
                         }}
+                        onBlur={() => productFormik.setFieldTouched('skinType', true)}
                       />
+                      {productFormik.touched.skinType && productFormik.errors.skinType && (
+                        <p className="mt-1 text-sm text-red-500">{productFormik.errors.skinType}</p>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                {/* Variations Section */}
+                {/* Variations Section - Simplified */}
                 <div className="mt-8">
                   <div className="flex justify-between items-center mb-4">
-                    <h6 className="text-15 font-medium">Variations</h6>
-                    <button
-                      type="button"
-                      onClick={addVariation}
-                      className="flex items-center justify-center px-4 py-2 text-white rounded-lg bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all shadow-sm"
-                    >
-                      <Plus className="size-4 mr-2" /> Add Variation
-                    </button>
+                    <h6 className="text-15 font-medium">Variation</h6>
                   </div>
                   
-                  {productVariations.length === 0 && (
-                    <div className="p-4 text-center border border-dashed rounded-lg">
-                      <p className="text-slate-500">No variations added yet. Click "Add Variation" to create variations.</p>
-                    </div>
-                  )}
-
-                  {productVariations.map((variation, index) => (
-                    <div key={index} className="p-4 mb-4 border rounded-lg bg-white shadow-sm">
-                      <div className="flex justify-between items-center mb-3">
-                        <h6 className="text-base font-medium">Variation #{index + 1}</h6>
-                        <button
-                          type="button"
-                          onClick={() => removeVariation(index)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          <Trash2 className="size-4" />
-                        </button>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                        <div>
-                          <label className="inline-block mb-2 text-sm font-medium">
-                            Variation Type <span className="text-red-500">*</span>
-                          </label>
-                          <Select
-                            className="react-select"
-                            options={availableVariations.map(v => ({
+                  <div className="p-4 mb-4 border rounded-lg bg-white shadow-sm">
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                      <div>
+                        <label className="inline-block mb-2 text-sm font-medium">
+                          Variation Type <span className="text-red-500">*</span>
+                        </label>
+                        <Select
+                          className="react-select"
+                          options={availableVariations.map(v => ({
+                            value: v.id,
+                            label: v.name
+                          }))}
+                          isSearchable={true}
+                          placeholder="Select variation type..."
+                          value={availableVariations
+                            .filter(v => v.id === selectedVariation.variationId)
+                            .map(v => ({
                               value: v.id,
                               label: v.name
-                            }))}
-                            isSearchable={true}
-                            placeholder="Select variation type..."
-                            value={availableVariations
-                              .filter(v => v.id === variation.variationId)
-                              .map(v => ({
-                                value: v.id,
-                                label: v.name
-                              }))[0]}
-                            onChange={(option) => 
-                              updateVariation(index, 'variationId', option?.value || '')
-                            }
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="inline-block mb-2 text-sm font-medium">
-                            Variation Options <span className="text-red-500">*</span>
-                          </label>
-                          <Select
-                            className="react-select"
-                            options={
-                              // Filter variation options based on selected variation
-                              availableVariations
-                                .find(v => v.id === variation.variationId)?.variationOptions
-                                ?.map(option => ({
-                                  value: option.id,
-                                  label: option.value
-                                })) || []
-                            }
-                            isSearchable={true}
-                            isMulti={true}
-                            placeholder={variation.variationId ? "Select options..." : "Select a variation type first"}
-                            isDisabled={!variation.variationId}
-                            value={
-                              (availableVariations
-                                .find(v => v.id === variation.variationId)?.variationOptions || [])
-                                .filter(option => variation.variationOptionIds.includes(option.id))
-                                .map(option => ({
-                                  value: option.id,
-                                  label: option.value
-                                }))
-                            }
-                            onChange={(options) => 
-                              updateVariation(index, 'variationOptionIds', options.map((option: any) => option.value))
-                            }
-                          />
-                        </div>
+                            }))[0]}
+                          onChange={(option) => 
+                            setSelectedVariation({
+                              ...selectedVariation,
+                              variationId: option?.value || "",
+                              variationOptionId: "" // Reset option when type changes
+                            })
+                          }
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="inline-block mb-2 text-sm font-medium">
+                          Variation Option <span className="text-red-500">*</span>
+                        </label>
+                        <Select
+                          className="react-select"
+                          options={
+                            // Filter variation options based on selected variation
+                            availableVariations
+                              .find(v => v.id === selectedVariation.variationId)?.variationOptions
+                              ?.map(option => ({
+                                value: option.id,
+                                label: option.value
+                              })) || []
+                          }
+                          isSearchable={true}
+                          isMulti={false}
+                          placeholder={selectedVariation.variationId ? "Select option..." : "Select a variation type first"}
+                          isDisabled={!selectedVariation.variationId}
+                          value={
+                            (availableVariations
+                              .find(v => v.id === selectedVariation.variationId)?.variationOptions || [])
+                              .filter(option => option.id === selectedVariation.variationOptionId)
+                              .map(option => ({
+                                value: option.id,
+                                label: option.value
+                              }))[0]
+                          }
+                          onChange={(option) => 
+                            setSelectedVariation({
+                              ...selectedVariation,
+                              variationOptionId: option?.value || ""
+                            })
+                          }
+                        />
                       </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
 
                 {/* Product Items Section */}
@@ -1111,7 +892,7 @@ export default function AddNew() {
                       type="button"
                       onClick={addProductItem}
                       className="flex items-center justify-center px-4 py-2 text-white rounded-lg bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all shadow-sm"
-                      disabled={productVariations.length === 0 || !productVariations.some(v => v.variationOptionIds.length > 0)}
+                      disabled={!selectedVariation.variationId}
                     >
                       <Plus className="size-4 mr-2" /> Add Item
                     </button>
@@ -1120,9 +901,7 @@ export default function AddNew() {
                   {productItems.length === 0 && (
                     <div className="p-4 text-center border border-dashed rounded-lg">
                       <p className="text-slate-500">
-                        {productVariations.length === 0 
-                          ? "Please add variations before adding product items" 
-                          : "No product items added yet. Click \"Add Item\" to create product items."}
+                        {selectedVariation.variationId ? "No product items added yet. Click \"Add Item\" to create product items." : "Please select a variation before adding product items"}
                       </p>
                     </div>
                   )}
@@ -1178,7 +957,7 @@ export default function AddNew() {
                             <p className="mt-1 text-sm text-red-500">{productItemErrors[index]?.variationOptionIds}</p>
                           )}
                           <p className="mt-1 text-xs text-gray-500">
-                            Variation options are automatically set based on your selections in the Variations section
+                            Variation options are automatically set based on your selections in the Variation section
                           </p>
                         </div>
                         
@@ -1446,12 +1225,13 @@ export default function AddNew() {
                         Expiry Date <span className="text-red-500">*</span>
                       </label>
                       <input
-                        type="date"
+                        type="text"
                         id="expiryDate"
                         name="expiryDate"
                         className={`form-input w-full ${
                           productFormik.touched.expiryDate && productFormik.errors.expiryDate ? 'border-red-500' : 'border-slate-200'
                         }`}
+                        placeholder="Enter expiry date (e.g., 12/2025)"
                         value={productFormik.values.expiryDate}
                         onChange={productFormik.handleChange}
                         onBlur={productFormik.handleBlur}
@@ -1489,12 +1269,9 @@ export default function AddNew() {
                     type="button"
                     onClick={() => {
                       productFormik.resetForm();
-                      setThumbnail(null);
-                      setProductImages([]);
+                      setProductImage(null);
                       setProductItems([]);
-                      setProductVariations([]);
-                      setSuccessMessage("");
-                      setErrorMessage("");
+                      setSelectedVariation({variationId: "", variationOptionId: ""});
                     }}
                     className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100"
                   >

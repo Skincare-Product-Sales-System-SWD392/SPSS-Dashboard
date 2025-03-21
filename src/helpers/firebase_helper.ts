@@ -261,6 +261,20 @@ class FirebaseAuthBackend {
       throw error;
     }
   };
+
+  /**
+   * Upload product images to Firebase Storage
+   */
+  uploadProductImages = async (files: File[]) => {
+    return this.uploadFiles(files, "SPSS/Product-Images");
+  };
+
+  /**
+   * Upload a single product image to Firebase Storage
+   */
+  uploadProductImage = async (file: File) => {
+    return this.uploadFileWithDirectory(file, "SPSS/Product-Images");
+  };
 }
 
 let _fireBaseBackend: any = null;
