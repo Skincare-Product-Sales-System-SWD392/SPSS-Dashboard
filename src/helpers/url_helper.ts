@@ -48,28 +48,28 @@ export const UPDATE_PROMOTION = "/api/promotions";
 export const DELETE_PROMOTION = "/api/promotions";
 
 // Variation
-export const GET_ALL_VARIATIONS = "api/variations";
-export const CREATE_VARIATION = "api/variations";
-export const UPDATE_VARIATION = "api/variations";
-export const DELETE_VARIATION = "api/variations";
+export const GET_ALL_VARIATIONS = "/api/variations";
+export const CREATE_VARIATION = "/api/variations";
+export const UPDATE_VARIATION = "/api/variations";
+export const DELETE_VARIATION = "/api/variations";
 
 // Variation Option
-export const GET_ALL_VARIATION_OPTION = "api/variation-options"
-export const CREATE_VARIATION_OPTION = "api/variation-options"
-export const UPDATE_VARIATION_OPTION = "api/variation-options"
-export const DELETE_VARIATION_OPTION = "api/variation-options"
+export const GET_ALL_VARIATION_OPTION = "/api/variation-options"
+export const CREATE_VARIATION_OPTION = "/api/variation-options"
+export const UPDATE_VARIATION_OPTION = "/api/variation-options"
+export const DELETE_VARIATION_OPTION = "/api/variation-options"
 
 // Product Status
-export const GET_ALL_PRODUCT_STATUS = "api/product-statues"
-export const CREATE_PRODUCT_STATUS = "api/product-statues"
-export const UPDATE_PRODUCT_STATUS = "api/product-statues"
-export const DELETE_PRODUCT_STATUES = "api/product-statues"
+export const GET_ALL_PRODUCT_STATUS = "/api/product-statues"
+export const CREATE_PRODUCT_STATUS = "/api/product-statues"
+export const UPDATE_PRODUCT_STATUS = "/api/product-statues"
+export const DELETE_PRODUCT_STATUES = "/api/product-statues"
 
 // Product Category
-export const GET_ALL_PRODUCT_CATEGORIES = "api/product-categories";
-export const CREATE_PRODUCT_CATEGORIES = "api/product-categories";
-export const UPDATE_PRODUCT_CATEGORIES= "api/product-categories";
-export const DELETE_PRODUCT_CATEGORIES = "api/product-categories";
+export const GET_ALL_PRODUCT_CATEGORIES = "/api/product-categories";
+export const CREATE_PRODUCT_CATEGORIES = "/api/product-categories";
+export const UPDATE_PRODUCT_CATEGORIES= "/api/product-categories";
+export const DELETE_PRODUCT_CATEGORIES = "/api/product-categories";
 
 
 // Blog
@@ -147,6 +147,7 @@ export const CREATE_ORDERS = "/api/orders";
 export const UPDATE_ORDERS = "/api/orders";
 export const DELETE_ORDERS = "/api/orders";
 export const GET_ORDER_BY_ID = "/api/orders";
+export const CHANGE_ORDER_STATUS = "/api/orders";
 
 // Quiz Sets
 export const GET_ALL_QUIZ_SETS = "/api/quiz-sets";

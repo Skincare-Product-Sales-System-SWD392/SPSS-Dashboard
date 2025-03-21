@@ -7,17 +7,23 @@ import moment from "moment";
 import { useReactToPrint } from 'react-to-print';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { ChevronDown, Truck, CreditCard, CircleDollarSign, Download, Printer, AlertCircle, CheckCircle, X } from 'lucide-react';
+import { Link } from "react-router-dom";
+import { toast } from "react-hot-toast";
+import { Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from '@mui/material';
+import Button from '@mui/material/Button';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 
 // Images
 import delivery1 from "assets/images/brand/delivery-1.png";
 import logoSm from "assets/images/logo-sm.png";
 
 // icons
-import { Truck, CreditCard, CircleDollarSign, Download, Printer } from 'lucide-react';
-import { Link } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
 
 // Redux
-import { getOrderById } from "slices/order/thunk";
+import { getOrderById, changeOrderStatus } from "slices/order/thunk";
 import { getAllPaymentMethods } from "helpers/fakebackend_helper";
 
 // Status component
@@ -39,6 +45,38 @@ const Status = ({ status }: { status: string }) => {
             return (<span className="delivery_status px-2.5 py-0.5 text-xs inline-block font-medium rounded border bg-green-100 border-green-200 text-green-500 dark:bg-green-500/20 dark:border-green-500/20">{status}</span>);
     }
 };
+
+// Update the ORDER_STATUSES constant with more detailed styling info
+const ORDER_STATUSES = [
+    { 
+        value: "Processing", 
+        label: "Processing", 
+        color: "yellow",
+        bgClass: "bg-yellow-100 dark:bg-yellow-500/20",
+        textClass: "text-yellow-500"
+    },
+    { 
+        value: "Delivering", 
+        label: "Delivering", 
+        color: "purple",
+        bgClass: "bg-purple-100 dark:bg-purple-500/20",
+        textClass: "text-purple-500"
+    },
+    { 
+        value: "Delivered", 
+        label: "Delivered", 
+        color: "green",
+        bgClass: "bg-green-100 dark:bg-green-500/20",
+        textClass: "text-green-500"
+    },
+    { 
+        value: "Cancelled", 
+        label: "Cancelled", 
+        color: "red",
+        bgClass: "bg-red-100 dark:bg-red-500/20",
+        textClass: "text-red-500"
+    }
+];
 
 const OrderOverview = () => {
     // Use search params to get the order ID
@@ -321,6 +359,160 @@ const OrderOverview = () => {
         }
     };
 
+    // Add these state variables
+    const [showStatusModal, setShowStatusModal] = useState(false);
+    const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+
+    // Add this function to handle status button click
+    const handleStatusButtonClick = (status: string) => {
+        setSelectedStatus(status);
+        setShowStatusModal(true);
+    };
+
+    // Add state for MUI notifications
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
+
+    // Update the handleStatusChange function to use MUI notifications
+    const handleStatusChange = async () => {
+        if (!selectedStatus || !currentOrder || selectedStatus === currentOrder.status) {
+            setShowStatusModal(false);
+            return;
+        }
+        
+        try {
+            // Show loading toast
+            const loadingToast = toast.loading('Updating order status...');
+            
+            await dispatch(changeOrderStatus({ 
+                id: currentOrder.id, 
+                status: selectedStatus 
+            })).unwrap();
+            
+            // Fetch updated order details immediately after status change
+            await dispatch(getOrderById(currentOrder.id));
+            
+            // Dismiss loading toast
+            toast.dismiss(loadingToast);
+            
+            // Show success with MUI Snackbar
+            setSnackbarMessage(`Order status updated to ${selectedStatus}`);
+            setSnackbarSeverity('success');
+            setOpenSnackbar(true);
+            
+            setShowStatusModal(false);
+        } catch (error) {
+            // Show error with MUI Snackbar
+            setSnackbarMessage("Failed to update order status");
+            setSnackbarSeverity('error');
+            setOpenSnackbar(true);
+            setShowStatusModal(false);
+        }
+    };
+    
+    // Add function to handle Snackbar close
+    const handleSnackbarClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setOpenSnackbar(false);
+    };
+
+    // Update the payment method display in the Payment Info section
+    const getPaymentMethodDisplay = (paymentMethodId: string) => {
+        const method = paymentMethods.find(m => m.id === paymentMethodId);
+        if (!method) return null;
+
+        return (
+            <div className="flex items-center gap-3">
+                <div className="size-8 flex items-center justify-center rounded-md bg-white border">
+                    <img 
+                        src={method.imageUrl} 
+                        alt={method.paymentType} 
+                        className="h-6 w-6 object-contain"
+                    />
+                </div>
+                <span className="font-medium">{method.paymentType}</span>
+            </div>
+        );
+    };
+
+    // Add this function to format phone numbers consistently
+    const formatPhoneNumber = (phone: string) => {
+        if (!phone) return '';
+        // Format as XXXX XXX XXX
+        return phone.replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3');
+    };
+
+    // Update the status dropdown styling
+    const StatusDropdown = ({ currentStatus, onStatusChange }: { currentStatus: string, onStatusChange: (status: string) => void }) => {
+        return (
+            <div className="flex items-center gap-3">
+                <div className="relative inline-block min-w-[180px]">
+                    <select
+                        value={currentStatus}
+                        onChange={(e) => onStatusChange(e.target.value)}
+                        className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-md shadow-sm appearance-none cursor-pointer
+                                  dark:bg-zink-700 dark:border-zink-500 
+                                  focus:outline-none focus:ring-2 focus:ring-custom-500/20 focus:border-custom-500
+                                  disabled:bg-slate-100 disabled:cursor-not-allowed"
+                    >
+                        {ORDER_STATUSES.map((status) => {
+                            const isCurrentStatus = status.value === currentStatus;
+                            return (
+                                <option 
+                                    key={status.value} 
+                                    value={status.value}
+                                    disabled={isCurrentStatus}
+                                    className={`py-2 ${status.textClass} ${isCurrentStatus ? 'font-medium' : ''}`}
+                                >
+                                    {status.label}
+                                </option>
+                            );
+                        })}
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                        <ChevronDown className="size-4 text-slate-500 dark:text-zink-200" />
+                    </div>
+                </div>
+                
+                {/* Status Badge */}
+                {ORDER_STATUSES.map(status => (
+                    status.value === currentStatus && (
+                        <span 
+                            key={status.value}
+                            className={`px-2.5 py-0.5 text-xs inline-block font-medium rounded border
+                                      ${status.bgClass} ${status.textClass}
+                                      border-${status.color}-200 dark:border-${status.color}-500/20`}
+                        >
+                            {status.label}
+                        </span>
+                    )
+                ))}
+            </div>
+        );
+    };
+
+    // Add this useEffect to ensure toast notifications work properly
+    useEffect(() => {
+        // Create a container for toast notifications if it doesn't exist
+        if (!document.getElementById('toast-container')) {
+            const toastContainer = document.createElement('div');
+            toastContainer.id = 'toast-container';
+            toastContainer.className = 'fixed top-4 right-4 z-50';
+            document.body.appendChild(toastContainer);
+        }
+        
+        // Clean up on component unmount
+        return () => {
+            const container = document.getElementById('toast-container');
+            if (container && container.childNodes.length === 0) {
+                document.body.removeChild(container);
+            }
+        };
+    }, []);
+
     if (loading || !currentOrder) {
         return (
             <div className="flex items-center justify-center h-screen">
@@ -362,7 +554,7 @@ const OrderOverview = () => {
                             
                             {currentOrder.address?.phoneNumber && (
                                 <p className="mt-2 text-slate-500 dark:text-zink-200">
-                                    <span className="font-medium text-slate-800 dark:text-zink-50">Phone:</span> {currentOrder.address.phoneNumber}
+                                    <span className="font-medium text-slate-800 dark:text-zink-50">Phone:</span> {formatPhoneNumber(currentOrder.address?.phoneNumber)}
                                 </p>
                             )}
                         </div>
@@ -387,7 +579,7 @@ const OrderOverview = () => {
                             
                             {currentOrder.address?.phoneNumber && (
                                 <p className="mt-2 text-slate-500 dark:text-zink-200">
-                                    <span className="font-medium text-slate-800 dark:text-zink-50">Phone:</span> {currentOrder.address.phoneNumber}
+                                    <span className="font-medium text-slate-800 dark:text-zink-50">Phone:</span> {formatPhoneNumber(currentOrder.address?.phoneNumber)}
                                 </p>
                             )}
                         </div>
@@ -406,12 +598,7 @@ const OrderOverview = () => {
                                             <td className="px-2 first:pl-0 last:pr-0 py-2 border-y border-transparent w-1/3">Payment Method</td>
                                             <td className="px-2 first:pl-0 last:pr-0 py-2 border-y border-transparent w-[5%] text-center">:</td>
                                             <td className="px-4 first:pl-0 last:pr-0 py-2 border-y border-transparent w-2/3">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="size-8 flex items-center justify-center rounded-md bg-white border">
-                                                        <img src={delivery1} alt="" className="h-4" />
-                                                    </div>
-                                                    <h6 className="mb-0 text-sm">{getPaymentMethodName(currentOrder.paymentMethodId)}</h6>
-                                                </div>
+                                                {getPaymentMethodDisplay(currentOrder.paymentMethodId)}
                                             </td>
                                         </tr>
                                         <tr>
@@ -428,7 +615,18 @@ const OrderOverview = () => {
                                             <td className="px-2 first:pl-0 last:pr-0 py-2 border-y border-transparent">Status</td>
                                             <td className="px-2 first:pl-0 last:pr-0 py-2 border-y border-transparent text-center">:</td>
                                             <td className="px-4 first:pl-0 last:pr-0 py-2 border-y border-transparent">
-                                                <Status status={currentOrder.status} />
+                                                {ORDER_STATUSES.map(status => (
+                                                    status.value === currentOrder.status && (
+                                                        <span 
+                                                            key={status.value}
+                                                            className={`px-2.5 py-0.5 text-xs inline-block font-medium rounded border
+                                                                      ${status.bgClass} ${status.textClass}
+                                                                      border-${status.color}-200 dark:border-${status.color}-500/20`}
+                                                        >
+                                                            {status.label}
+                                                        </span>
+                                                    )
+                                                ))}
                                             </td>
                                         </tr>
                                     </tbody>
@@ -637,7 +835,7 @@ const OrderOverview = () => {
                                             <i className="ri-phone-line text-16"></i>
                                         </div>
                                         <div className="grow">
-                                            <p className="font-medium text-slate-800 dark:text-zink-50">{currentOrder.address.phoneNumber}</p>
+                                            <p className="font-medium text-slate-800 dark:text-zink-50">{formatPhoneNumber(currentOrder.address?.phoneNumber || '')}</p>
                                             <p className="text-slate-500 dark:text-zink-200">Phone Number</p>
                                         </div>
                                     </div>
@@ -645,8 +843,194 @@ const OrderOverview = () => {
                             </div>
                         </div>
                     </div>
+                    <div className="card">
+                        <div className="card-body">
+                            <h6 className="mb-4 text-15">Change Order Status</h6>
+                            <div className="flex flex-col gap-4">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-slate-500 dark:text-zink-200">Current Status:</span>
+                                    <div>
+                                        {ORDER_STATUSES.map(status => (
+                                            status.value === currentOrder.status && (
+                                                <span 
+                                                    key={status.value}
+                                                    className={`px-2.5 py-0.5 text-xs inline-block font-medium rounded border
+                                                                  ${status.bgClass} ${status.textClass}
+                                                                  border-${status.color}-200 dark:border-${status.color}-500/20`}
+                                                >
+                                                    {status.label}
+                                                </span>
+                                            )
+                                        ))}
+                                    </div>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-2">
+                                    {ORDER_STATUSES.map(status => (
+                                        <button
+                                            key={status.value}
+                                            type="button"
+                                            disabled={status.value === currentOrder.status}
+                                            onClick={() => handleStatusButtonClick(status.value)}
+                                            className={`px-3 py-2 text-sm rounded-md border transition-all
+                                                                  ${status.value === currentOrder.status 
+                                                                    ? `${status.bgClass} ${status.textClass} border-${status.color}-200 dark:border-${status.color}-500/20 cursor-not-allowed` 
+                                                                    : 'bg-white dark:bg-zink-700 border-slate-200 dark:border-zink-500 hover:bg-slate-50 dark:hover:bg-zink-600'}`}
+                                        >
+                                            <div className="flex items-center justify-center gap-2">
+                                                <span className={`size-2 rounded-full ${status.bgClass}`}></span>
+                                                <span className={status.value === currentOrder.status ? status.textClass : ''}>
+                                                    {status.label}
+                                                </span>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            {/* Status Change Confirmation Modal with your font styling */}
+            <Dialog 
+                open={showStatusModal}
+                onClose={() => setShowStatusModal(false)}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                    style: {
+                        fontFamily: 'inherit', // Use your app's font
+                        borderRadius: '8px'
+                    }
+                }}
+            >
+                <DialogTitle sx={{ 
+                    fontFamily: 'inherit', 
+                    fontSize: '1.25rem',
+                    fontWeight: 500,
+                    padding: '16px 24px',
+                    borderBottom: '1px solid rgba(0, 0, 0, 0.1)'
+                }}>
+                    Confirm Status Change
+                    <IconButton
+                        aria-label="close"
+                        onClick={() => setShowStatusModal(false)}
+                        sx={{ 
+                            position: 'absolute', 
+                            right: 8, 
+                            top: 8,
+                            color: 'rgba(0, 0, 0, 0.54)'
+                        }}
+                    >
+                        <X className="size-4" />
+                    </IconButton>
+                </DialogTitle>
+                <DialogContent sx={{ padding: '24px' }}>
+                    <div className="text-center mb-4">
+                        <div className="mb-4 inline-flex items-center justify-center size-12 rounded-full bg-slate-100 dark:bg-zink-600">
+                            <AlertCircle className="size-6 text-slate-500 dark:text-zink-200" />
+                        </div>
+                        <h5 className="mb-1 text-lg font-medium">Change Order Status</h5>
+                        <p className="text-slate-500 dark:text-zink-200">
+                            Are you sure you want to change the order status from 
+                            <span className="font-medium"> {currentOrder?.status}</span> to 
+                            <span className="font-medium"> {selectedStatus}</span>?
+                        </p>
+                    </div>
+                    
+                    <div className="flex gap-2 mb-4">
+                        {selectedStatus && ORDER_STATUSES.map(status => (
+                            status.value === selectedStatus && (
+                                <div key={status.value} className="w-full">
+                                    <div className={`p-3 rounded-md ${status.bgClass} border border-${status.color}-200 dark:border-${status.color}-500/20`}>
+                                        <div className="flex items-center gap-3">
+                                            <div className={`size-8 flex items-center justify-center rounded-full bg-white dark:bg-zink-700 ${status.textClass}`}>
+                                                <CheckCircle className="size-5" />
+                                            </div>
+                                            <div>
+                                                <h6 className={`mb-1 ${status.textClass} font-medium`}>{status.label}</h6>
+                                                <p className="text-sm text-slate-500 dark:text-zink-200">
+                                                    {status.value === "Processing" && "Order is being processed"}
+                                                    {status.value === "Delivering" && "Order is out for delivery"}
+                                                    {status.value === "Delivered" && "Order has been delivered"}
+                                                    {status.value === "Cancelled" && "Order has been cancelled"}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        ))}
+                    </div>
+                </DialogContent>
+                <DialogActions sx={{ 
+                    padding: '16px 24px',
+                    borderTop: '1px solid rgba(0, 0, 0, 0.1)'
+                }}>
+                    <Button
+                        variant="outlined"
+                        onClick={() => setShowStatusModal(false)}
+                        sx={{ 
+                            fontFamily: 'inherit',
+                            textTransform: 'none',
+                            fontWeight: 500,
+                            borderRadius: '6px'
+                        }}
+                        className="py-2 px-4 text-sm font-medium border rounded-md bg-white border-slate-200 text-slate-500 
+                                  dark:bg-zink-700 dark:border-zink-500 dark:text-zink-200 
+                                  hover:bg-slate-100 dark:hover:bg-zink-600"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleStatusChange}
+                        sx={{ 
+                            fontFamily: 'inherit',
+                            textTransform: 'none',
+                            fontWeight: 500,
+                            borderRadius: '6px',
+                            backgroundColor: 'var(--custom-500, #4b93ff)',
+                            '&:hover': {
+                                backgroundColor: 'var(--custom-600, #3a84ff)'
+                            }
+                        }}
+                        className="py-2 px-4 text-sm font-medium border rounded-md text-white 
+                                  bg-custom-500 border-custom-500 
+                                  hover:bg-custom-600 hover:border-custom-600"
+                    >
+                        Yes, Change Status
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            
+            {/* MUI Snackbar for notifications */}
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={5000}
+                onClose={handleSnackbarClose}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+                <Alert 
+                    onClose={handleSnackbarClose} 
+                    severity={snackbarSeverity} 
+                    sx={{ 
+                        width: '100%',
+                        fontFamily: 'inherit',
+                        '& .MuiAlert-icon': {
+                            fontSize: '1.25rem'
+                        },
+                        '& .MuiAlert-message': {
+                            fontSize: '0.875rem',
+                            fontWeight: 500
+                        }
+                    }}
+                >
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </React.Fragment>
     );
 };

@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getAllOrders, addOrder, updateOrder, deleteOrder, getOrderById } from "./thunk";
+import { getAllOrders, addOrder, updateOrder, deleteOrder, getOrderById, changeOrderStatus } from "./thunk";
 
 interface OrderState {
   loading: boolean;
@@ -107,7 +107,27 @@ const orderSlice = createSlice({
       state.loading = false;
       state.error = action.error.message || null;
     });
+
+    // Change Order Status
+    builder.addCase(changeOrderStatus.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
+    builder.addCase(changeOrderStatus.fulfilled, (state, action) => {
+      state.loading = false;
+      state.error = null;
+      // Update the current order status if it matches the changed order
+      if (state.currentOrder && state.currentOrder.id === action.payload.id) {
+        state.currentOrder.status = action.payload.status;
+      }
+    });
+    builder.addCase(changeOrderStatus.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message || null;
+    });
+    
   },
+
 });
 
 export default orderSlice.reducer; 

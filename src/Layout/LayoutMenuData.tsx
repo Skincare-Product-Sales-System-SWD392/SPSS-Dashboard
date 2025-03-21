@@ -41,18 +41,18 @@ const menuData: any = [
             //     link: '/apps-ecommerce-blog',
             //     parentId: 'ecommerce'
             // },
-            {
-                id: 'cancel reason',
-                label: 'Cancel Reason',
-                link: '/apps-ecommerce-cancel-reason',
-                parentId: 'ecommerce'
-            },
-            {
-                id: 'category',
-                label: 'Category',
-                link: '/apps-ecommerce-category',
-                parentId: 'ecommerce'
-            },
+            // {
+            //     id: 'cancel reason',
+            //     label: 'Cancel Reason',
+            //     link: '/apps-ecommerce-cancel-reason',
+            //     parentId: 'ecommerce'
+            // },
+            // {
+            //     id: 'category',
+            //     label: 'Category',
+            //     link: '/apps-ecommerce-category',
+            //     parentId: 'ecommerce'
+            // },
             {
                 id: 'order',
                 label: 'Order',

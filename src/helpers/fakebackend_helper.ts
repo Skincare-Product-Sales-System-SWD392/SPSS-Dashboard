@@ -314,6 +314,9 @@ export const deleteOrder = (id: string) =>
 export const getOrderById = (id: string) => 
   api.get(`${url.GET_ORDER_BY_ID}/${id}`, null);
 
+export const changeOrderStatus = (id: string, newStatus: string) => 
+  api.update(`${url.CHANGE_ORDER_STATUS}/${id}/status?newStatus=${newStatus}`, null);
+
 // Quiz Set
 export const getAllQuizSets = (params: { pageNumber: number; pageSize: number }) => 
   api.get(url.GET_ALL_QUIZ_SETS, params);

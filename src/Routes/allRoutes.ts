@@ -43,7 +43,7 @@ import Login from "pages/Authentication/Login";
 
 // import Register from "pages/Authentication/Register";
 import UserProfile from "pages/Authentication/UserProfile";
-import Category from "pages/Ecommerce/Category";
+
 import VariationOption from "pages/Ecommerce/VariationOption";
 import Account from "pages/Ecommerce/Account";
 
@@ -86,7 +86,6 @@ const authProtectedRoutes: Array<RouteObject> = [
   { path: "/apps-ecommerce-product-create", component: AddNew },
   { path: "/apps-ecommerce-checkout", component: Checkout },
   { path: "/apps-ecommerce-orders", component: Orders },
-  { path: "/apps-ecommerce-category", component: Category },
   { path: "/apps-ecommerce-voucher", component: Voucher },
   { path: "/apps-ecommerce-cancel-reason", component: CancelReason },
   { path: "/apps-ecommerce-payment-method", component: PaymentMethod },

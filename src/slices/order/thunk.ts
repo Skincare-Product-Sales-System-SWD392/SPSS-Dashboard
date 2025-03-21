@@ -5,7 +5,8 @@ import {
   createOrder as createOrderApi,
   updateOrder as updateOrderApi,
   deleteOrder as deleteOrderApi,
-  getOrderById as getOrderByIdApi,
+  getOrderById as getOrderByIdApi,  
+  changeOrderStatus as changeOrderStatusApi,
 } from "../../helpers/fakebackend_helper";
 
 export const getAllOrders = createAsyncThunk(
@@ -98,3 +99,21 @@ export const getOrderById = createAsyncThunk(
     }
   }
 );
+
+export const changeOrderStatus = createAsyncThunk(
+  "order/changeOrderStatus",
+  async ({ id, status }: { id: string, status: string }) => {
+    try {
+      const response = await changeOrderStatusApi(id, status);
+      return { id, status };
+    } catch (error: any) {
+      if (error.response?.data?.data) {
+        toast.error(error.response.data.data);
+      } else {
+        toast.error("Failed to change order status");
+      }
+      throw error;
+    }
+  }
+);
+
