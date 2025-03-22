@@ -137,6 +137,13 @@ const VariationOption = () => {
     onSubmit: (values) => {
       if (isEdit) {
         console.log("Updating with eventData:", eventData);
+        console.log("Form values:", values);
+        
+        // Make sure we have a valid ID before sending the update request
+        if (!eventData || !eventData.id) {
+          console.error("Cannot update: Missing variation option ID");
+          return;
+        }
         
         const updateData = {
           id: eventData.id,
@@ -149,11 +156,12 @@ const VariationOption = () => {
         console.log("Update data being sent:", updateData);
         
         dispatch(updateVariationOption(updateData))
-          .then(() => {
+          .then((response: any) => {
+            console.log("Update successful:", response);
             toggle();
-            setRefreshFlag(!refreshFlag);
+            setRefreshFlag(prev => !prev); // Use function form to ensure latest state
           })
-          .catch((error : any) => {
+          .catch((error: any) => {
             console.error("Update failed:", error);
           });
       } else {
@@ -262,18 +270,22 @@ const VariationOption = () => {
                     onClick={() => {
                       const row = cell.row.original;
                       console.log("Edit clicked with row:", row);
-                      console.log("Row ID:", row.id);
                       
-                      // Make sure we capture the ID correctly
-                      setEventData({
-                        id: row.id, // Explicitly set the ID
+                      // Ensure we have all the necessary data
+                      const editData = {
+                        id: row.id,
                         value: row.value || "",
                         variationId: row.variationId || ""
-                      });
+                      };
                       
+                      console.log("Setting eventData to:", editData);
+                      
+                      setEventData(editData);
                       setIsEdit(true);
                       setIsOverview(false);
-                      toggle();
+                      setShow(true);
+                      
+                      // Make sure form values are set correctly
                       validation.setValues({
                         value: row.value || "",
                         variationId: row.variationId || "",
@@ -404,8 +416,12 @@ const VariationOption = () => {
           <form
             onSubmit={(e) => {
               e.preventDefault();
+              console.log("Form submitted, isOverview:", isOverview);
+              console.log("Current eventData:", eventData);
               if (!isOverview) {
+                console.log("Calling validation.handleSubmit()");
                 validation.handleSubmit();
+                return false;
               }
               return false;
             }}

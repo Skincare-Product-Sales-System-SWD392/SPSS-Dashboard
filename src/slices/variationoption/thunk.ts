@@ -45,23 +45,23 @@ export const addVariationOption = createAsyncThunk(
 );
 
 export const updateVariationOption = createAsyncThunk(
-    "variationOption/updateVariationOption",
-    async (variation: { id: string, data: any }) => {
-      try {
-        const response = await updateVariationOptionApi(variation.id, variation.data);
-        toast.success("Variation option updated successfully");
-        // Return the updated item
-        return { data: response.data.items ? response.data.items[0] : response.data };
-      } catch (error: any) {
-        if (error.response?.data?.data) {
-          toast.error(error.response.data.data);
-        } else {
-          toast.error("Failed to update variation option");
-        }
-        throw error;
+  "variationOption/updateVariationOption",
+  async (variation: { id: string, data: any }) => {
+    try {
+      const response = await updateVariationOptionApi(variation.id, variation.data);
+      toast.success("Variation option updated successfully");
+      // Return the updated item
+      return { data: response.data.items ? response.data.items[0] : response.data };
+    } catch (error: any) {
+      if (error.response?.data?.data) {
+        toast.error(error.response.data.data);
+      } else {
+        toast.error("Failed to update variation option");
       }
+      throw error;
     }
-  );
+  }
+);
 
 export const deleteVariationOption = createAsyncThunk(
   "variationOption/deleteVariationOption",
