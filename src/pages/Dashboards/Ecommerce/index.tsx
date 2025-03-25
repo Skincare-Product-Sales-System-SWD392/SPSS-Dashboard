@@ -1,12 +1,30 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import BreadCrumb from 'Common/BreadCrumb';
 import ProductPriceAnalysis from './ProductPriceAnalysis';
 import PriceDiscountAnalysis from './PriceDiscountAnalysis';
 import WelcomeBanner from './WelcomeBanner';
 import TopSellingProducts from './TopSellingProducts';
 import NewProductsAnalysis from './NewProductsAnalysis';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from 'slices/store';
+import { fetchBestSellers, fetchNewProducts, fetchPendingOrders } from 'slices/dashboard/reducer';
+import PendingOrders from './PendingOrders';
 
 const Ecommerce = () => {
+    const dispatch = useDispatch<AppDispatch>();
+
+    useEffect(() => {
+        // Fetch data for dashboard components
+        dispatch(fetchBestSellers({ pageNumber: 1, pageSize: 10 }));
+        dispatch(fetchNewProducts({ pageNumber: 1, pageSize: 10 }));
+        
+        // Explicitly fetch pending orders with the correct parameters
+        dispatch(fetchPendingOrders({ topCount: 10 }))
+            .unwrap()
+            .then(data => console.log('Pending orders loaded:', data))
+            .catch(err => console.error('Error loading pending orders:', err));
+    }, [dispatch]);
+
     return (
         <React.Fragment>
             <div className="page-content">
@@ -16,9 +34,16 @@ const Ecommerce = () => {
                     <ProductPriceAnalysis />
                     <PriceDiscountAnalysis />
                     <NewProductsAnalysis />
-                    <TopSellingProducts />
                 </div>
-           </div>
+                
+                {/* Separate row for Top Selling Products and Pending Orders */}
+                <div className="grid grid-cols-12 gap-x-5 mt-5">
+                    <div className="col-span-12 lg:col-span-6 2xl:col-span-4">
+                        <TopSellingProducts />
+                    </div>
+                    <PendingOrders />
+                </div>
+            </div>
         </React.Fragment>
     );
 };

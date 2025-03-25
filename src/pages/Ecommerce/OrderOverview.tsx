@@ -531,7 +531,21 @@ const OrderOverview = () => {
     return (
         <React.Fragment>
             <BreadCrumb title='Order Overview' pageTitle='Ecommerce' />
-            
+
+            {/* Add Back to Orders button */}
+            <div className="flex justify-between items-center mb-4">
+                <Link 
+                    to="/apps-ecommerce-orders"
+                    className="py-2 px-4 text-sm font-medium rounded-md flex items-center gap-2
+                            bg-blue-500 text-white
+                            hover:bg-blue-600 transition-colors duration-200
+                            shadow-sm"
+                >
+                    <i className="ri-arrow-left-line text-16"></i>
+                    <span>Back to Orders</span>
+                </Link>
+            </div>
+
             {/* Invoice template for printing - make it visible but hidden until print */}
             <div className={`fixed top-0 left-0 w-full h-full bg-white ${showInvoice ? 'block z-50' : 'hidden -z-10'}`}>
                 <div ref={invoiceRef} className="p-8 bg-white print-only">

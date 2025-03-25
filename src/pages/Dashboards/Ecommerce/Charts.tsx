@@ -651,8 +651,83 @@ const PriceDiscountChart = ({ chartId, products }: { chartId: string, products: 
             categories: productData.map(item => item.name),
             labels: {
                 formatter: function(val: number) {
-                    return val.toFixed(1) + '%';
+                    // Return just the numeric value without the percentage symbol
+                    return val.toFixed(1);
                 }
+            }
+        },
+        colors: chartColors
+    };
+    
+    return (
+        <React.Fragment>
+            <ReactApexChart
+                options={options}
+                series={series}
+                data-chart-colors='["bg-green-500"]'
+                id={chartId}
+                className="apex-charts"
+                type='bar'
+                height={350}
+            />
+        </React.Fragment>
+    );
+};
+
+const TopDiscountedProductsChart = ({ chartId, products }: { chartId: string, products: any[] }) => {
+    const chartColors = useChartColors(chartId);
+    
+    // Calculate discount percentages
+    const productData = products.slice(0, 5).map(product => {
+        const discountPercent = ((product.marketPrice - product.price) / product.marketPrice * 100).toFixed(1);
+        return {
+            name: product.name.substring(0, 18) + (product.name.length > 18 ? '...' : ''),
+            discount: parseFloat(discountPercent)
+        };
+    }).sort((a, b) => b.discount - a.discount); // Sort by discount percentage
+    
+    // Top Discounted Products Chart
+    const series = [{
+        name: 'Discount %',
+        data: productData.map(item => item.discount)
+    }];
+    
+    const options: any = {
+        chart: {
+            type: 'bar',
+            height: 350,
+            toolbar: {
+                show: false,
+            }
+        },
+        plotOptions: {
+            bar: {
+                borderRadius: 4,
+                horizontal: true,
+            }
+        },
+        dataLabels: {
+            enabled: true,
+            formatter: function(val: number) {
+                return val.toFixed(1) + '%';
+            },
+            style: {
+                fontSize: '12px',
+                colors: ['#fff']
+            }
+        },
+        xaxis: {
+            categories: productData.map(item => item.name),
+            labels: {
+                formatter: function(val: number) {
+                    // Return just the numeric value without the percentage symbol
+                    return val.toFixed(1);
+                }
+            }
+        },
+        yaxis: {
+            title: {
+                text: undefined
             }
         },
         colors: chartColors
@@ -745,16 +820,16 @@ const NewProductsPriceRangeChart = ({ chartId, products }: { chartId: string, pr
 const NewProductsDiscountChart = ({ chartId, products }: { chartId: string, products: any[] }) => {
     const chartColors = useChartColors(chartId);
     
-    // Calculate discount percentages and sort by highest discount
-    const productData = products.map(product => {
+    // Calculate discount percentages
+    const productData = products.slice(0, 5).map(product => {
         const discountPercent = ((product.marketPrice - product.price) / product.marketPrice * 100).toFixed(1);
         return {
-            name: product.name.substring(0, 15) + '...',
+            name: product.name.substring(0, 18) + (product.name.length > 18 ? '...' : ''),
             discount: parseFloat(discountPercent)
         };
-    }).sort((a, b) => b.discount - a.discount).slice(0, 5); // Get top 5 discounted products
+    }).sort((a, b) => b.discount - a.discount); // Sort by discount percentage
     
-    // New Products Discount Chart
+    // Top Discounted Products Chart
     const series = [{
         name: 'Discount %',
         data: productData.map(item => item.discount)
@@ -788,16 +863,14 @@ const NewProductsDiscountChart = ({ chartId, products }: { chartId: string, prod
             categories: productData.map(item => item.name),
             labels: {
                 formatter: function(val: number) {
-                    return val.toFixed(1) + '%';
+                    // Return just the numeric value without the percentage symbol
+                    return val.toFixed(1);
                 }
             }
         },
-        title: {
-            text: 'Top Discounted New Products',
-            align: 'center',
-            style: {
-                fontSize: '16px',
-                fontWeight: 'bold'
+        yaxis: {
+            title: {
+                text: undefined
             }
         },
         colors: chartColors
@@ -827,6 +900,7 @@ export {
     ProductPriceComparisonChart,
     ProductCategoryChart,
     PriceDiscountChart,
+    TopDiscountedProductsChart,
     NewProductsPriceRangeChart,
     NewProductsDiscountChart
 };

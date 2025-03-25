@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch } from 'slices/store';
-import { fetchBestSellers, fetchNewProducts } from './reducer';
+import { fetchBestSellers, fetchNewProducts, fetchPendingOrders } from './reducer';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
@@ -24,7 +24,7 @@ export const fetchTotalRevenue = createAsyncThunk(
   async () => {
     try {
       const response = await axios.get<RevenueResponse>(
-        'https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/dashboards/total-revenue',
+        'http://localhost:5041/api/dashboards/total-revenue',
         {
           params: { pageNumber: 1, pageSize: 10 }
         }
@@ -48,5 +48,6 @@ const Dashboard = () => {
     dispatch(fetchTotalRevenue());
     dispatch(fetchBestSellers({ pageNumber: 1, pageSize: 10 }));
     dispatch(fetchNewProducts({ pageNumber: 1, pageSize: 10 }));
+    dispatch(fetchPendingOrders({ topCount: 10 }));
   }, [dispatch]);
 };

@@ -79,6 +79,21 @@ const Overview = () => {
     return (
         <React.Fragment>
             <BreadCrumb title='Overview' pageTitle='Products' />
+
+            {/* Add Back to Products button */}
+            <div className="flex justify-between items-center mb-4">
+                <Link 
+                    to="/apps-ecommerce-product-list"
+                    className="py-2 px-4 text-sm font-medium rounded-md flex items-center gap-2
+                            bg-blue-500 text-white
+                            hover:bg-blue-600 transition-colors duration-200
+                            shadow-sm"
+                >
+                    <i className="ri-arrow-left-line text-16"></i>
+                    <span>Back to Products</span>
+                </Link>
+            </div>
+
             <DeleteModal show={deleteModal} onHide={deleteToggle} onDelete={handleDelete} />
 
             {loading ? (

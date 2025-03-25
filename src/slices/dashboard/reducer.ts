@@ -56,10 +56,33 @@ interface NewProductsResponse {
   errors: null | string[];
 }
 
+// Add this new interface for pending orders
+interface OrderDetail {
+  productId: string;
+  productItemId: string;
+  productImage: string;
+  productName: string;
+  variationOptionValues: string[];
+  quantity: number;
+  price: number;
+  isReviewable: boolean;
+}
+
+interface PendingOrder {
+  id: string;
+  status: string;
+  orderTotal: number;
+  cancelReasonId: string | null;
+  createdTime: string;
+  paymentMethodId: string;
+  orderDetails: OrderDetail[];
+}
+
 interface DashboardState {
   totalRevenue: number;
-  bestSellers: BestSellersResponse | null;
+  bestSellers: BestSellersResponse | null;  
   newProducts: BestSeller[] | null;
+  pendingOrders: PendingOrder[]; // Add this new property
   loading: boolean;
   error: string | null;
 }
@@ -75,6 +98,7 @@ const initialState: DashboardState = {
     totalPages: 0
   },
   newProducts: null,
+  pendingOrders: [], // Initialize the new property
   loading: false,
   error: null
 };
@@ -85,7 +109,7 @@ export const fetchTotalRevenue = createAsyncThunk(
   async ({ pageNumber = 1, pageSize = 10 }: { pageNumber?: number; pageSize?: number }) => {
     try {
       const { data } = await axios.get<RevenueResponse>(
-        'https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/dashboards/total-revenue',
+        'http://localhost:5041/api/dashboards/total-revenue',
         { params: { pageNumber, pageSize } }
       );
       return data.data.items[0]?.totalRevenue ?? 0;
@@ -101,7 +125,7 @@ export const fetchBestSellers = createAsyncThunk(
   async ({ pageNumber = 1, pageSize = 10 }: { pageNumber?: number; pageSize?: number }) => {
     try {
       const response = await axios.get(
-        `https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/dashboards/best-sellers`,
+        `http://localhost:5041/api/dashboards/best-sellers`,
         {
           params: { pageNumber, pageSize }
         }
@@ -151,7 +175,7 @@ export const fetchNewProducts = createAsyncThunk(
   async ({ pageNumber = 1, pageSize = 10 }: { pageNumber?: number; pageSize?: number }) => {
     try {
       const response = await axios.get(
-        `https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/products`,
+        `http://localhost:5041/api/products`,
         {
           params: { pageNumber, pageSize, sortBy: 'news' }
         }
@@ -180,6 +204,43 @@ export const fetchNewProducts = createAsyncThunk(
         throw new Error(error.response?.data?.message || error.message);
       }
       throw error;
+    }
+  }
+);
+
+// Update the fetchPendingOrders thunk with the correct API endpoint
+export const fetchPendingOrders = createAsyncThunk(
+  'dashboard/fetchPendingOrders',
+  async ({ topCount }: { topCount: number }, { rejectWithValue }) => {
+    try {
+      console.log('Fetching pending orders with URL:', `http://localhost:5041/api/dashboards/top-pending?topCount=${topCount}`);
+      
+      const response = await axios.get(`http://localhost:5041/api/dashboards/top-pending?topCount=${topCount}`);
+      
+      console.log('Pending orders raw response:', response);
+      console.log('Pending orders API response data:', response.data);
+      
+      // Check if we have a valid response
+      if (!response.data) {
+        console.error('API returned undefined or null data');
+        return [];
+      }
+      
+      // The API returns the data directly, not nested under a data property
+      if (response.data && response.data.items) {
+        console.log('Found items in response data:', response.data.items);
+        return response.data.items;
+      } else if (Array.isArray(response.data)) {
+        console.log('Response data is an array:', response.data);
+        return response.data;
+      }
+      
+      console.error('Unexpected response format for pending orders:', response.data);
+      return [];
+    } catch (error : any) {
+      console.error('Error fetching pending orders:', error);
+      console.error('Error details:', error.response || error.message || error);
+      return rejectWithValue(error.response?.data || 'Error fetching pending orders');
     }
   }
 );
@@ -237,6 +298,22 @@ const dashboardSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch new products';
         state.newProducts = null;
+      })
+      // Pending Orders
+      .addCase(fetchPendingOrders.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchPendingOrders.fulfilled, (state, action) => {
+        state.loading = false;
+        state.pendingOrders = action.payload || [];
+        console.log('Pending orders stored in state:', action.payload);
+      })
+      .addCase(fetchPendingOrders.rejected, (state, action) => {
+        state.loading = false;
+        state.error = typeof action.payload === 'string' 
+          ? action.payload 
+          : action.error.message || 'Failed to fetch pending orders';
       });
   }
 });
