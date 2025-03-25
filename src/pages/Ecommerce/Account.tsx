@@ -38,54 +38,58 @@ import {
     getAllRoles
 } from 'slices/role/thunk';
 
-import { ToastContainer } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import filterDataBySearch from 'Common/filterDataBySearch';
 import { getFirebaseBackend } from 'helpers/firebase_helper';
 
-// Status Component
+// Helper function for phone validation
+const isValidPhoneNumber = (phoneNumber: string) => {
+    const cleanNumber = phoneNumber.replace(/\D/g, '');
+    return /^[0-9]{9,10}$/.test(cleanNumber);
+};
+
+// Helper function to format phone number
+const formatPhoneNumber = (phoneNumber: string) => {
+    if (!phoneNumber) return '';
+    const cleaned = phoneNumber.replace(/\D/g, '');
+    if (cleaned.length === 10) {
+        return `${cleaned.slice(0, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7)}`;
+    }
+    return phoneNumber;
+};
+
+// Status component with Vietnamese text
 const Status = ({ item }: any) => {
     switch (item) {
         case "Active":
             return (
-                <span className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded border bg-green-100 border-green-200 text-green-500 dark:bg-green-500/20 dark:border-green-500/20">
-                    <CheckCircle className="size-3 ltr:mr-1 rtl:ml-1" /> {item}
+                <span className="px-2.5 py-0.5 text-xs inline-block font-medium rounded border bg-green-100 border-green-200 text-green-500 dark:bg-green-500/20 dark:border-green-500/20">
+                    Hoạt Động
                 </span>
             );
         case "Inactive":
             return (
-                <span className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded border bg-red-100 border-red-200 text-red-500 dark:bg-red-500/20 dark:border-red-500/20">
-                    <X className="size-3 ltr:mr-1 rtl:ml-1" /> {item}
+                <span className="px-2.5 py-0.5 text-xs inline-block font-medium rounded border bg-red-100 border-red-200 text-red-500 dark:bg-red-500/20 dark:border-red-500/20">
+                    Không Hoạt Động
                 </span>
             );
         default:
             return (
-                <span className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded border bg-yellow-100 border-yellow-200 text-yellow-500 dark:bg-yellow-500/20 dark:border-yellow-500/20">
-                    <Loader className="size-3 ltr:mr-1 rtl:ml-1" /> {item}
+                <span className="px-2.5 py-0.5 text-xs inline-block font-medium rounded border bg-yellow-100 border-yellow-200 text-yellow-500 dark:bg-yellow-500/20 dark:border-yellow-500/20">
+                    {item}
                 </span>
             );
     }
 };
 
-// Add this helper function to format phone numbers
-const formatPhoneNumber = (phoneNumber: string) => {
-    if (!phoneNumber) return '';
-    
-    // Remove any non-digit characters
-    const digits = phoneNumber.replace(/\D/g, '');
-    
-    // Format with spaces (adjust the pattern as needed for your specific format)
-    // This creates groups of 3-3-4 digits with spaces between
-    return digits.replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3')
-        // If the pattern doesn't match exactly, just add spaces every 3-4 digits
-        || digits.replace(/(\d{3,4})(?=\d)/g, '$1 ').trim();
-};
-
 const Account = () => {
     const dispatch = useDispatch<any>();
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10);
+    const [pageSize] = useState(10);
     const [viewMode, setViewMode] = useState(false);
+    const [isFiltering, setIsFiltering] = useState(false);
 
+    // Add selector for pagination data
     const selectUserData = createSelector(
         (state: any) => state.User,
         (user) => ({
@@ -112,7 +116,7 @@ const Account = () => {
         })
     );
 
-    const { users, totalCount, pageNumber, pageSize: apiPageSize, totalPages, loading } = useSelector(selectUserData);
+    const { users, totalCount, totalPages, loading } = useSelector(selectUserData);
     const { skinTypes } = useSelector(selectSkinTypeData);
     const { roles } = useSelector(selectRoleData);
     
@@ -133,6 +137,9 @@ const Account = () => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [selectedImage, setSelectedImage] = useState<any>();
 
+    // Add state for image removal
+    const [isImageRemoved, setIsImageRemoved] = useState(false);
+
     // Toggle Modal
     const toggle = useCallback(() => {
         if (show) {
@@ -150,16 +157,98 @@ const Account = () => {
         }
     }, [show]);
 
-    // Get Data
+    // Apply filters
+    const applyFilters = useCallback(() => {
+        // Check if any filter is active
+        const isAnyFilterActive = 
+            filters.search !== '' || 
+            filters.status !== 'All' || 
+            filters.skinType !== 'All' || 
+            filters.role !== 'All';
+        
+        setIsFiltering(isAnyFilterActive);
+        
+        if (!users || users.length === 0) {
+            setFilteredUsers([]);
+            return;
+        }
+        
+        let result = [...users];
+        
+        // Search filter
+        if (filters.search) {
+            const searchTerm = filters.search.toLowerCase();
+            result = result.filter((item: any) => {
+                return (
+                    (item.userName?.toLowerCase() || '').includes(searchTerm) ||
+                    (item.surName?.toLowerCase() || '').includes(searchTerm) ||
+                    (item.lastName?.toLowerCase() || '').includes(searchTerm) ||
+                    (item.emailAddress?.toLowerCase() || '').includes(searchTerm) ||
+                    (item.phoneNumber?.toLowerCase() || '').includes(searchTerm)
+                );
+            });
+        }
+        
+        // Status filter
+        if (filters.status !== 'All') {
+            result = result.filter((user: any) => user.status === filters.status);
+        }
+        
+        // Skin type filter
+        if (filters.skinType !== 'All') {
+            if (filters.skinType === 'None') {
+                result = result.filter((user: any) => !user.skinTypeId);
+            } else {
+                result = result.filter((user: any) => user.skinTypeId === filters.skinType);
+            }
+        }
+        
+        // Role filter
+        if (filters.role !== 'All') {
+            result = result.filter((user: any) => user.roleId === filters.role);
+        }
+        
+        setFilteredUsers(result);
+    }, [users, filters]);
+
+    // Fetch all data when filtering is active
     useEffect(() => {
-        dispatch(getAllUsers({ page: currentPage, pageSize: pageSize }));
+        // Check if any filter is active
+        const isAnyFilterActive = 
+            filters.search !== '' || 
+            filters.status !== 'All' || 
+            filters.skinType !== 'All' || 
+            filters.role !== 'All';
+        
+        if (isAnyFilterActive) {
+            // Fetch all data (use 100 as the maximum allowed pageSize)
+            dispatch(getAllUsers({ page: 1, pageSize: 100 }));
+        } else {
+            // Normal pagination mode - fetch only current page
+            dispatch(getAllUsers({ page: currentPage, pageSize }));
+        }
+    }, [dispatch, filters, currentPage, pageSize]);
+
+    // Apply filters when users or filters change
+    useEffect(() => {
+        applyFilters();
+    }, [applyFilters]);
+
+    // Initial data fetch - only once on component mount
+    useEffect(() => {
+        dispatch(getAllUsers({ page: 1, pageSize }));
         dispatch(getAllSkinTypes({ page: 1, pageSize: 100 }));
         dispatch(getAllRoles({ page: 1, pageSize: 100 }));
-    }, [dispatch, currentPage, pageSize]);
+    }, [dispatch, pageSize]);
 
+    // Update filtered users when users change
     useEffect(() => {
-        setFilteredUsers(users);
-    }, [users]);
+        if (!isFiltering) {
+            setFilteredUsers(users);
+        } else {
+            applyFilters();
+        }
+    }, [users, isFiltering, applyFilters]);
 
     // Delete Modal
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
@@ -180,7 +269,7 @@ const Account = () => {
                     // Check if the delete was successful
                     if (response && response.meta && response.meta.requestStatus === 'fulfilled') {
                         // Refresh the data after successful deletion
-                        dispatch(getAllUsers({ page: currentPage, pageSize: pageSize }));
+                        dispatch(getAllUsers({ page: currentPage, pageSize }));
                         setDeleteModal(false);
                     }
                 });
@@ -229,63 +318,6 @@ const Account = () => {
         }
     };
 
-    // Enhanced filter function that handles multiple filter criteria
-    const applyFilters = useCallback(() => {
-        let result = [...users];
-        
-        // Text search filter - enhanced to search across more fields including skin type and role names
-        if (filters.search) {
-            const searchTerm = filters.search.toLowerCase();
-            result = result.filter((item: any) => {
-                // Basic fields search
-                const basicFieldsMatch = ['userName', 'surName', 'lastName', 'emailAddress', 'phoneNumber'].some(key => 
-                    (item[key] || '').toString().toLowerCase().includes(searchTerm)
-                );
-                
-                // Skin type name search
-                const skinTypeName = getSkinTypeName(item.skinTypeId).toLowerCase();
-                const skinTypeMatch = skinTypeName.includes(searchTerm);
-                
-                // Role name search
-                const roleName = getRoleName(item.roleId).toLowerCase();
-                const roleMatch = roleName.includes(searchTerm);
-                
-                // Status search
-                const statusMatch = (item.status || '').toLowerCase().includes(searchTerm);
-                
-                return basicFieldsMatch || skinTypeMatch || roleMatch || statusMatch;
-            });
-        }
-        
-        // Status filter
-        if (filters.status !== 'All') {
-            result = result.filter((user: any) => user.status === filters.status);
-        }
-        
-        // Skin type filter
-        if (filters.skinType !== 'All') {
-            if (filters.skinType === 'None') {
-                // Filter for users with no skin type (null or empty skinTypeId)
-                result = result.filter((user: any) => !user.skinTypeId);
-            } else {
-                // Filter for users with the selected skin type
-                result = result.filter((user: any) => user.skinTypeId === filters.skinType);
-            }
-        }
-        
-        // Role filter
-        if (filters.role !== 'All') {
-            result = result.filter((user: any) => user.roleId === filters.role);
-        }
-        
-        setFilteredUsers(result);
-    }, [users, filters, getSkinTypeName, getRoleName]);
-    
-    // Apply filters whenever filters or users change
-    useEffect(() => {
-        applyFilters();
-    }, [applyFilters, users]);
-    
     // Handle search input change
     const handleSearchChange = (e: any) => {
         setFilters(prev => ({ ...prev, search: e.target.value }));
@@ -304,6 +336,13 @@ const Account = () => {
     // Handle role filter change
     const handleRoleChange = (selectedOption: any) => {
         setFilters(prev => ({ ...prev, role: selectedOption.value }));
+    };
+
+    // Handle image removal
+    const handleRemoveImage = () => {
+        setIsImageRemoved(true);
+        setSelectedImage(null);
+        validation.setFieldValue('avatarUrl', '');
     };
 
     // Update the validation onSubmit function
@@ -325,9 +364,27 @@ const Account = () => {
             userName: Yup.string().required("Vui lòng nhập tên người dùng"),
             surName: Yup.string().required("Vui lòng nhập họ"),
             lastName: Yup.string().required("Vui lòng nhập tên"),
-            emailAddress: Yup.string().email("Định dạng email không hợp lệ").required("Vui lòng nhập email"),
-            phoneNumber: Yup.string().required("Vui lòng nhập số điện thoại"),
-            password: Yup.string().required("Vui lòng nhập mật khẩu"),
+            emailAddress: Yup.string()
+                .required("Vui lòng nhập email")
+                .email("Định dạng email không hợp lệ")
+                .matches(
+                    /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/,
+                    "Email không hợp lệ. Vui lòng nhập đúng định dạng (ví dụ: example@domain.com)"
+                ),
+            phoneNumber: Yup.string()
+                .required("Vui lòng nhập số điện thoại")
+                .test("phone", "Số điện thoại phải có 9 hoặc 10 chữ số", function(value) {
+                    if (!value) return false;
+                    return isValidPhoneNumber(value);
+                })
+                .test("numeric", "Số điện thoại chỉ được chứa chữ số", function(value) {
+                    if (!value) return false;
+                    const cleanNumber = value.replace(/\s/g, '');
+                    return /^\d+$/.test(cleanNumber);
+                }),
+            password: Yup.string()
+                .required("Vui lòng nhập mật khẩu")
+                .min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
             status: Yup.string().required("Vui lòng chọn trạng thái"),
             roleId: Yup.string().required("Vui lòng chọn vai trò")
         }),
@@ -338,7 +395,7 @@ const Account = () => {
                 // Upload image to Firebase if a new file is selected
                 if (selectedFile) {
                     const firebaseBackend = getFirebaseBackend();
-                    avatarUrl = await firebaseBackend.uploadFile(selectedFile, "SPSS/User-Image");
+                    avatarUrl = await firebaseBackend.uploadAccountImage(selectedFile);
                 }
                 
                 // Format the phone number and handle skinTypeId
@@ -362,7 +419,7 @@ const Account = () => {
                         .then((response: any) => {
                             if (response && response.meta && response.meta.requestStatus === 'fulfilled') {
                                 // Refresh the data after successful update
-                                dispatch(getAllUsers({ page: currentPage, pageSize: pageSize }));
+                                dispatch(getAllUsers({ page: currentPage, pageSize }));
                             }
                         });
                 } else {
@@ -376,17 +433,38 @@ const Account = () => {
                         .then((response: any) => {
                             if (response && response.meta && response.meta.requestStatus === 'fulfilled') {
                                 // Refresh the data after successful add
-                                dispatch(getAllUsers({ page: currentPage, pageSize: pageSize }));
+                                dispatch(getAllUsers({ page: currentPage, pageSize }));
                             }
                         });
                 }
                 toggle();
             } catch (error) {
                 console.error("Lỗi khi tải lên hình ảnh:", error);
-                // You might want to show an error toast here
+                toast.error("Lỗi khi tải lên hình ảnh. Vui lòng thử lại.");
             }
         },
     });
+
+    // Optional: Add a handler for phone number input to format while typing
+    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        let value = e.target.value;
+        // Remove any non-digit characters except spaces
+        value = value.replace(/[^\d\s]/g, '');
+        // Limit to 10 digits (excluding spaces)
+        const digits = value.replace(/\s/g, '');
+        if (digits.length > 10) {
+            return;
+        }
+        
+        // Format the phone number as user types
+        if (digits.length >= 7) {
+            value = `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`;
+        } else if (digits.length >= 4) {
+            value = `${digits.slice(0, 4)} ${digits.slice(4)}`;
+        }
+        
+        validation.setFieldValue('phoneNumber', value);
+    };
 
     // Table columns
     const columns = useMemo(() => [
@@ -506,22 +584,91 @@ const Account = () => {
         }))
     ], [roles]);
 
-    // Handle pagination
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page);
+    // Function to directly navigate to a specific page
+    const goToPage = (page: number) => {
+        // Only change page if not in filtering mode
+        if (!isFiltering) {
+            setCurrentPage(page);
+            dispatch(getAllUsers({ 
+                page: page, 
+                pageSize: pageSize 
+            }));
+        }
     };
 
-    // In your component, add this console log
-    useEffect(() => {
-        console.log("Current Redux State:", {
-            users,
-            totalCount,
-            pageNumber,
-            pageSize,
-            totalPages,
-            loading
-        });
-    }, [users, totalCount, pageNumber, pageSize, totalPages, loading]);
+    // Custom pagination component with direct navigation
+    const CustomPagination = () => {
+        // Don't show pagination when filtering
+        if (isFiltering) {
+            return (
+                <div className="flex justify-between items-center mt-4 mr-4">
+                    <div className="text-sm text-slate-500 dark:text-zink-200">
+                        Hiển thị {filteredUsers.length} kết quả
+                    </div>
+                    <button 
+                        type="button" 
+                        className="text-custom-500 bg-white btn border-custom-500 hover:text-white hover:bg-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600"
+                        onClick={() => {
+                            // Reset all filters
+                            setFilters({
+                                search: '',
+                                status: 'All',
+                                skinType: 'All',
+                                role: 'All'
+                            });
+                            setIsFiltering(false);
+                        }}
+                    >
+                        Xóa Bộ Lọc
+                    </button>
+                </div>
+            );
+        }
+        
+        return (
+            <div className="flex justify-end mt-4 mr-4">
+                <ul className="flex flex-wrap items-center gap-2 mt-2">
+                    <li className="inline">
+                        <button
+                            type="button"
+                            className="flex items-center justify-center size-8 transition-all duration-150 ease-linear border rounded text-slate-500 border-slate-200 dark:border-zink-500 hover:text-custom-500 hover:border-custom-500 focus:text-custom-500 focus:border-custom-500 active:text-custom-500 active:border-custom-500 dark:text-zink-200 dark:hover:text-custom-500 dark:hover:border-custom-500 disabled:text-slate-400 disabled:cursor-auto disabled:dark:text-zink-300"
+                            onClick={() => goToPage(currentPage - 1)}
+                            disabled={currentPage === 1}
+                        >
+                            <i className="ri-arrow-left-s-line text-xl rtl:rotate-180"></i>
+                        </button>
+                    </li>
+                    
+                    {[...Array(totalPages || 1)].map((_, i) => (
+                        <li key={i + 1} className="inline">
+                            <button
+                                type="button"
+                                className={`flex items-center justify-center size-8 transition-all duration-150 ease-linear border rounded border-slate-200 dark:border-zink-500 ${
+                                    currentPage === i + 1
+                                        ? "text-white bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 active:text-white active:bg-custom-600 active:border-custom-600"
+                                        : "text-slate-500 bg-white hover:text-custom-500 hover:border-custom-500 focus:text-custom-500 focus:border-custom-500 active:text-custom-500 active:border-custom-500 dark:bg-zink-700 dark:text-zink-200 dark:border-zink-500 dark:hover:text-custom-500 dark:hover:border-custom-500"
+                                }`}
+                                onClick={() => goToPage(i + 1)}
+                            >
+                                {i + 1}
+                            </button>
+                        </li>
+                    ))}
+                    
+                    <li className="inline">
+                        <button
+                            type="button"
+                            className="flex items-center justify-center size-8 transition-all duration-150 ease-linear border rounded text-slate-500 border-slate-200 dark:border-zink-500 hover:text-custom-500 hover:border-custom-500 focus:text-custom-500 focus:border-custom-500 active:text-custom-500 active:border-custom-500 dark:text-zink-200 dark:hover:text-custom-500 dark:hover:border-custom-500 disabled:text-slate-400 disabled:cursor-auto disabled:dark:text-zink-300"
+                            onClick={() => goToPage(currentPage + 1)}
+                            disabled={currentPage === (totalPages || 1)}
+                        >
+                            <i className="ri-arrow-right-s-line text-xl rtl:rotate-180"></i>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        );
+    };
 
     return (
         <React.Fragment>
@@ -534,7 +681,7 @@ const Account = () => {
                                 <div className="flex items-center justify-between gap-2 mb-4">
                                     <h6 className="text-15 grow">Chi Tiết Tài Khoản</h6>
                                     <div className="flex gap-2">
-                                        <button type="button" className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20" onClick={toggle}>
+                                        <button type="button" className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20" onClick={toggle}>
                                             <Plus className="inline-block size-4 align-middle ltr:mr-1 rtl:ml-1" /> <span className="align-middle">Thêm Tài Khoản</span>
                                         </button>
                                     </div>
@@ -549,16 +696,26 @@ const Account = () => {
                                                     className="ltr:pl-8 rtl:pr-8 search form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200" 
                                                     placeholder="Tìm kiếm tên, email, số điện thoại..." 
                                                     autoComplete="off" 
-                                                    onChange={handleSearchChange} 
+                                                    onChange={handleSearchChange}
+                                                    value={filters.search}
                                                 />
                                                 <Search className="inline-block size-4 absolute ltr:left-2.5 rtl:right-2.5 top-2.5 text-slate-500 dark:text-zink-200 fill-slate-100 dark:fill-zink-600" />
+                                                {filters.search && (
+                                                    <button 
+                                                        type="button" 
+                                                        className="absolute ltr:right-2.5 rtl:left-2.5 top-2.5 text-slate-500 dark:text-zink-200"
+                                                        onClick={() => setFilters(prev => ({ ...prev, search: '' }))}
+                                                    >
+                                                        <X className="size-4" />
+                                                    </button>
+                                                )}
                                             </div>
                                             <div className="xl:col-span-3">
                                                 <Select
                                                     className="border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
                                                     options={statusOptions}
                                                     isSearchable={false}
-                                                    defaultValue={statusOptions[0]}
+                                                    value={statusOptions.find(option => option.value === filters.status)}
                                                     onChange={handleStatusChange}
                                                     id="status-filter"
                                                 />
@@ -568,7 +725,7 @@ const Account = () => {
                                                     className="border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
                                                     options={skinTypeOptions}
                                                     isSearchable={true}
-                                                    defaultValue={skinTypeOptions[0]}
+                                                    value={skinTypeOptions.find(option => option.value === filters.skinType)}
                                                     onChange={handleSkinTypeChange}
                                                     id="skin-type-filter"
                                                 />
@@ -578,7 +735,7 @@ const Account = () => {
                                                     className="border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
                                                     options={roleOptions}
                                                     isSearchable={true}
-                                                    defaultValue={roleOptions[0]}
+                                                    value={roleOptions.find(option => option.value === filters.role)}
                                                     onChange={handleRoleChange}
                                                     id="role-filter"
                                                 />
@@ -589,7 +746,7 @@ const Account = () => {
                                 
                                 <div className="overflow-x-auto">
                                     <TableContainer
-                                        isPagination={true}
+                                        isPagination={false}
                                         columns={columns}
                                         data={filteredUsers || []}
                                         customPageSize={pageSize}
@@ -599,11 +756,9 @@ const Account = () => {
                                         trclassName={"border-y border-slate-200 dark:border-zink-500"}
                                         thclassName={"px-3.5 py-2.5 font-semibold border-y border-slate-200 dark:border-zink-500"}
                                         tdclassName={"px-3.5 py-2.5 border-y border-slate-200 dark:border-zink-500"}
-                                        PaginationClassName="flex flex-col items-center mt-5 md:flex-row"
-                                        currentPage={currentPage}
-                                        pageCount={totalPages}
-                                        onPageChange={(page: number) => setCurrentPage(page)}
                                     />
+                                    
+                                    <CustomPagination />
                                 </div>
                             </div>
                         </div>
@@ -630,12 +785,39 @@ const Account = () => {
                     }}>
                         <div className="mb-3">
                             <div className="relative size-24 mx-auto mb-4 rounded-full shadow-md bg-slate-100 dark:bg-zink-500">
-                                <img src={selectedImage || validation.values.avatarUrl || dummyImg} alt="" className="size-full rounded-full" />
+                                <img 
+                                    src={
+                                        isImageRemoved 
+                                            ? dummyImg 
+                                            : (selectedImage || validation.values.avatarUrl || dummyImg)
+                                    } 
+                                    alt="" 
+                                    className="size-full rounded-full" 
+                                />
                                 {!viewMode && (
-                                    <div className="absolute bottom-0 ltr:right-0 rtl:left-0 flex items-center justify-center size-8 rounded-full cursor-pointer bg-slate-100 dark:bg-zink-600">
-                                        <input type="file" className="absolute inset-0 size-full opacity-0 cursor-pointer" onChange={handleImageChange} />
-                                        <ImagePlus className="size-4 text-slate-500 fill-slate-200 dark:text-zink-200 dark:fill-zink-600" />
-                                    </div>
+                                    <>
+                                        <div className="absolute bottom-0 ltr:right-0 rtl:left-0 flex items-center justify-center size-8 rounded-full cursor-pointer bg-slate-100 dark:bg-zink-600">
+                                            <input 
+                                                type="file" 
+                                                className="absolute inset-0 size-full opacity-0 cursor-pointer" 
+                                                onChange={(e) => {
+                                                    handleImageChange(e);
+                                                    setIsImageRemoved(false);
+                                                }} 
+                                            />
+                                            <ImagePlus className="size-4 text-slate-500 fill-slate-200 dark:text-zink-200 dark:fill-zink-600" />
+                                        </div>
+                                        {(selectedImage || validation.values.avatarUrl) && !isImageRemoved && (
+                                            <button
+                                                type="button"
+                                                onClick={handleRemoveImage}
+                                                className="absolute top-0 right-0 p-1 rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"
+                                                title="Remove image"
+                                            >
+                                                <X className="size-3" />
+                                            </button>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         </div>
@@ -715,15 +897,17 @@ const Account = () => {
                                 <input
                                     type="text"
                                     id="phoneNumber"
+                                    name="phoneNumber"
+                                    onChange={handlePhoneChange}
+                                    onBlur={validation.handleBlur}
+                                    value={validation.values.phoneNumber}
                                     className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
                                     placeholder="Nhập số điện thoại"
-                                    onChange={validation.handleChange}
-                                    value={validation.values.phoneNumber || ""}
                                     disabled={viewMode}
                                 />
-                                {validation.touched.phoneNumber && validation.errors.phoneNumber ? (
-                                    <p className="text-red-500">{validation.errors.phoneNumber}</p>
-                                ) : null}
+                                {validation.touched.phoneNumber && validation.errors.phoneNumber && (
+                                    <p className="text-red-400">{validation.errors.phoneNumber}</p>
+                                )}
                             </div>
                             <div className="xl:col-span-6">
                                 <label htmlFor="password" className="inline-block mb-2 text-base font-medium">
@@ -799,7 +983,7 @@ const Account = () => {
                             </div>
                         </div>
                         <div className="flex justify-end gap-2 mt-4">
-                            <button type="button" className="text-red-500 bg-white btn border-red-500 hover:text-white hover:bg-red-600 hover:border-red-600 focus:text-white focus:bg-red-600 focus:border-red-600 focus:ring focus:ring-red-100 active:text-white active:bg-red-600 active:border-red-600 active:ring active:ring-red-100 dark:ring-red-400/20" onClick={toggle}>
+                            <button type="button" className="text-red-500 bg-white btn border-red-500 hover:text-white hover:bg-red-600 focus:text-white focus:bg-red-600 focus:border-red-600 focus:ring focus:ring-red-100 active:text-white active:bg-red-600 active:border-red-600 active:ring active:ring-red-100 dark:ring-red-400/20" onClick={toggle}>
                                 Hủy
                             </button>
                             {!viewMode && (
