@@ -207,7 +207,7 @@ const Variation = () => {
   const columns = useMemo(
     () => [
       {
-        header: "Name",
+        header: "Tên",
         accessorKey: "name",
         enableColumnFilter: false,
         enableSorting: true,
@@ -223,7 +223,7 @@ const Variation = () => {
         size: 150,
       },
       {
-        header: "Category",
+        header: "Danh Mục",
         accessorKey: "productCategory.categoryName",
         enableColumnFilter: false,
         enableSorting: true,
@@ -233,7 +233,7 @@ const Variation = () => {
         size: 200,
       },
       {
-        header: "Options",
+        header: "Tùy Chọn",
         accessorKey: "variationOptions",
         enableColumnFilter: false,
         enableSorting: false,
@@ -257,7 +257,7 @@ const Variation = () => {
         size: 300,
       },
       {
-        header: "Action",
+        header: "Thao Tác",
         enableColumnFilter: false,
         enableSorting: true,
         size: 100,
@@ -275,7 +275,7 @@ const Variation = () => {
                           }}
                         >
                           <Eye className="inline-block size-3 ltr:mr-1 rtl:ml-1" />{" "}
-                          <span className="align-middle">Overview</span>
+                          <span className="align-middle">Xem Chi Tiết</span>
                         </Link>
                     </li>
                     <li>
@@ -283,13 +283,13 @@ const Variation = () => {
                             const data = cell.row.original;
                             handleUpdateDataClick(data);
                         }}>
-                            <FileEdit className="inline-block size-3 ltr:mr-1 rtl:ml-1" /> <span className="align-middle">Edit</span></Link>
+                            <FileEdit className="inline-block size-3 ltr:mr-1 rtl:ml-1" /> <span className="align-middle">Chỉnh Sửa</span></Link>
                     </li>
                     <li>
                         <Link to="#!" className="block px-4 py-1.5 text-base transition-all duration-200 ease-linear text-slate-600 hover:bg-slate-100 hover:text-slate-500 focus:bg-slate-100 focus:text-slate-500 dark:text-zink-100 dark:hover:bg-zink-500 dark:hover:text-zink-200 dark:focus:bg-zink-500 dark:focus:text-zink-200" onClick={() => {
                             const data = cell.row.original;
                             onClickDelete(data);
-                        }}><Trash2 className="inline-block size-3 ltr:mr-1 rtl:ml-1" /> <span className="align-middle">Delete</span></Link>
+                        }}><Trash2 className="inline-block size-3 ltr:mr-1 rtl:ml-1" /> <span className="align-middle">Xóa</span></Link>
                     </li>
                 </Dropdown.Content>
             </Dropdown>
@@ -316,7 +316,7 @@ const Variation = () => {
                 <input
                   type="text"
                   className="ltr:pl-8 rtl:pr-8 search form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Search for name, category..."
+                  placeholder="Tìm kiếm tên, danh mục..."
                   autoComplete="off"
                   onChange={(e) => filterSearchData(e)}
                 />
@@ -332,7 +332,7 @@ const Variation = () => {
                 onClick={toggle}
               >
                 <Plus className="inline-block size-4" />{" "}
-                <span className="align-middle">Add Variation</span>
+                <span className="align-middle">Thêm Biến Thể</span>
               </Link>
             </div>
           </div>
@@ -367,10 +367,10 @@ const Variation = () => {
             <div className="noresult">
               <div className="py-6 text-center">
                 <Search className="size-6 mx-auto mb-3 text-sky-500 fill-sky-100 dark:fill-sky-500/20" />
-                <h5 className="mt-2 mb-1">Sorry! No Result Found</h5>
+                <h5 className="mt-2 mb-1">Xin lỗi! Không Tìm Thấy Kết Quả</h5>
                 <p className="mb-0 text-slate-500 dark:text-zink-200">
-                  We've searched more than 199+ variations. We did not find any
-                  variations for your search.
+                  Chúng tôi đã tìm kiếm trong tất cả biến thể. Không tìm thấy 
+                  biến thể nào phù hợp với tìm kiếm của bạn.
                 </p>
               </div>
             </div>
@@ -391,7 +391,7 @@ const Variation = () => {
           closeButtonClass="transition-all duration-200 ease-linear text-slate-400 hover:text-red-500"
         >
           <Modal.Title className="text-16">
-            {isEdit ? "Edit Variation" : isOverview ? "Variation Details" : "Add Variation"}
+            {isEdit ? "Chỉnh Sửa Biến Thể" : isOverview ? "Chi Tiết Biến Thể" : "Thêm Biến Thể"}
           </Modal.Title>
         </Modal.Header>
 
@@ -401,7 +401,7 @@ const Variation = () => {
               <div className="xl:col-span-12">
                 <h5 className="mb-1 text-16">{eventData?.name}</h5>
                 <p className="mb-4 text-slate-500 dark:text-zink-200">
-                  <span className="font-medium text-slate-800 dark:text-zink-50">Category:</span>{" "}
+                  <span className="font-medium text-slate-800 dark:text-zink-50">Danh Mục:</span>{" "}
                   {eventData?.productCategory?.categoryName || "N/A"}
                 </p>
                 
@@ -430,12 +430,12 @@ const Variation = () => {
               <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
                 <div className="xl:col-span-12">
                   <label htmlFor="name" className="inline-block mb-2 text-base font-medium">
-                    Name <span className="text-red-500 ml-1">*</span>
+                    Tên <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
                     id="name"
                     className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                    placeholder="Enter variation name"
+                    placeholder="Nhập tên biến thể"
                     name="name"
                     onChange={validation.handleChange}
                     onBlur={validation.handleBlur}
@@ -448,7 +448,7 @@ const Variation = () => {
 
                 <div className="xl:col-span-12">
                   <label htmlFor="productCategoryId" className="inline-block mb-2 text-base font-medium">
-                    Product Category <span className="text-red-500 ml-1">*</span>
+                    Danh Mục Sản Phẩm <span className="text-red-500 ml-1">*</span>
                   </label>
                   <select
                     id="productCategoryId"
@@ -477,14 +477,14 @@ const Variation = () => {
                   className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10" 
                   onClick={toggle}
                 >
-                  {isOverview ? "Close" : "Cancel"}
+                  {isOverview ? "Đóng" : "Hủy"}
                 </button>
                 {!isOverview && (
                   <button 
                     type="submit" 
                     className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
                   >
-                    {!!isEdit ? "Update" : "Add Variation"}
+                    {isEdit ? "Cập Nhật" : "Thêm"}
                   </button>
                 )}
               </div>

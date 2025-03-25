@@ -58,11 +58,8 @@ export const updateVoucher = createAsyncThunk(
       // Return the updated item
       return { data: response.data.items ? response.data.items[0] : response.data };
     } catch (error: any) {
-      if (error.response?.data?.data) {
-        toast.error(error.response.data.data);
-      } else {
-        toast.error("Cập nhật mã giảm giá thất bại");
-      }
+      const errorMessage = error.response?.data?.message || "Mã voucher đã tồn tại";
+      toast.error(errorMessage);
       throw error;
     }
   }

@@ -553,23 +553,24 @@ const Voucher = () => {
             }}
           >
             <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
-              {isOverview && (
-                <div className="xl:col-span-6">
-                  <label
-                    htmlFor="codeInput"
-                    className="inline-block mb-2 text-base font-medium"
-                  >
-                    Mã Giảm Giá
-                  </label>
-                  <input
-                    type="text"
-                    id="codeInput"
-                    className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                    value={eventData?.code || ""}
-                    disabled={true}
-                  />
-                </div>
-              )}
+              {/* Remove this block that shows duplicate code in overview mode */}
+              {/* {isOverview && (
+                  <div className="xl:col-span-6">
+                      <label
+                          htmlFor="codeInput"
+                          className="inline-block mb-2 text-base font-medium"
+                      >
+                          Mã Giảm Giá
+                      </label>
+                      <input
+                          type="text"
+                          id="codeInput"
+                          className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
+                          value={eventData?.code || ""}
+                          disabled={true}
+                      />
+                  </div>
+              )} */}
 
               <div className="xl:col-span-6">
                 <label
@@ -714,17 +715,22 @@ const Voucher = () => {
                 >
                   Giá Trị Đơn Tối Thiểu <span className="text-red-500 ml-1">*</span>
                 </label>
-                <input
-                  type="text"
-                  id="minimumOrderValueInput"
-                  className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Nhập giá trị đơn tối thiểu"
-                  name="minimumOrderValue"
-                  onChange={handleMinimumOrderValueChange}
-                  onBlur={validation.handleBlur}
-                  value={formatNumber(validation.values.minimumOrderValue)}
-                  disabled={isOverview}
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    id="minimumOrderValueInput"
+                    className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200 pr-12"
+                    placeholder="Nhập giá trị đơn tối thiểu"
+                    name="minimumOrderValue"
+                    onChange={handleMinimumOrderValueChange}
+                    onBlur={validation.handleBlur}
+                    value={formatNumber(validation.values.minimumOrderValue)}
+                    disabled={isOverview}
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-zink-200">
+                    VND
+                  </span>
+                </div>
                 {validation.touched.minimumOrderValue &&
                   validation.errors.minimumOrderValue && (
                     <p className="text-red-400">

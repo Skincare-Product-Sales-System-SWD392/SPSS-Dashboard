@@ -22,7 +22,7 @@ export const getAllQuizOptions = createAsyncThunk(
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to fetch quiz options");
+        toast.error("Không thể tải danh sách lựa chọn");
       }
       throw error;
     }
@@ -35,13 +35,13 @@ export const createQuizOption = createAsyncThunk(
   async (data: any) => {
     try {
       const response = await createQuizOptionApi(data);
-      toast.success("Quiz option added successfully");
+      toast.success("Thêm lựa chọn thành công");
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to add quiz option");
+        toast.error("Không thể thêm lựa chọn");
       }
       throw error;
     }
@@ -54,13 +54,13 @@ export const updateQuizOption = createAsyncThunk(
   async ({ id, data }: { id: string; data: any }) => {
     try {
       const response = await updateQuizOptionApi(id, data);
-      toast.success("Quiz option updated successfully");
+      toast.success("Cập nhật lựa chọn thành công");
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to update quiz option");
+        toast.error("Không thể cập nhật lựa chọn");
       }
       throw error;
     }
@@ -73,13 +73,13 @@ export const deleteQuizOption = createAsyncThunk(
   async (id: string) => {
     try {
       const response = await deleteQuizOptionApi(id);
-      toast.success("Quiz option deleted successfully");
+      toast.success("Xóa lựa chọn thành công");
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to delete quiz option");
+        toast.error("Không thể xóa lựa chọn");
       }
       throw error;
     }
@@ -97,7 +97,7 @@ export const getQuizOptionsByQuestionId = createAsyncThunk(
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to fetch quiz options for this question");
+        toast.error("Không thể tải lựa chọn cho câu hỏi này");
       }
       throw error;
     }
@@ -112,13 +112,13 @@ export const createQuizOptionByQuestionId = createAsyncThunk(
   async ({ questionId, data }: { questionId: string; data: any }) => {
     try {
       const response = await createQuizOptionByQuestionIdApi(questionId, data);
-      toast.success("Quiz option added successfully");
+      toast.success("Thêm lựa chọn thành công");
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to add quiz option");
+        toast.error("Không thể thêm lựa chọn");
       }
       throw error;
     }
@@ -131,13 +131,13 @@ export const updateQuizOptionByQuestionId = createAsyncThunk(
   async ({ questionId, optionId, data }: { questionId: string; optionId: string; data: any }) => {
     try {
       const response = await updateQuizOptionByQuestionIdApi(questionId, optionId, data);
-      toast.success("Quiz option updated successfully");
+      toast.success("Cập nhật lựa chọn thành công");
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to update quiz option");
+        toast.error("Không thể cập nhật lựa chọn");
       }
       throw error;
     }
@@ -150,13 +150,13 @@ export const deleteQuizOptionByQuestionId = createAsyncThunk(
   async ({ questionId, optionId }: { questionId: string; optionId: string }) => {
     try {
       const response = await deleteQuizOptionByQuestionIdApi(questionId, optionId);
-      toast.success("Quiz option deleted successfully");
+      toast.success("Xóa lựa chọn thành công");
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to delete quiz option");
+        toast.error("Không thể xóa lựa chọn");
       }
       throw error;
     }
