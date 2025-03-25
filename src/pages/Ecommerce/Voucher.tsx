@@ -205,55 +205,51 @@ const Voucher = () => {
             description: values.description,
             status: values.status,
             discountRate: Number(values.discountRate),
-            usageLimit: values.usageLimit,
+            usageLimit: Number(values.usageLimit.toString().replace(/\s+/g, '')),
             minimumOrderValue: Number(values.minimumOrderValue.toString().replace(/\s+/g, '')),
             startDate: new Date(values.startDate).toISOString(),
             endDate: new Date(values.endDate).toISOString(),
           },
         };
         
-        dispatch(updateVoucher(updateData))
-          .then((response: any) => {
-            if (!response.success) {
-              // Handle API error response
-              toast.error(response.message || "Cập nhật mã giảm giá thất bại");
-              return;
-            }
-            toggle();
-            setRefreshFlag((prev) => !prev);
-            toast.success("Cập nhật mã giảm giá thành công!");
-          })
-          .catch((error: any) => {
-            const errorMessage = error.response?.data?.message || "Cập nhật mã giảm giá thất bại";
-            toast.error(errorMessage);
-          });
+        try {
+          const result = await dispatch(updateVoucher(updateData)).unwrap();
+          if (result.error) {
+            toast.error(result.error.message || "Cập nhật mã giảm giá thất bại");
+            return;
+          }
+          toggle(); // Close modal
+          setRefreshFlag(prev => !prev); // Refresh the list
+          toast.success("Cập nhật mã giảm giá thành công!");
+        } catch (error: any) {
+          const errorMessage = error.response?.data?.message || "Cập nhật mã giảm giá thất bại";
+          toast.error(errorMessage);
+        }
       } else {
         const newData = {
           code: values.code,
           description: values.description,
           status: values.status,
           discountRate: Number(values.discountRate),
-          usageLimit: values.usageLimit,
+          usageLimit: Number(values.usageLimit.toString().replace(/\s+/g, '')),
           minimumOrderValue: Number(values.minimumOrderValue.toString().replace(/\s+/g, '')),
           startDate: new Date(values.startDate).toISOString(),
           endDate: new Date(values.endDate).toISOString(),
         };
         
-        dispatch(addVoucher(newData))
-          .then((response: any) => {
-            if (!response.success) {
-              // Handle API error response
-              toast.error(response.message || "Thêm mã giảm giá thất bại");
-              return;
-            }
-            toggle();
-            setRefreshFlag((prev) => !prev);
-            toast.success("Thêm mã giảm giá thành công!");
-          })
-          .catch((error: any) => {
-            const errorMessage = error.response?.data?.message || "Thêm mã giảm giá thất bại";
-            toast.error(errorMessage);
-          });
+        try {
+          const result = await dispatch(addVoucher(newData)).unwrap();
+          if (result.error) {
+            toast.error(result.error.message || "Thêm mã giảm giá thất bại");
+            return;
+          }
+          toggle(); // Close modal
+          setRefreshFlag(prev => !prev); // Refresh the list
+          toast.success("Thêm mã giảm giá thành công!");
+        } catch (error: any) {
+          const errorMessage = error.response?.data?.message || "Thêm mã giảm giá thất bại";
+          toast.error(errorMessage);
+        }
       }
     },
   });
