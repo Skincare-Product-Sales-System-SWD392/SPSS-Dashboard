@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import moment from 'moment';
 import { Link } from 'react-router-dom';
-import { Eye } from 'lucide-react';
+import { Eye, Download } from 'lucide-react';
 import axios from 'axios';
+import * as XLSX from 'xlsx';
 
 // Define an interface for the order type
 interface Order {
@@ -81,6 +82,72 @@ const PendingOrders = () => {
         return moment(dateString).format('DD/MM/YYYY HH:mm');
     };
     
+    // Export to Excel function
+    const exportToExcel = () => {
+        if (!pendingOrders || pendingOrders.length === 0) return;
+        
+        try {
+            // Create workbook and worksheet
+            const workbook = XLSX.utils.book_new();
+            const worksheet = XLSX.utils.aoa_to_sheet([]);
+            
+            // Add title and timestamp
+            XLSX.utils.sheet_add_aoa(worksheet, [
+                ["BÁO CÁO ĐƠN HÀNG ĐANG XỬ LÝ"],
+                [`Xuất dữ liệu lúc: ${new Date().toLocaleString('vi-VN')}`],
+                [""]
+            ], { origin: "A1" });
+            
+            // Add headers
+            XLSX.utils.sheet_add_aoa(worksheet, [
+                ["STT", "Mã đơn", "Ngày tạo", "Sản phẩm", "Số lượng SP", "Tổng tiền", "Trạng thái"]
+            ], { origin: "A4" });
+            
+            // Set column widths
+            worksheet['!cols'] = [
+                { wch: 5 },   // STT
+                { wch: 15 },  // Mã đơn
+                { wch: 20 },  // Ngày tạo
+                { wch: 40 },  // Sản phẩm
+                { wch: 12 },  // Số lượng SP
+                { wch: 15 },  // Tổng tiền
+                { wch: 15 }   // Trạng thái
+            ];
+            
+            // Add data rows
+            for (let i = 0; i < pendingOrders.length; i++) {
+                const order = pendingOrders[i];
+                const rowIndex = i + 5; // Start from row 5 (after headers)
+                
+                const productName = order.orderDetails && order.orderDetails.length > 0 
+                    ? order.orderDetails[0].productName 
+                    : 'Không có sản phẩm';
+                    
+                const productCount = order.orderDetails ? order.orderDetails.length : 0;
+                
+                XLSX.utils.sheet_add_aoa(worksheet, [[
+                    i + 1,
+                    order.id,
+                    formatDate(order.createdTime),
+                    productName,
+                    productCount,
+                    order.orderTotal.toLocaleString('vi-VN'),
+                    "Đang xử lý"
+                ]], { origin: `A${rowIndex}` });
+            }
+            
+            // Add the worksheet to the workbook
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Đơn hàng đang xử lý');
+            
+            // Generate Excel file and download
+            XLSX.writeFile(workbook, 'don_hang_dang_xu_ly.xlsx');
+            
+        } catch (error) {
+            console.error('Error exporting to Excel:', error);
+            alert('Có lỗi khi xuất Excel. Vui lòng thử lại sau.');
+        }
+    };
+    
     console.log('Pending orders state:', pendingOrders);
     console.log('Pending orders length:', pendingOrders?.length || 0);
     
@@ -90,6 +157,15 @@ const PendingOrders = () => {
                 <div className="card-body">
                     <div className="flex items-center mb-3">
                         <h6 className="grow text-15">Đơn hàng đang xử lý</h6>
+                        {!loading && pendingOrders && pendingOrders.length > 0 && (
+                            <button 
+                                onClick={exportToExcel}
+                                className="flex items-center px-3 py-1.5 text-sm font-medium text-white bg-custom-500 border border-transparent rounded-md hover:bg-custom-600 focus:outline-none"
+                            >
+                                <Download className="size-4 mr-1.5" />
+                                Xuất Excel
+                            </button>
+                        )}
                     </div>
                     
                     {loading ? (

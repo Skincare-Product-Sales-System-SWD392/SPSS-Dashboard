@@ -12,7 +12,7 @@ const ProductPriceAnalysis = () => {
             <div className="col-span-12 card 2xl:col-span-8">
                 <div className="card-body">
                     <div className="flex items-center mb-3">
-                        <h6 className="grow text-15">Top Products Price Analysis</h6>
+                        <h6 className="grow text-15">Phân tích giá sản phẩm hàng đầu</h6>
                     </div>
                     
                     {loading ? (
@@ -23,7 +23,7 @@ const ProductPriceAnalysis = () => {
                         <ProductPriceComparisonChart chartId="productPriceComparisonChart" products={products} />
                     ) : (
                         <div className="text-center py-4">
-                            <p>No product data available</p>
+                            <p>Không có dữ liệu sản phẩm</p>
                         </div>
                     )}
                 </div>

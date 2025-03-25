@@ -38,11 +38,11 @@ const WelcomeBanner = () => {
         // Set up time and greeting
         const hour = currentTime.getHours();
         if (hour < 12) {
-            setGreeting('Good morning');
+            setGreeting('Chào buổi sáng');
         } else if (hour < 18) {
-            setGreeting('Good afternoon');
+            setGreeting('Chào buổi chiều');
         } else {
-            setGreeting('Good evening');
+            setGreeting('Chào buổi tối');
         }
         
         // Update time every minute
@@ -64,25 +64,25 @@ const WelcomeBanner = () => {
                             {greeting}
                         </div>
                         <h2 className="text-xl font-semibold text-slate-800 dark:text-zink-50">
-                            Welcome back, <span className="text-custom-500">{username}</span>!
+                            Chào mừng trở lại, <span className="text-custom-500">{username}</span>!
                         </h2>
                         <p className="text-slate-600 dark:text-zink-200 mt-1">
-                            Here's what's happening with your store today.
+                            Đây là những gì đang diễn ra với cửa hàng của bạn hôm nay.
                         </p>
                     </div>
                     
                     <div className="flex items-center space-x-4 mt-3 md:mt-0">
                         <div className="flex items-center text-slate-600 dark:text-zink-200">
                             <Clock className="size-4 mr-1" />
-                            <span>{currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            <span>{currentTime.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                         <div className="flex items-center text-slate-600 dark:text-zink-200">
                             <Calendar className="size-4 mr-1" />
-                            <span>{currentTime.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+                            <span>{currentTime.toLocaleDateString('vi-VN', { weekday: 'short', month: 'short', day: 'numeric' })}</span>
                         </div>
                         <div className="flex items-center text-slate-600 dark:text-zink-200">
                             <User className="size-4 mr-1" />
-                            <span>Manager</span>
+                            <span>Quản lý</span>
                         </div>
                     </div>
                 </div>
