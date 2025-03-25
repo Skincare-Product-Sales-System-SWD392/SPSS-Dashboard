@@ -132,8 +132,8 @@ const CancelReason = () => {
       refundRate: (eventData && eventData.refundRate) || 0
     },
     validationSchema: Yup.object({
-      description: Yup.string().required("Description is required"),
-      refundRate: Yup.number().min(0, "Refund rate must be at least 0").max(100, "Refund rate cannot exceed 100").required("Refund rate is required")
+      description: Yup.string().required("Mô tả là bắt buộc"),
+      refundRate: Yup.number().min(0, "Tỷ lệ hoàn tiền phải ít nhất là 0").max(100, "Tỷ lệ hoàn tiền không thể vượt quá 100").required("Tỷ lệ hoàn tiền là bắt buộc")
     }),
     onSubmit: (values) => {
       if (isEdit) {
@@ -160,111 +160,108 @@ const CancelReason = () => {
             setRefreshFlag(prev => !prev);
           });
       }
+      validation.resetForm();
     },
   });
 
-  // Update Data
-  const handleUpdateDataClick = (ele: any) => {
-    setEventData({ ...ele });
-    setIsEdit(true);
-    setShow(true);
-  };
-
-  // Add handler for overview click
-  const handleOverviewClick = (ele: any) => {
-    setEventData({ ...ele });
-    setIsOverview(true);
-    setShow(true);
-  };
-
-  // Modify toggle to reset overview mode
+  // Toggle modal visibility
   const toggle = useCallback(() => {
     if (show) {
       setShow(false);
-      setEventData("");
+      setEventData(null);
       setIsEdit(false);
-      setIsOverview(false); // Reset overview mode
+      setIsOverview(false);
+      validation.resetForm();
     } else {
       setShow(true);
-      setEventData("");
-      validation.resetForm();
+      setEventData(null);
+      setIsEdit(false);
+      setIsOverview(false);
     }
   }, [show, validation]);
 
-  const columns = useMemo(
-    () => [
-      {
-        header: "Description",
-        accessorKey: "description",
-        enableColumnFilter: false,
-        enableSorting: true,
-        size: 350,
-        cell: (cell: any) => (
-          <Link
-            to="#"
-            className="flex items-center gap-2"
-            onClick={() => handleOverviewClick(cell.row.original)}
-          >
-            {cell.getValue()}
-          </Link>
-        ),
-      },
-      {
-        header: "Refund Rate (%)",
-        accessorKey: "refundRate",
-        enableColumnFilter: false,
-        enableSorting: true,
-        size: 150,
-        cell: (cell: any) => (
-          <span>{cell.getValue()}%</span>
-        ),
-      },
-      {
-        header: "Action",
-        enableColumnFilter: false,
-        enableSorting: true,
-        size: 100,
-        cell: (cell: any) => (
-            <Dropdown className="relative ltr:ml-2 rtl:mr-2">
-                <Dropdown.Trigger id="orderAction1" data-bs-toggle="dropdown" className="flex items-center justify-center size-[30px] p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400 dark:hover:bg-slate-500 dark:hover:text-white dark:focus:bg-slate-500 dark:focus:text-white dark:active:bg-slate-500 dark:active:text-white dark:ring-slate-400/20"><MoreHorizontal className="size-3" /></Dropdown.Trigger>
-                <Dropdown.Content placement={cell.row.index ? "top-end" : "right-end"} className="absolute z-50 py-2 mt-1 ltr:text-left rtl:text-right list-none bg-white rounded-md shadow-md min-w-[10rem] dark:bg-zink-600" aria-labelledby="orderAction1">
-                    <li>
-                        <Link
-                          to="#!"
-                          className="block px-4 py-1.5 text-base transition-all duration-200 ease-linear text-slate-600 hover:bg-slate-100 hover:text-slate-500 focus:bg-slate-100 focus:text-slate-500 dark:text-zink-100 dark:hover:bg-zink-500 dark:hover:text-zink-200 dark:focus:bg-zink-500 dark:focus:text-zink-200"
-                          onClick={() => {
-                            const data = cell.row.original;
-                            handleOverviewClick(data);
-                          }}
-                        >
-                          <Eye className="inline-block size-3 ltr:mr-1 rtl:ml-1" />{" "}
-                          <span className="align-middle">Overview</span>
-                        </Link>
-                    </li>
-                    <li>
-                        <Link to="#!" data-modal-target="addOrderModal" className="block px-4 py-1.5 text-base transition-all duration-200 ease-linear text-slate-600 hover:bg-slate-100 hover:text-slate-500 focus:bg-slate-100 focus:text-slate-500 dark:text-zink-100 dark:hover:bg-zink-500 dark:hover:text-zink-200 dark:focus:bg-zink-500 dark:focus:text-zink-200" onClick={() => {
-                            const data = cell.row.original;
-                            handleUpdateDataClick(data);
-                        }}>
-                            <FileEdit className="inline-block size-3 ltr:mr-1 rtl:ml-1" /> <span className="align-middle">Edit</span></Link>
-                    </li>
-                    <li>
-                        <Link to="#!" className="block px-4 py-1.5 text-base transition-all duration-200 ease-linear text-slate-600 hover:bg-slate-100 hover:text-slate-500 focus:bg-slate-100 focus:text-slate-500 dark:text-zink-100 dark:hover:bg-zink-500 dark:hover:text-zink-200 dark:focus:bg-zink-500 dark:focus:text-zink-200" onClick={() => {
-                            const data = cell.row.original;
-                            onClickDelete(data);
-                        }}><Trash2 className="inline-block size-3 ltr:mr-1 rtl:ml-1" /> <span className="align-middle">Delete</span></Link>
-                    </li>
-                </Dropdown.Content>
-            </Dropdown>
-        ),
-      },
-    ],
-    []
-  );
+  // Edit button click handler
+  const handleEditClick = useCallback((data: any) => {
+    setEventData(data);
+    setIsEdit(true);
+    setIsOverview(false);
+    setShow(true);
+  }, []);
+
+  // View button click handler
+  const handleViewClick = useCallback((data: any) => {
+    setEventData(data);
+    setIsEdit(false);
+    setIsOverview(true);
+    setShow(true);
+  }, []);
+
+  // Table column definitions
+  const columns = useMemo(() => [
+    // {
+    //   header: "ID",
+    //   accessorKey: "id",
+    //   enableColumnFilter: false,
+    //   enableSorting: true,
+    //   cell: (cell: any) => (
+    //     <span className="font-medium">{cell.getValue()}</span>
+    //   ),
+    // },
+    {
+      header: "Mô Tả",
+      accessorKey: "description",
+      enableColumnFilter: false,
+      enableSorting: true,
+      cell: (cell: any) => (
+        <span>{cell.getValue()}</span>
+      ),
+    },
+    {
+      header: "Tỷ Lệ Hoàn Tiền (%)",
+      accessorKey: "refundRate",
+      enableColumnFilter: false,
+      enableSorting: true,
+      cell: (cell: any) => (
+        <span className="block text-right">{cell.getValue()}%</span>
+      ),
+    },
+    {
+      header: "Hành Động",
+      enableColumnFilter: false,
+      enableSorting: false,
+      cell: (cell: any) => (
+        <Dropdown className="relative">
+          <Dropdown.Trigger id={cell.row.original.id} data-bs-toggle="dropdown" className="flex items-center justify-center size-[30px] p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400 dark:hover:bg-slate-500 dark:hover:text-white dark:focus:bg-slate-500 dark:focus:text-white dark:active:bg-slate-500 dark:active:text-white dark:ring-slate-400/20">
+            <MoreHorizontal className="size-3" />
+          </Dropdown.Trigger>
+          <Dropdown.Content className="absolute z-50 py-2 mt-1 ltr:text-left rtl:text-right list-none bg-white rounded-md shadow-md min-w-[10rem] dark:bg-zink-600" aria-labelledby={cell.row.original.id}>
+            <li>
+              <Link to="#!" className="block px-4 py-1.5 text-base transition-all duration-200 ease-linear text-slate-600 hover:bg-slate-100 hover:text-slate-500 focus:bg-slate-100 focus:text-slate-500 dark:text-zink-100 dark:hover:bg-zink-500 dark:hover:text-zink-200 dark:focus:bg-zink-500 dark:focus:text-zink-200" onClick={() => handleViewClick(cell.row.original)}>
+                <Eye className="inline-block size-3 ltr:mr-1 rtl:ml-1" /> <span className="align-middle">Xem</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="#!" className="block px-4 py-1.5 text-base transition-all duration-200 ease-linear text-slate-600 hover:bg-slate-100 hover:text-slate-500 focus:bg-slate-100 focus:text-slate-500 dark:text-zink-100 dark:hover:bg-zink-500 dark:hover:text-zink-200 dark:focus:bg-zink-500 dark:focus:text-zink-200" onClick={() => handleEditClick(cell.row.original)}>
+                <FileEdit className="inline-block size-3 ltr:mr-1 rtl:ml-1" /> <span className="align-middle">Chỉnh Sửa</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="#!" className="block px-4 py-1.5 text-base transition-all duration-200 ease-linear text-slate-600 hover:bg-slate-100 hover:text-slate-500 focus:bg-slate-100 focus:text-slate-500 dark:text-zink-100 dark:hover:bg-zink-500 dark:hover:text-zink-200 dark:focus:bg-zink-500 dark:focus:text-zink-200" onClick={() => {
+                onClickDelete(cell.row.original);
+                setEventData(cell.row.original);
+              }}>
+                <Trash2 className="inline-block size-3 ltr:mr-1 rtl:ml-1" /> <span className="align-middle">Xóa</span>
+              </Link>
+            </li>
+          </Dropdown.Content>
+        </Dropdown>
+      ),
+    },
+  ], [handleEditClick, handleViewClick]);
 
   return (
     <React.Fragment>
-        <BreadCrumb title="Cancel Reasons" pageTitle="Cancel Reasons" />
+      <BreadCrumb title="Lý Do Hủy" pageTitle="Thương Mại Điện Tử" />
       <DeleteModal 
         show={deleteModal} 
         onHide={deleteToggle}
@@ -279,7 +276,7 @@ const CancelReason = () => {
                 <input
                   type="text"
                   className="ltr:pl-8 rtl:pr-8 search form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Search for ID, description..."
+                  placeholder="Tìm kiếm ID, mô tả..."
                   autoComplete="off"
                   onChange={(e) => filterSearchData(e)}
                 />
@@ -295,7 +292,7 @@ const CancelReason = () => {
                 onClick={toggle}
               >
                 <Plus className="inline-block size-4" />{" "}
-                <span className="align-middle">Add Cancel Reason</span>
+                <span className="align-middle">Thêm Lý Do Hủy</span>
               </Link>
             </div>
           </div>
@@ -324,10 +321,10 @@ const CancelReason = () => {
             <div className="noresult">
               <div className="py-6 text-center">
                 <Search className="size-6 mx-auto mb-3 text-sky-500 fill-sky-100 dark:fill-sky-500/20" />
-                <h5 className="mt-2 mb-1">Sorry! No Result Found</h5>
+                <h5 className="mt-2 mb-1">Xin lỗi! Không Tìm Thấy Kết Quả</h5>
                 <p className="mb-0 text-slate-500 dark:text-zink-200">
-                  We've searched more than 199+ cancel reasons We did not find any
-                  cancel reason for you search.
+                  Chúng tôi đã tìm kiếm hơn 199+ lý do hủy. Chúng tôi không tìm thấy
+                  lý do hủy nào cho tìm kiếm của bạn.
                 </p>
               </div>
             </div>
@@ -348,7 +345,7 @@ const CancelReason = () => {
           closeButtonClass="transition-all duration-200 ease-linear text-slate-400 hover:text-red-500"
         >
           <Modal.Title className="text-16">
-            {isOverview ? "Cancel Reason Details" : isEdit ? "Edit Cancel Reason" : "Add Cancel Reason"}
+            {isOverview ? "Chi Tiết Lý Do Hủy" : isEdit ? "Chỉnh Sửa Lý Do Hủy" : "Thêm Lý Do Hủy"}
           </Modal.Title>
         </Modal.Header>
 
@@ -361,12 +358,12 @@ const CancelReason = () => {
             <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
               <div className="xl:col-span-12">
                 <label htmlFor="descriptionInput" className="inline-block mb-2 text-base font-medium">
-                  Description <span className="text-red-500 ml-1">*</span>
+                  Mô Tả <span className="text-red-500 ml-1">*</span>
                 </label>
                 <textarea
                   id="descriptionInput"
                   className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Enter description"
+                  placeholder="Nhập mô tả"
                   name="description"
                   onChange={validation.handleChange}
                   onBlur={validation.handleBlur}
@@ -381,13 +378,13 @@ const CancelReason = () => {
 
               <div className="xl:col-span-12">
                 <label htmlFor="refundRateInput" className="inline-block mb-2 text-base font-medium">
-                  Refund Rate (%) <span className="text-red-500 ml-1">*</span>
+                  Tỷ Lệ Hoàn Tiền (%) <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
                   type="number"
                   id="refundRateInput"
                   className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Enter refund rate"
+                  placeholder="Nhập tỷ lệ hoàn tiền"
                   name="refundRate"
                   onChange={validation.handleChange}
                   onBlur={validation.handleBlur}
@@ -408,14 +405,14 @@ const CancelReason = () => {
                 className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10" 
                 onClick={toggle}
               >
-                {isOverview ? "Close" : "Cancel"}
+                {isOverview ? "Đóng" : "Hủy"}
               </button>
               {!isOverview && (
                 <button 
                   type="submit" 
                   className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
                 >
-                  {!!isEdit ? "Update" : "Add Cancel Reason"}
+                  {!!isEdit ? "Cập Nhật" : "Thêm Lý Do Hủy"}
                 </button>
               )}
             </div>

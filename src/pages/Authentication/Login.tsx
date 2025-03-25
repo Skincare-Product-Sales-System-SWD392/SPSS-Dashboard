@@ -19,7 +19,7 @@ import AuthIcon from "./AuthIcon";
 // OR if using from public folder, you don't need an import
 
 const Login = () => {
-  document.title = "Login | SPSS";
+  document.title = "Đăng Nhập | SPSS";
 
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
@@ -45,8 +45,8 @@ const Login = () => {
       password: user.password || "Password123@" || "",
     },
     validationSchema: Yup.object({
-      email: Yup.string().required("Please Enter Your email"),
-      password: Yup.string().required("Please Enter Your Password"),
+      email: Yup.string().required("Vui lòng nhập email của bạn"),
+      password: Yup.string().required("Vui lòng nhập mật khẩu của bạn"),
     }),
     onSubmit: (values: any) => {
       dispatch(loginUser(values, navigate));
@@ -102,17 +102,17 @@ const Login = () => {
             <Link to="/">
               <img
                 src="/spss.png"  
-                alt="SPSS Logo"
+                alt="Logo SPSS"
                 className="h-14 mx-auto object-contain"  
               />
             </Link>
 
             <div className="mt-8 text-center">
               <h4 className="mb-1 text-custom-500 dark:text-custom-500">
-                Welcome Back !
+                Chào mừng trở lại!
               </h4>
               <p className="text-slate-500 dark:text-zink-200">
-                Sign in to continue to SPSS.
+                Đăng nhập để tiếp tục sử dụng SPSS.
               </p>
             </div>
 
@@ -130,7 +130,7 @@ const Login = () => {
                   className="px-4 py-3 mb-3 text-sm text-green-500 border border-green-200 rounded-md bg-green-50 dark:bg-green-400/20 dark:border-green-500/50"
                   id="successAlert"
                 >
-                  You have <b>successfully</b> signed in.
+                  Bạn đã đăng nhập <b>thành công</b>.
                 </div>
               )}
               {error && (
@@ -138,7 +138,7 @@ const Login = () => {
                   className="px-4 py-3 mb-3 text-sm text-red-500 border border-red-200 rounded-md bg-red-50 dark:bg-red-400/20 dark:border-red-500/50"
                   id="successAlert"
                 >
-                  You have <b>failed</b> signed in.
+                  Đăng nhập <b>thất bại</b>.
                 </div>
               )}
               <div className="mb-3">
@@ -146,14 +146,14 @@ const Login = () => {
                   htmlFor="email"
                   className="inline-block mb-2 text-base font-medium"
                 >
-                  UserName/ Email ID
+                  Tên đăng nhập/ Email
                 </label>
                 <input
                   type="text"
                   id="email"
                   name="email"
                   className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Enter username or email"
+                  placeholder="Nhập tên đăng nhập hoặc email"
                   onChange={validation.handleChange}
                   onBlur={validation.handleBlur}
                   value={validation.values.email || ""}
@@ -169,14 +169,14 @@ const Login = () => {
                   htmlFor="password"
                   className="inline-block mb-2 text-base font-medium"
                 >
-                  Password
+                  Mật khẩu
                 </label>
                 <input
                   type="password"
                   id="password"
                   name="password"
                   className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Enter password"
+                  placeholder="Nhập mật khẩu"
                   onChange={validation.handleChange}
                   onBlur={validation.handleBlur}
                   value={validation.values.password || ""}
@@ -195,7 +195,7 @@ const Login = () => {
                   type="submit"
                   className="w-full text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
                 >
-                  Sign In
+                  Đăng Nhập
                 </button>
               </div>
             </form>

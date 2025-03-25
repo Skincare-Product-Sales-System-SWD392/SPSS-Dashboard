@@ -205,7 +205,7 @@ const Account = () => {
 
     // Get skin type name by ID
     const getSkinTypeName = (skinTypeId: string | null) => {
-        if (!skinTypeId) return 'None';
+        if (!skinTypeId) return 'Không Có';
         const skinType = skinTypes.find((type: any) => type.id === skinTypeId);
         return skinType ? skinType.name : 'N/A';
     };
@@ -322,14 +322,14 @@ const Account = () => {
             roleId: (userData && userData.roleId) || '',
         },
         validationSchema: Yup.object({
-            userName: Yup.string().required("Please Enter Username"),
-            surName: Yup.string().required("Please Enter Surname"),
-            lastName: Yup.string().required("Please Enter Last Name"),
-            emailAddress: Yup.string().email("Invalid email format").required("Please Enter Email"),
-            phoneNumber: Yup.string().required("Please Enter Phone Number"),
-            password: Yup.string().required("Please Enter Password"),
-            status: Yup.string().required("Please Select Status"),
-            roleId: Yup.string().required("Please Select Role")
+            userName: Yup.string().required("Vui lòng nhập tên người dùng"),
+            surName: Yup.string().required("Vui lòng nhập họ"),
+            lastName: Yup.string().required("Vui lòng nhập tên"),
+            emailAddress: Yup.string().email("Định dạng email không hợp lệ").required("Vui lòng nhập email"),
+            phoneNumber: Yup.string().required("Vui lòng nhập số điện thoại"),
+            password: Yup.string().required("Vui lòng nhập mật khẩu"),
+            status: Yup.string().required("Vui lòng chọn trạng thái"),
+            roleId: Yup.string().required("Vui lòng chọn vai trò")
         }),
         onSubmit: async (values) => {
             try {
@@ -382,7 +382,7 @@ const Account = () => {
                 }
                 toggle();
             } catch (error) {
-                console.error("Error uploading image:", error);
+                console.error("Lỗi khi tải lên hình ảnh:", error);
                 // You might want to show an error toast here
             }
         },
@@ -391,7 +391,7 @@ const Account = () => {
     // Table columns
     const columns = useMemo(() => [
         {
-            header: "Name",
+            header: "Tên",
             accessorKey: "userName",
             enableColumnFilter: false,
             cell: (cell: any) => (
@@ -414,7 +414,7 @@ const Account = () => {
             enableColumnFilter: false,
         },
         {
-            header: "Phone Number",
+            header: "Số Điện Thoại",
             accessorKey: "phoneNumber",
             enableColumnFilter: false,
             cell: (cell: any) => (
@@ -422,7 +422,7 @@ const Account = () => {
             ),
         },
         {
-            header: "Skin Type",
+            header: "Loại Da",
             accessorKey: "skinTypeId",
             enableColumnFilter: false,
             cell: (cell: any) => (
@@ -430,7 +430,7 @@ const Account = () => {
             ),
         },
         {
-            header: "Role",
+            header: "Vai Trò",
             accessorKey: "roleId",
             enableColumnFilter: false,
             cell: (cell: any) => (
@@ -438,7 +438,7 @@ const Account = () => {
             ),
         },
         {
-            header: "Status",
+            header: "Trạng Thái",
             accessorKey: "status",
             enableColumnFilter: false,
             enableSorting: true,
@@ -447,7 +447,7 @@ const Account = () => {
             ),
         },
         {
-            header: "Action",
+            header: "Hành Động",
             enableColumnFilter: false,
             enableSorting: true,
             cell: (cell: any) => (
@@ -460,7 +460,7 @@ const Account = () => {
                             <Link className="block px-4 py-1.5 text-base transition-all duration-200 ease-linear text-slate-600 hover:bg-slate-100 hover:text-slate-500 focus:bg-slate-100 focus:text-slate-500 dark:text-zink-100 dark:hover:bg-zink-500 dark:hover:text-zink-200 dark:focus:bg-zink-500 dark:focus:text-zink-200" to="#!" onClick={() => {
                                 const userData = cell.row.original;
                                 handleViewDataClick(userData);
-                            }}><Eye className="inline-block size-3 ltr:mr-1 rtl:ml-1" /> <span className="align-middle">Overview</span></Link>
+                            }}><Eye className="inline-block size-3 ltr:mr-1 rtl:ml-1" /> <span className="align-middle">Xem Chi Tiết</span></Link>
                         </li>
                         <li>
                             <Link className="block px-4 py-1.5 text-base transition-all duration-200 ease-linear text-slate-600 hover:bg-slate-100 hover:text-slate-500 focus:bg-slate-100 focus:text-slate-500 dark:text-zink-100 dark:hover:bg-zink-500 dark:hover:text-zink-200 dark:focus:bg-zink-500 dark:focus:text-zink-200" to="#!"
@@ -468,13 +468,13 @@ const Account = () => {
                                     const data = cell.row.original;
                                     handleUpdateDataClick(data);
                                 }}>
-                                <FileEdit className="inline-block size-3 ltr:mr-1 rtl:ml-1" /> <span className="align-middle">Edit</span></Link>
+                                <FileEdit className="inline-block size-3 ltr:mr-1 rtl:ml-1" /> <span className="align-middle">Chỉnh Sửa</span></Link>
                         </li>
                         <li>
                             <Link className="block px-4 py-1.5 text-base transition-all duration-200 ease-linear text-slate-600 hover:bg-slate-100 hover:text-slate-500 focus:bg-slate-100 focus:text-slate-500 dark:text-zink-100 dark:hover:bg-zink-500 dark:hover:text-zink-200 dark:focus:bg-zink-500 dark:focus:text-zink-200" to="#!" onClick={() => {
                                 const userData = cell.row.original;
                                 onClickDelete(userData);
-                            }}><Trash2 className="inline-block size-3 ltr:mr-1 rtl:ml-1" /> <span className="align-middle">Delete</span></Link>
+                            }}><Trash2 className="inline-block size-3 ltr:mr-1 rtl:ml-1" /> <span className="align-middle">Xóa</span></Link>
                         </li>
                     </Dropdown.Content>
                 </Dropdown>
@@ -484,14 +484,14 @@ const Account = () => {
 
     // Prepare options for dropdowns
     const statusOptions = [
-        { value: 'All', label: 'All Status' },
-        { value: 'Active', label: 'Active' },
-        { value: 'Inactive', label: 'Inactive' },
+        { value: 'All', label: 'Tất Cả Trạng Thái' },
+        { value: 'Active', label: 'Hoạt Động' },
+        { value: 'Inactive', label: 'Không Hoạt Động' },
     ];
     
     const skinTypeOptions = useMemo(() => [
-        { value: 'All', label: 'All Skin Types' },
-        { value: 'None', label: 'None' },
+        { value: 'All', label: 'Tất Cả Loại Da' },
+        { value: 'None', label: 'Không Có' },
         ...skinTypes.map((type: any) => ({ 
             value: type.id, 
             label: type.name 
@@ -499,7 +499,7 @@ const Account = () => {
     ], [skinTypes]);
     
     const roleOptions = useMemo(() => [
-        { value: 'All', label: 'All Roles' },
+        { value: 'All', label: 'Tất Cả Vai Trò' },
         ...roles.map((role: any) => ({ 
             value: role.roleId, 
             label: role.roleName 
@@ -526,16 +526,16 @@ const Account = () => {
     return (
         <React.Fragment>
             <div className="page-content">
-                <BreadCrumb title="Account" pageTitle="User" />
+                <BreadCrumb title="Tài Khoản" pageTitle="Người Dùng" />
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-x-5">
                     <div className="xl:col-span-12">
                         <div className="card">
                             <div className="card-body">
                                 <div className="flex items-center justify-between gap-2 mb-4">
-                                    <h6 className="text-15 grow">Account Details</h6>
+                                    <h6 className="text-15 grow">Chi Tiết Tài Khoản</h6>
                                     <div className="flex gap-2">
                                         <button type="button" className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20" onClick={toggle}>
-                                            <Plus className="inline-block size-4 align-middle ltr:mr-1 rtl:ml-1" /> <span className="align-middle">Add Account</span>
+                                            <Plus className="inline-block size-4 align-middle ltr:mr-1 rtl:ml-1" /> <span className="align-middle">Thêm Tài Khoản</span>
                                         </button>
                                     </div>
                                 </div>
@@ -547,7 +547,7 @@ const Account = () => {
                                                 <input 
                                                     type="text" 
                                                     className="ltr:pl-8 rtl:pr-8 search form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200" 
-                                                    placeholder="Search for name, email, phone number etc..." 
+                                                    placeholder="Tìm kiếm tên, email, số điện thoại..." 
                                                     autoComplete="off" 
                                                     onChange={handleSearchChange} 
                                                 />
@@ -620,7 +620,7 @@ const Account = () => {
                 dialogClassName="w-screen md:w-[30rem] bg-white shadow rounded-md dark:bg-zink-600">
                 <Modal.Header className="flex items-center justify-between p-4 border-b dark:border-zink-500"
                     closeButtonClass="transition-all duration-200 ease-linear text-slate-400 hover:text-red-500">
-                    <Modal.Title className="text-16">{isEdit ? (viewMode ? "View Account" : "Edit Account") : "Add Account"}</Modal.Title>
+                    <Modal.Title className="text-16">{isEdit ? (viewMode ? "Xem Tài Khoản" : "Chỉnh Sửa Tài Khoản") : "Thêm Tài Khoản"}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body className="max-h-[calc(theme('height.screen')_-_180px)] p-4 overflow-y-auto">
                     <form action="#!" onSubmit={(e) => {
@@ -642,13 +642,13 @@ const Account = () => {
                         <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
                             <div className="xl:col-span-6">
                                 <label htmlFor="userName" className="inline-block mb-2 text-base font-medium">
-                                    Username <span className="text-red-500">*</span>
+                                    Tên Người Dùng <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="text"
                                     id="userName"
                                     className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                                    placeholder="Enter username"
+                                    placeholder="Nhập tên người dùng"
                                     onChange={validation.handleChange}
                                     value={validation.values.userName || ""}
                                     disabled={viewMode}
@@ -659,13 +659,13 @@ const Account = () => {
                             </div>
                             <div className="xl:col-span-6">
                                 <label htmlFor="surName" className="inline-block mb-2 text-base font-medium">
-                                    Surname <span className="text-red-500">*</span>
+                                    Họ <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="text"
                                     id="surName"
                                     className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                                    placeholder="Enter surname"
+                                    placeholder="Nhập họ"
                                     onChange={validation.handleChange}
                                     value={validation.values.surName || ""}
                                     disabled={viewMode}
@@ -676,13 +676,13 @@ const Account = () => {
                             </div>
                             <div className="xl:col-span-6">
                                 <label htmlFor="lastName" className="inline-block mb-2 text-base font-medium">
-                                    Last Name <span className="text-red-500">*</span>
+                                    Tên <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="text"
                                     id="lastName"
                                     className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                                    placeholder="Enter last name"
+                                    placeholder="Nhập tên"
                                     onChange={validation.handleChange}
                                     value={validation.values.lastName || ""}
                                     disabled={viewMode}
@@ -699,7 +699,7 @@ const Account = () => {
                                     type="email"
                                     id="emailAddress"
                                     className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                                    placeholder="Enter email"
+                                    placeholder="Nhập email"
                                     onChange={validation.handleChange}
                                     value={validation.values.emailAddress || ""}
                                     disabled={viewMode}
@@ -710,13 +710,13 @@ const Account = () => {
                             </div>
                             <div className="xl:col-span-6">
                                 <label htmlFor="phoneNumber" className="inline-block mb-2 text-base font-medium">
-                                    Phone Number <span className="text-red-500">*</span>
+                                    Số Điện Thoại <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                     type="text"
                                     id="phoneNumber"
                                     className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                                    placeholder="Enter phone number"
+                                    placeholder="Nhập số điện thoại"
                                     onChange={validation.handleChange}
                                     value={validation.values.phoneNumber || ""}
                                     disabled={viewMode}
@@ -727,13 +727,13 @@ const Account = () => {
                             </div>
                             <div className="xl:col-span-6">
                                 <label htmlFor="password" className="inline-block mb-2 text-base font-medium">
-                                    Password <span className="text-red-500">*</span>
+                                    Mật Khẩu <span className="text-red-500">*</span>
                                 </label>
                                 <input
-                                    type="password"
+                                    type={viewMode ? "text" : "password"}
                                     id="password"
                                     className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                                    placeholder="Enter password"
+                                    placeholder="Nhập mật khẩu"
                                     onChange={validation.handleChange}
                                     value={validation.values.password || ""}
                                     disabled={viewMode}
@@ -744,7 +744,7 @@ const Account = () => {
                             </div>
                             <div className="xl:col-span-6">
                                 <label htmlFor="status" className="inline-block mb-2 text-base font-medium">
-                                    Status <span className="text-red-500">*</span>
+                                    Trạng Thái <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                     id="status"
@@ -753,8 +753,8 @@ const Account = () => {
                                     value={validation.values.status || "Active"}
                                     disabled={viewMode}
                                 >
-                                    <option value="Active">Active</option>
-                                    <option value="Inactive">Inactive</option>
+                                    <option value="Active">Hoạt Động</option>
+                                    <option value="Inactive">Không Hoạt Động</option>
                                 </select>
                                 {validation.touched.status && validation.errors.status ? (
                                     <p className="text-red-500">{validation.errors.status}</p>
@@ -762,7 +762,7 @@ const Account = () => {
                             </div>
                             <div className="xl:col-span-6">
                                 <label htmlFor="skinTypeId" className="inline-block mb-2 text-base font-medium">
-                                    Skin Type
+                                    Loại Da
                                 </label>
                                 <select
                                     id="skinTypeId"
@@ -771,7 +771,7 @@ const Account = () => {
                                     value={validation.values.skinTypeId || ""}
                                     disabled={viewMode}
                                 >
-                                    <option value="">None</option>
+                                    <option value="">Không Có</option>
                                     {skinTypes.map((type: any) => (
                                         <option key={type.id} value={type.id}>{type.name}</option>
                                     ))}
@@ -779,7 +779,7 @@ const Account = () => {
                             </div>
                             <div className="xl:col-span-6">
                                 <label htmlFor="roleId" className="inline-block mb-2 text-base font-medium">
-                                    Role <span className="text-red-500">*</span>
+                                    Vai Trò <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                     id="roleId"
@@ -788,7 +788,7 @@ const Account = () => {
                                     value={validation.values.roleId || ""}
                                     disabled={viewMode}
                                 >
-                                    <option value="">Select Role</option>
+                                    <option value="">Chọn Vai Trò</option>
                                     {roles.map((role: any) => (
                                         <option key={role.roleId} value={role.roleId}>{role.roleName}</option>
                                     ))}
@@ -799,19 +799,12 @@ const Account = () => {
                             </div>
                         </div>
                         <div className="flex justify-end gap-2 mt-4">
-                            <button
-                                type="button"
-                                className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10"
-                                onClick={toggle}
-                            >
-                                Cancel
+                            <button type="button" className="text-red-500 bg-white btn border-red-500 hover:text-white hover:bg-red-600 hover:border-red-600 focus:text-white focus:bg-red-600 focus:border-red-600 focus:ring focus:ring-red-100 active:text-white active:bg-red-600 active:border-red-600 active:ring active:ring-red-100 dark:ring-red-400/20" onClick={toggle}>
+                                Hủy
                             </button>
                             {!viewMode && (
-                                <button
-                                    type="submit"
-                                    className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
-                                >
-                                    {isEdit ? "Update" : "Add"}
+                                <button type="submit" className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20">
+                                    {isEdit ? "Cập Nhật" : "Thêm"}
                                 </button>
                             )}
                         </div>
