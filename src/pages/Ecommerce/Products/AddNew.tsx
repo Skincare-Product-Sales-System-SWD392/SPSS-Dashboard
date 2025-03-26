@@ -158,7 +158,7 @@ export default function AddNew() {
     // Check if variation and variation option are selected
     if (!selectedVariation.variationId || !selectedVariation.variationOptionId) {
       // Use MUI notification instead of toast
-      alert("Please select a variation and variation option before adding product items");
+      alert("Vui lòng chọn biến thể và tùy chọn biến thể trước khi thêm sản phẩm");
       return;
     }
     
@@ -226,35 +226,35 @@ export default function AddNew() {
     
     // Validate variation options
     if (!item.variationOptionIds || item.variationOptionIds.length === 0) {
-      errors.variationOptionIds = "Variation option is required";
+      errors.variationOptionIds = "Tùy chọn biến thể là bắt buộc";
     } else if (!selectedVariation.variationOptionId) {
-      errors.variationOptionIds = "Please select a variation option";
+      errors.variationOptionIds = "Vui lòng chọn tùy chọn biến thể";
     }
     
     // Validate quantity
     if (item.quantityInStock === undefined || item.quantityInStock === null) {
-      errors.quantityInStock = "Quantity is required";
+      errors.quantityInStock = "Số lượng là bắt buộc";
     } else if (item.quantityInStock < 0) {
-      errors.quantityInStock = "Quantity cannot be negative";
+      errors.quantityInStock = "Số lượng không thể âm";
     }
     
     // Validate price
     if (item.price === undefined || item.price === null || item.price === 0) {
-      errors.price = "Price is required";
+      errors.price = "Giá là bắt buộc";
     } else if (item.price < 0) {
-      errors.price = "Price cannot be negative";
+      errors.price = "Giá không thể âm";
     }
     
     // Validate market price
     if (item.marketPrice === undefined || item.marketPrice === null || item.marketPrice === 0) {
-      errors.marketPrice = "Market price is required";
+      errors.marketPrice = "Giá thị trường là bắt buộc";
     } else if (item.marketPrice < 0) {
-      errors.marketPrice = "Market price cannot be negative";
+      errors.marketPrice = "Giá thị trường không thể âm";
     }
     
     // Only validate image if no image URL exists
     if (!item.imageUrl && !productItemImages[index] && !item.imageFile && productImage === null) {
-      errors.image = "Product image is required";
+      errors.image = "Hình ảnh sản phẩm là bắt buộc";
     }
     
     return errors;
@@ -313,23 +313,23 @@ export default function AddNew() {
       tags: ''
     },
     validationSchema: Yup.object({
-      title: Yup.string().required('Product title is required').max(20, 'Title must not exceed 20 characters'),
-      quantity: Yup.number().required('Quantity is required').min(1, 'Quantity must be at least 1'),
-      brand: Yup.string().required('Brand is required'),
-      category: Yup.string().required('Category is required'),
-      price: Yup.number().required('Price is required').min(0, 'Price must be positive'),
-      marketPrice: Yup.number().required('Market price is required').min(0, 'Market price must be positive'),
-      skinType: Yup.array().min(1, 'At least one skin type must be selected').required('Skin type is required'),
-      description: Yup.string().required('Description is required'),
-      detailedIngredients: Yup.string().required('Detailed ingredients are required'),
-      mainFunction: Yup.string().required('Main function is required'),
-      texture: Yup.string().required('Texture is required'),
-      englishName: Yup.string().required('English name is required'),
-      keyActiveIngredients: Yup.string().required('Key active ingredients are required'),
-      storageInstruction: Yup.string().required('Storage instruction is required'),
-      usageInstruction: Yup.string().required('Usage instruction is required'),
-      expiryDate: Yup.string().required('Expiry date is required'),
-      skinIssues: Yup.string().required('Skin issues are required'),
+      title: Yup.string().required('Tên sản phẩm là bắt buộc').max(20, 'Tên không được vượt quá 20 ký tự'),
+      // quantity: Yup.number().required('Quantity is required').min(1, 'Quantity must be at least 1'),
+      brand: Yup.string().required('Thương hiệu là bắt buộc'),
+      category: Yup.string().required('Danh mục là bắt buộc'),
+      price: Yup.number().required('Giá là bắt buộc').min(0, 'Giá phải là số dương'),
+      marketPrice: Yup.number().required('Giá thị trường là bắt buộc').min(0, 'Giá thị trường phải là số dương'),
+      skinType: Yup.array().min(1, 'Phải chọn ít nhất một loại da').required('Loại da là bắt buộc'),
+      description: Yup.string().required('Mô tả là bắt buộc'),
+      detailedIngredients: Yup.string().required('Thành phần chi tiết là bắt buộc'),
+      mainFunction: Yup.string().required('Chức năng chính là bắt buộc'),
+      texture: Yup.string().required('Độ dày là bắt buộc'),
+      englishName: Yup.string().required('Tên tiếng Anh là bắt buộc'),
+      keyActiveIngredients: Yup.string().required('Thành phần chính là bắt buộc'),
+      storageInstruction: Yup.string().required('Hướng dẫn lưu trữ là bắt buộc'),
+      usageInstruction: Yup.string().required('Hướng dẫn sử dụng là bắt buộc'),
+      expiryDate: Yup.string().required('Ngày hạn sử dụng là bắt buộc'),
+      skinIssues: Yup.string().required('Vấn đề da là bắt buộc'),
     }),
     onSubmit: async (values) => {
       try {
@@ -341,7 +341,7 @@ export default function AddNew() {
         const allProductItemErrors: { [key: number]: { [key: string]: string } } = {};
         
         if (productItems.length === 0) {
-          showErrorAlert("At least one product item is required");
+          showErrorAlert("Cần ít nhất một sản phẩm");
           console.error("Validation failed: No product items");
           return;
         }
@@ -357,7 +357,7 @@ export default function AddNew() {
         
         if (hasProductItemErrors) {
           setProductItemErrors(allProductItemErrors);
-          showErrorAlert("Please fix all errors in product items");
+          showErrorAlert("Vui lòng sửa tất cả lỗi trong các sản phẩm");
           return;
         }
         
@@ -574,20 +574,31 @@ export default function AddNew() {
 
   return (
     <React.Fragment>
-      <BreadCrumb title="Add New Product" pageTitle="Products" />
+      <BreadCrumb title="Thêm Sản Phẩm" pageTitle="Sản Phẩm" />
       <ToastContainer />
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-x-5">
         <div className="xl:col-span-12">
           <div className="card">
             <div className="card-body">
-              <h6 className="mb-4 text-15">Create Product</h6>
+              <div className="flex justify-between items-center mb-4">
+                <h6 className="text-15">Thêm Sản Phẩm</h6>
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.location.href = "/apps-ecommerce-product-list";
+                  }}
+                  className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none"
+                >
+                  Trở Lại Danh Sách
+                </button>
+              </div>
               
               <form onSubmit={productFormik.handleSubmit}>
                 <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-12 mb-5">
                   {/* Product Image Section - Single Image */}
                   <div className="xl:col-span-12">
                     <label className="inline-block mb-2 text-base font-medium">
-                      Product Image
+                      Hình Ảnh Sản Phẩm
                     </label>
                     <Dropzone
                       onDrop={(acceptedFiles) => handleProductImageUpload(acceptedFiles)}
@@ -628,10 +639,10 @@ export default function AddNew() {
                               <>
                                 <UploadCloud className="size-6 mx-auto mb-3" />
                                 <h5 className="mb-1">
-                                  Drop image here or click to upload.
+                                  Đặt hình ảnh vào đây hoặc nhấp để tải lên.
                                 </h5>
                                 <p className="text-slate-500 dark:text-zink-200">
-                                  Maximum size: 2MB
+                                  Kích thước tối đa: 2MB
                                 </p>
                               </>
                             )}
@@ -646,7 +657,7 @@ export default function AddNew() {
                 <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-12">
                   <div className="xl:col-span-6">
                     <label htmlFor="title" className="inline-block mb-2 text-base font-medium">
-                      Product Title <span className="text-red-500">*</span>
+                      Tên Sản Phẩm <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -655,7 +666,7 @@ export default function AddNew() {
                       className={`form-input w-full ${
                         productFormik.touched.title && productFormik.errors.title ? 'border-red-500' : 'border-slate-200'
                       }`}
-                      placeholder="Product title"
+                      placeholder="Tên sản phẩm"
                       value={productFormik.values.title}
                       onChange={productFormik.handleChange}
                       onBlur={productFormik.handleBlur}
@@ -667,7 +678,7 @@ export default function AddNew() {
 
                   <div className="xl:col-span-6">
                     <label htmlFor="description" className="inline-block mb-2 text-base font-medium">
-                      Description <span className="text-red-500">*</span>
+                      Mô Tả <span className="text-red-500">*</span>
                     </label>
                     <textarea
                       id="description"
@@ -675,7 +686,7 @@ export default function AddNew() {
                       className={`form-input w-full ${
                         productFormik.touched.description && productFormik.errors.description ? 'border-red-500' : 'border-slate-200'
                       }`}
-                      placeholder="Enter product description"
+                      placeholder="Nhập mô tả sản phẩm"
                       rows={3}
                       value={productFormik.values.description}
                       onChange={productFormik.handleChange}
@@ -688,7 +699,7 @@ export default function AddNew() {
 
                   <div className="xl:col-span-6">
                     <label htmlFor="brand" className="inline-block mb-2 text-base font-medium">
-                      Brand <span className="text-red-500">*</span>
+                      Thương Hiệu <span className="text-red-500">*</span>
                     </label>
                     <Select
                       className="react-select"
@@ -696,7 +707,7 @@ export default function AddNew() {
                       isSearchable={true}
                       name="brand"
                       id="brand"
-                      placeholder="Select brand..."
+                      placeholder="Chọn thương hiệu..."
                       value={brandOptions.find(option => option.value === productFormik.values.brand)}
                       onChange={(option) => productFormik.setFieldValue('brand', option?.value || '')}
                       onBlur={() => productFormik.setFieldTouched('brand', true)}
@@ -708,7 +719,7 @@ export default function AddNew() {
 
                   <div className="xl:col-span-6">
                     <label htmlFor="category" className="inline-block mb-2 text-base font-medium">
-                      Category <span className="text-red-500">*</span>
+                      Danh Mục <span className="text-red-500">*</span>
                     </label>
                     <Select
                       className="react-select"
@@ -716,7 +727,7 @@ export default function AddNew() {
                       isSearchable={true}
                       name="category"
                       id="category"
-                      placeholder="Select category..."
+                      placeholder="Chọn danh mục..."
                       value={categoryOptions.find(option => option.value === productFormik.values.category)}
                       onChange={(option) => productFormik.setFieldValue('category', option?.value || '')}
                       onBlur={() => productFormik.setFieldTouched('category', true)}
@@ -728,7 +739,7 @@ export default function AddNew() {
 
                   <div className="xl:col-span-6">
                     <label htmlFor="price" className="inline-block mb-2 text-base font-medium">
-                      Price (VND) <span className="text-red-500">*</span>
+                      Giá (VND) <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <input
@@ -751,7 +762,7 @@ export default function AddNew() {
 
                   <div className="xl:col-span-6">
                     <label htmlFor="marketPrice" className="inline-block mb-2 text-base font-medium">
-                      Market Price (VND) <span className="text-red-500">*</span>
+                      Giá Thị Trường (VND) <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -775,7 +786,7 @@ export default function AddNew() {
                   <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-12">
                     <div className="xl:col-span-12">
                       <label htmlFor="skinType" className="inline-block mb-2 text-base font-medium">
-                        Skin Type <span className="text-red-500">*</span>
+                        Loại Da <span className="text-red-500">*</span>
                       </label>
                       <Select
                         className="react-select w-full"
@@ -791,7 +802,7 @@ export default function AddNew() {
                         isMulti={true}
                         name="skinType"
                         id="skinType"
-                        placeholder="Select skin types..."
+                        placeholder="Chọn loại da..."
                         value={skinTypeOptions.filter(option => 
                           productFormik.values.skinType.includes(option.value)
                         )}
@@ -811,14 +822,14 @@ export default function AddNew() {
                 {/* Variations Section - Simplified */}
                 <div className="mt-8">
                   <div className="flex justify-between items-center mb-4">
-                    <h6 className="text-15 font-medium">Variation</h6>
+                    <h6 className="text-15 font-medium">Biến Thể</h6>
                   </div>
                   
                   <div className="p-4 mb-4 border rounded-lg bg-white shadow-sm">
                     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                       <div>
                         <label className="inline-block mb-2 text-sm font-medium">
-                          Variation Type <span className="text-red-500">*</span>
+                          Loại Biến Thể <span className="text-red-500">*</span>
                         </label>
                         <Select
                           className="react-select"
@@ -827,7 +838,7 @@ export default function AddNew() {
                             label: v.name
                           }))}
                           isSearchable={true}
-                          placeholder="Select variation type..."
+                          placeholder="Chọn loại biến thể..."
                           value={availableVariations
                             .filter(v => v.id === selectedVariation.variationId)
                             .map(v => ({
@@ -846,7 +857,7 @@ export default function AddNew() {
                       
                       <div>
                         <label className="inline-block mb-2 text-sm font-medium">
-                          Variation Option <span className="text-red-500">*</span>
+                          Tùy Chọn Biến Thể <span className="text-red-500">*</span>
                         </label>
                         <Select
                           className="react-select"
@@ -861,7 +872,7 @@ export default function AddNew() {
                           }
                           isSearchable={true}
                           isMulti={false}
-                          placeholder={selectedVariation.variationId ? "Select option..." : "Select a variation type first"}
+                          placeholder={selectedVariation.variationId ? "Chọn tùy chọn..." : "Chọn loại biến thể trước"}
                           isDisabled={!selectedVariation.variationId}
                           value={
                             (availableVariations
@@ -887,21 +898,21 @@ export default function AddNew() {
                 {/* Product Items Section */}
                 <div className="mt-8">
                   <div className="flex justify-between items-center mb-4">
-                    <h6 className="text-15 font-medium">Product Items</h6>
+                    <h6 className="text-15 font-medium">Sản Phẩm</h6>
                     <button
                       type="button"
                       onClick={addProductItem}
                       className="flex items-center justify-center px-4 py-2 text-white rounded-lg bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all shadow-sm"
                       disabled={!selectedVariation.variationId}
                     >
-                      <Plus className="size-4 mr-2" /> Add Item
+                      <Plus className="size-4 mr-2" /> Thêm Sản Phẩm
                     </button>
                   </div>
                   
                   {productItems.length === 0 && (
                     <div className="p-4 text-center border border-dashed rounded-lg">
                       <p className="text-slate-500">
-                        {selectedVariation.variationId ? "No product items added yet. Click \"Add Item\" to create product items." : "Please select a variation before adding product items"}
+                        {selectedVariation.variationId ? "Chưa có sản phẩm. Click \"Thêm Sản Phẩm\" để tạo sản phẩm." : "Vui lòng chọn biến thể trước khi thêm sản phẩm."}
                       </p>
                     </div>
                   )}
@@ -909,7 +920,7 @@ export default function AddNew() {
                   {productItems.map((item, index) => (
                     <div key={index} className="p-4 mb-4 border rounded-lg bg-white shadow-sm">
                       <div className="flex justify-between items-center mb-3">
-                        <h6 className="text-base font-medium">Item #{index + 1}</h6>
+                        <h6 className="text-base font-medium">Sản Phẩm #{index + 1}</h6>
                         <button
                           type="button"
                           onClick={() => removeProductItem(index)}
@@ -922,7 +933,7 @@ export default function AddNew() {
                       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                         <div>
                           <label className="inline-block mb-2 text-sm font-medium">
-                            Variation Options
+                            Tùy Chọn Biến Thể
                           </label>
                           <div className="p-3 border rounded-md bg-gray-50">
                             {item.variationOptionIds.length > 0 ? (
@@ -963,12 +974,12 @@ export default function AddNew() {
                         
                         <div>
                           <label className="inline-block mb-2 text-sm font-medium">
-                            Quantity in Stock <span className="text-red-500">*</span>
+                            Số Lượng Trong Kho <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="number"
                             className={`form-input w-full ${productItemErrors[index]?.quantityInStock ? 'border-red-500' : 'border-slate-200'}`}
-                            placeholder="Quantity"
+                            placeholder="Số lượng"
                             value={item.quantityInStock}
                             onChange={(e) => updateProductItem(index, 'quantityInStock', parseInt(e.target.value) || 0)}
                           />
@@ -979,7 +990,7 @@ export default function AddNew() {
                         
                         <div>
                           <label className="inline-block mb-2 text-sm font-medium">
-                            Price (VND) <span className="text-red-500">*</span>
+                            Giá (VND) <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="text"
@@ -999,7 +1010,7 @@ export default function AddNew() {
                         
                         <div>
                           <label className="inline-block mb-2 text-sm font-medium">
-                            Market Price (VND) <span className="text-red-500">*</span>
+                            Giá Thị Trường (VND) <span className="text-red-500">*</span>
                           </label>
                           <input
                             type="text"
@@ -1019,7 +1030,7 @@ export default function AddNew() {
                         
                         <div className="lg:col-span-2">
                           <label className="inline-block mb-2 text-sm font-medium">
-                            Product Image <span className="text-red-500">*</span>
+                            Hình Ảnh Sản Phẩm <span className="text-red-500">*</span>
                           </label>
                           <Dropzone
                             onDrop={(acceptedFiles) => handleProductItemImageUpload(index, acceptedFiles)}
@@ -1083,11 +1094,11 @@ export default function AddNew() {
 
                 {/* Product Specifications */}
                 <div className="mt-8">
-                  <h6 className="mb-4 text-15 font-medium">Product Specifications</h6>
+                  <h6 className="mb-4 text-15 font-medium">Thông Số Sản Phẩm</h6>
                   <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-12">
                     <div className="xl:col-span-6">
                       <label htmlFor="detailedIngredients" className="inline-block mb-2 text-base font-medium">
-                        Detailed Ingredients <span className="text-red-500">*</span>
+                        Thành Phần Chi Tiết <span className="text-red-500">*</span>
                       </label>
                       <textarea
                         id="detailedIngredients"
@@ -1095,7 +1106,7 @@ export default function AddNew() {
                         className={`form-input w-full ${
                           productFormik.touched.detailedIngredients && productFormik.errors.detailedIngredients ? 'border-red-500' : 'border-slate-200'
                         }`}
-                        placeholder="Enter detailed ingredients"
+                        placeholder="Nhập thành phần chi tiết"
                         rows={3}
                         value={productFormik.values.detailedIngredients}
                         onChange={productFormik.handleChange}
@@ -1108,7 +1119,7 @@ export default function AddNew() {
 
                     <div className="xl:col-span-6">
                       <label htmlFor="mainFunction" className="inline-block mb-2 text-base font-medium">
-                        Main Function <span className="text-red-500">*</span>
+                        Chức Năng Chính <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -1117,7 +1128,7 @@ export default function AddNew() {
                         className={`form-input w-full ${
                           productFormik.touched.mainFunction && productFormik.errors.mainFunction ? 'border-red-500' : 'border-slate-200'
                         }`}
-                        placeholder="Enter main function"
+                        placeholder="Nhập chức năng chính"
                         value={productFormik.values.mainFunction}
                         onChange={productFormik.handleChange}
                         onBlur={productFormik.handleBlur}
@@ -1129,14 +1140,14 @@ export default function AddNew() {
 
                     <div className="xl:col-span-6">
                       <label htmlFor="texture" className="inline-block mb-2 text-base font-medium">
-                        Texture
+                        Độ Dày
                       </label>
                       <input
                         type="text"
                         id="texture"
                         name="texture"
                         className="form-input w-full border-slate-200"
-                        placeholder="Enter texture"
+                        placeholder="Nhập độ dày"
                         value={productFormik.values.texture}
                         onChange={productFormik.handleChange}
                       />
@@ -1144,14 +1155,14 @@ export default function AddNew() {
 
                     <div className="xl:col-span-6">
                       <label htmlFor="englishName" className="inline-block mb-2 text-base font-medium">
-                        English Name
+                        Tên Tiếng Anh
                       </label>
                       <input
                         type="text"
                         id="englishName"
                         name="englishName"
                         className="form-input w-full border-slate-200"
-                        placeholder="Enter English name"
+                        placeholder="Nhập tên tiếng anh"
                         value={productFormik.values.englishName}
                         onChange={productFormik.handleChange}
                       />
@@ -1159,7 +1170,7 @@ export default function AddNew() {
 
                     <div className="xl:col-span-6">
                       <label htmlFor="keyActiveIngredients" className="inline-block mb-2 text-base font-medium">
-                        Key Active Ingredients <span className="text-red-500">*</span>
+                        Thành Phần Chính <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -1168,7 +1179,7 @@ export default function AddNew() {
                         className={`form-input w-full ${
                           productFormik.touched.keyActiveIngredients && productFormik.errors.keyActiveIngredients ? 'border-red-500' : 'border-slate-200'
                         }`}
-                        placeholder="Enter key active ingredients"
+                        placeholder="Nhập thành phần chính"
                         value={productFormik.values.keyActiveIngredients}
                         onChange={productFormik.handleChange}
                         onBlur={productFormik.handleBlur}
@@ -1180,7 +1191,7 @@ export default function AddNew() {
 
                     <div className="xl:col-span-6">
                       <label htmlFor="storageInstruction" className="inline-block mb-2 text-base font-medium">
-                        Storage Instruction <span className="text-red-500">*</span>
+                        Hướng Dẫn Lưu Trữ <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -1189,7 +1200,7 @@ export default function AddNew() {
                         className={`form-input w-full ${
                           productFormik.touched.storageInstruction && productFormik.errors.storageInstruction ? 'border-red-500' : 'border-slate-200'
                         }`}
-                        placeholder="Enter storage instructions"
+                        placeholder="Nhập hướng dẫn lưu trữ"
                         value={productFormik.values.storageInstruction}
                         onChange={productFormik.handleChange}
                         onBlur={productFormik.handleBlur}
@@ -1201,7 +1212,7 @@ export default function AddNew() {
 
                     <div className="xl:col-span-6">
                       <label htmlFor="usageInstruction" className="inline-block mb-2 text-base font-medium">
-                        Usage Instruction <span className="text-red-500">*</span>
+                        Hướng Dẫn Sử Dụng <span className="text-red-500">*</span>
                       </label>
                       <textarea
                         id="usageInstruction"
@@ -1209,7 +1220,7 @@ export default function AddNew() {
                         className={`form-input w-full ${
                           productFormik.touched.usageInstruction && productFormik.errors.usageInstruction ? 'border-red-500' : 'border-slate-200'
                         }`}
-                        placeholder="Enter usage instructions"
+                        placeholder="Nhập hướng dẫn sử dụng"
                         rows={3}
                         value={productFormik.values.usageInstruction}
                         onChange={productFormik.handleChange}
@@ -1222,7 +1233,7 @@ export default function AddNew() {
 
                     <div className="xl:col-span-6">
                       <label htmlFor="expiryDate" className="inline-block mb-2 text-base font-medium">
-                        Expiry Date <span className="text-red-500">*</span>
+                        Ngày Hạn Sử Dụng <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -1231,7 +1242,7 @@ export default function AddNew() {
                         className={`form-input w-full ${
                           productFormik.touched.expiryDate && productFormik.errors.expiryDate ? 'border-red-500' : 'border-slate-200'
                         }`}
-                        placeholder="Enter expiry date (e.g., 12/2025)"
+                        placeholder="Nhập ngày hạn sử dụng (ví dụ: 2 months)"
                         value={productFormik.values.expiryDate}
                         onChange={productFormik.handleChange}
                         onBlur={productFormik.handleBlur}
@@ -1243,7 +1254,7 @@ export default function AddNew() {
 
                     <div className="xl:col-span-6">
                       <label htmlFor="skinIssues" className="inline-block mb-2 text-base font-medium">
-                        Skin Issues <span className="text-red-500">*</span>
+                        Vấn Đề Da <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -1252,7 +1263,7 @@ export default function AddNew() {
                         className={`form-input w-full ${
                           productFormik.touched.skinIssues && productFormik.errors.skinIssues ? 'border-red-500' : 'border-slate-200'
                         }`}
-                        placeholder="Enter skin issues this product addresses"
+                        placeholder="Nhập vấn đề da mà sản phẩm giải quyết"
                         value={productFormik.values.skinIssues}
                         onChange={productFormik.handleChange}
                         onBlur={productFormik.handleBlur}
@@ -1275,7 +1286,7 @@ export default function AddNew() {
                     }}
                     className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100"
                   >
-                    Cancel
+                    Hủy
                   </button>
                   <button
                     type="button"
@@ -1292,10 +1303,10 @@ export default function AddNew() {
                         <span className="mr-2 animate-spin">
                           <i className="mdi mdi-loading"></i>
                         </span>
-                        Submitting...
+                        Đang tạo sản phẩm...
                       </>
                     ) : (
-                      "Create Product"
+                      "Tạo Sản Phẩm"
                     )}
                   </button>
                 </div>
