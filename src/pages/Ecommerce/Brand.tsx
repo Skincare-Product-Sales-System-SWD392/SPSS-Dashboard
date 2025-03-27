@@ -274,7 +274,7 @@ const Brand = () => {
     setEventData({ ...ele });
     setIsEdit(true);
     setShow(true);
-    setImagePreview(ele.image);
+    setImagePreview(ele.imageUrl);
   };
 
   // Add handler for overview click

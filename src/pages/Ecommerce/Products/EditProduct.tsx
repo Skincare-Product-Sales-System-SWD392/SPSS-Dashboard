@@ -913,36 +913,37 @@ export default function EditProduct() {
         
         console.log("API response:", response.data);
         
-        // More robust success check - similar to AddNew.tsx
-        if (response.data) {
-          console.log("SUCCESS DETECTED! Redirecting to product list...");
-          
-          // Show success toast - using the same approach as AddNew.tsx
-          toast.success("Sản phẩm đã được cập nhật thành công!", {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true
-          });
-          
-          // Force redirect after a short delay
-          setTimeout(() => {
-            console.log("Executing redirect now...");
-            window.location.href = "/apps-ecommerce-product-list";
-          }, 1500);
-        } else {
-          const errorMsg = response.data?.message || "Không thể cập nhật sản phẩm. Vui lòng thử lại.";
-          console.error("API error message:", errorMsg);
-          setErrorMessage(errorMsg);
-          toast.error(errorMsg);
-        }
+        // Show success toast notification
+        toast.success("Sản phẩm đã được cập nhật thành công!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        
+        // Wait for toast to be visible before redirecting
+        setTimeout(() => {
+          window.location.href = "/apps-ecommerce-product-list";
+        }, 2000);
+        
       } catch (error: any) {
         console.error("Error updating product:", error);
-        const errorMessage = error.message || "Không thể cập nhật sản phẩm. Vui lòng thử lại.";
+        const errorMessage = error.response?.data?.message || error.message || "Không thể cập nhật sản phẩm. Vui lòng thử lại.";
         setErrorMessage(errorMessage);
-        toast.error(errorMessage);
+        
+        // Show error toast
+        toast.error(errorMessage, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
       } finally {
         setIsSubmitting(false);
       }
@@ -1035,30 +1036,140 @@ export default function EditProduct() {
     try {
       setIsSubmitting(true);
       
+      // Get Firebase backend instance
+      const firebaseBackend = getFirebaseBackend();
+      console.log("Firebase backend initialized");
+      
+      // Upload thumbnail if exists
+      let thumbnailUrl = "";
+      if (thumbnail?.file) {
+        console.log("Uploading thumbnail...");
+        try {
+          thumbnailUrl = await firebaseBackend.uploadFileWithDirectory(thumbnail.file, "SPSS/Product-Thumbnail");
+          console.log("Thumbnail uploaded successfully:", thumbnailUrl);
+        } catch (uploadError) {
+          console.error("Error uploading thumbnail:", uploadError);
+          setErrorMessage("Failed to upload thumbnail. Please try again.");
+          setIsSubmitting(false);
+          return;
+        }
+      } else if (thumbnail?.preview) {
+        // Use existing preview if available
+        thumbnailUrl = thumbnail.preview;
+      }
+      
+      // Upload product images if exist
+      let productImageUrls: string[] = [];
+      if (productImages.length > 0) {
+        console.log("Uploading product images...");
+        try {
+          const imageFiles = productImages.map(image => image.file).filter(Boolean);
+          const existingUrls = productImages
+            .filter(image => !image.file && image.preview)
+            .map(image => image.preview);
+          
+          // Upload new files
+          if (imageFiles.length > 0) {
+            const uploadPromises = imageFiles.map(file => 
+              firebaseBackend.uploadFileWithDirectory(file, "SPSS/Product-Images")
+            );
+            
+            // Wait for all uploads to complete
+            const uploadedUrls = await Promise.all(uploadPromises);
+            productImageUrls = [...existingUrls, ...uploadedUrls];
+          } else {
+            productImageUrls = existingUrls;
+          }
+          
+          console.log("Product images processed successfully:", productImageUrls);
+        } catch (uploadError) {
+          console.error("Error uploading product images:", uploadError);
+          setErrorMessage("Failed to upload product images. Please try again.");
+          setIsSubmitting(false);
+          return;
+        }
+      }
+      
+      // Combine all image URLs - ensure thumbnail is first if it exists
+      const allProductImageUrls = [];
+      
+      // Add thumbnail if exists
+      if (thumbnailUrl) {
+        allProductImageUrls.push(thumbnailUrl);
+      }
+      
+      // Add all product images
+      if (productImageUrls.length > 0) {
+        allProductImageUrls.push(...productImageUrls);
+      }
+      
+      // Upload product item images and prepare variation combinations
+      const variationCombinations = await Promise.all(productItems.map(async (item, index) => {
+        let imageUrl = item.imageUrl || "";
+        
+        // Get the item ID or use a temporary ID
+        const itemId = item.id || `temp-${index}`;
+        
+        // If there's an image file for this item, upload it
+        if (productItemImages[itemId]?.file) {
+          try {
+            imageUrl = await firebaseBackend.uploadFileWithDirectory(
+              productItemImages[itemId]!.file, 
+              "SPSS/Product-Item-Images"
+            );
+          } catch (uploadError) {
+            console.error(`Error uploading image for product item #${index + 1}:`, uploadError);
+            throw new Error(`Failed to upload image for product item #${index + 1}`);
+          }
+        }
+        
+        return {
+          variationOptionIds: item.variationOptionIds || [],
+          imageUrl: imageUrl,
+          price: parseFloat(item.price.toString().replace(/\s/g, '')),
+          marketPrice: parseFloat(item.marketPrice.toString().replace(/\s/g, '')),
+          quantityInStock: parseInt(item.quantityInStock.toString())
+        };
+      }));
+      
+      // Prepare variations data
+      const variationsData = variations.map(v => ({
+        id: v.id,
+        variationOptionIds: v.variationOptionIds || []
+      }));
+      
+      // Get values from formik
+      const values = productFormik.values;
+      
       // Prepare data for API submission
       const updateProductData = {
         id: productId,
-        brandId: productFormik.values.brand,
-        productCategoryId: productFormik.values.category,
-        name: productFormik.values.title,
-        description: productFormik.values.description,
-        price: parseFloat(productFormik.values.price.toString().replace(/\s/g, '')),
-        marketPrice: parseFloat(productFormik.values.marketPrice.toString().replace(/\s/g, '')),
-        skinTypeIds: productFormik.values.skinType,
-        productImageUrls: [], // Add your image URLs here
+        brandId: values.brand,
+        productCategoryId: values.category,
+        name: values.title,
+        description: values.description,
+        price: parseFloat(values.price.toString().replace(/\s/g, '')),
+        marketPrice: parseFloat(values.marketPrice.toString().replace(/\s/g, '')),
+        skinTypeIds: values.skinType,
+        productImageUrls: allProductImageUrls,
+        variations: variationsData,
+        variationCombinations: variationCombinations,
         specifications: {
-          detailedIngredients: productFormik.values.detailedIngredients,
-          mainFunction: productFormik.values.mainFunction,
-          texture: productFormik.values.texture,
-          englishName: productFormik.values.englishName,
-          keyActiveIngredients: productFormik.values.keyActiveIngredients,
-          storageInstruction: productFormik.values.storageInstruction,
-          usageInstruction: productFormik.values.usageInstruction,
-          expiryDate: productFormik.values.expiryDate,
-          skinIssues: productFormik.values.skinIssues
+          detailedIngredients: values.detailedIngredients,
+          mainFunction: values.mainFunction,
+          texture: values.texture,
+          englishName: values.englishName,
+          keyActiveIngredients: values.keyActiveIngredients,
+          storageInstruction: values.storageInstruction,
+          usageInstruction: values.usageInstruction,
+          expiryDate: values.expiryDate,
+          skinIssues: values.skinIssues
         }
       };
       
+      console.log("Prepared product data for submission:", updateProductData);
+      
+      // Make API call to update the product
       const response = await axios.patch(
         `https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/products/${productId}`,
         updateProductData,
@@ -1071,36 +1182,37 @@ export default function EditProduct() {
       
       console.log("API response:", response.data);
       
-      // More robust success check - similar to AddNew.tsx
-      if (response.data) {
-        console.log("SUCCESS DETECTED! Redirecting to product list...");
-        
-        // Show success toast - using the same approach as AddNew.tsx
-        toast.success("Sản phẩm đã được cập nhật thành công!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true
-        });
-        
-        // Force redirect after a short delay
-        setTimeout(() => {
-          console.log("Executing redirect now...");
-          window.location.href = "/apps-ecommerce-product-list";
-        }, 1500);
-      } else {
-        const errorMsg = response.data?.message || "Không thể cập nhật sản phẩm. Vui lòng thử lại.";
-        console.error("API error message:", errorMsg);
-        setErrorMessage(errorMsg);
-        toast.error(errorMsg);
-      }
+      // Show success toast notification
+      toast.success("Sản phẩm đã được cập nhật thành công!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      
+      // Wait for toast to be visible before redirecting
+      setTimeout(() => {
+        window.location.href = "/apps-ecommerce-product-list";
+      }, 2000);
+      
     } catch (error: any) {
       console.error("Error updating product:", error);
-      const errorMessage = error.message || "Không thể cập nhật sản phẩm. Vui lòng thử lại.";
+      const errorMessage = error.response?.data?.message || error.message || "Không thể cập nhật sản phẩm. Vui lòng thử lại.";
       setErrorMessage(errorMessage);
-      toast.error(errorMessage);
+      
+      // Show error toast
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
     } finally {
       setIsSubmitting(false);
     }
