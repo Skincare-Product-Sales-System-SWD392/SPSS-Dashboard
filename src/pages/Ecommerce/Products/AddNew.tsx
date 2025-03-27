@@ -9,6 +9,7 @@ import BreadCrumb from "Common/BreadCrumb";
 import { getFirebaseBackend } from "../../../helpers/firebase_helper";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Editor } from '@tinymce/tinymce-react';
 
 // Define interfaces
 interface ProductImage {
@@ -39,9 +40,38 @@ interface ProductItem {
   price: number;
   marketPrice: number;
   quantityInStock: number;
-  imageUrl: string;
-  imageFile?: File;
+  imageUrl?: string;
 }
+
+const TINYMCE_API_KEY = process.env.REACT_APP_TINYMCE_API_KEY || "8wmapg650a8xkqj2cwz4qgka67mscn8xm3uaijvcyoh70b1g";
+// Add this function to format numbers with spaces
+const formatNumberWithSpaces = (num: number) => {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+};
+
+// Define a common editor configuration to reuse
+const editorConfig = {
+  height: 250,
+  menubar: false,
+  plugins: [
+    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+    'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+  ],
+  toolbar: 'undo redo | blocks | ' +
+    'bold italic forecolor | alignleft aligncenter ' +
+    'alignright alignjustify | bullist numlist outdent indent | ' +
+    'removeformat | help',
+  content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+  resize: true,
+  statusbar: true,
+  statusbar_location: 'bottom',
+  elementpath: false,
+  wordcount: false,
+  branding: false,
+  min_height: 150,
+  max_height: 500
+};
 
 export default function AddNew() {
   const [productImage, setProductImage] = useState<ProductImage | null>(null);
@@ -49,10 +79,12 @@ export default function AddNew() {
   const [categoryOptions, setCategoryOptions] = useState<any[]>([]);
   const [skinTypeOptions, setSkinTypeOptions] = useState<any[]>([]);
   const [variationOptions, setVariationOptions] = useState<VariationOption[]>([]);
-  const [variations, setVariations] = useState<Variation[]>([]);
+  const [variations, setVariations] = useState<Array<{
+    id: string;
+    variationOptionIds: string[];
+  }>>([]);
   const [productItems, setProductItems] = useState<ProductItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedVariation, setSelectedVariation] = useState<{variationId: string, variationOptionId: string}>({variationId: "", variationOptionId: ""});
   const [productItemImages, setProductItemImages] = useState<{[key: number]: ProductImage | null}>({});
   const [productItemErrors, setProductItemErrors] = useState<{ [key: number]: { [key: string]: string } }>({});
   const [availableVariations, setAvailableVariations] = useState<Variation[]>([]);
@@ -155,29 +187,24 @@ export default function AddNew() {
 
   // Update the addProductItem function to use the selected variation option
   const addProductItem = () => {
-    // Check if variation and variation option are selected
-    if (!selectedVariation.variationId || !selectedVariation.variationOptionId) {
-      // Use MUI notification instead of toast
-      alert("Vui lòng chọn biến thể và tùy chọn biến thể trước khi thêm sản phẩm");
-      return;
-    }
+    setProductItems([
+      ...productItems,
+      {
+        variationOptionIds: [],
+        price: 0,
+        marketPrice: 0,
+        quantityInStock: 0
+      }
+    ]);
     
-    const newItem = {
-      variationOptionIds: [selectedVariation.variationOptionId], // Use selected variation option
-      quantityInStock: 0,
-      price: 0,
-      marketPrice: 0,
-      imageUrl: ""
-    };
-    
-    const newItems = [...productItems, newItem];
-    setProductItems(newItems);
-    
-    // Validate the new item
-    const errors = validateProductItem(newItem, newItems.length - 1);
+    // Also initialize the image state
+    setProductItemImages({
+      ...productItemImages,
+      [productItems.length]: null // Use the new index as the key
+    });
     setProductItemErrors({
       ...productItemErrors,
-      [newItems.length - 1]: errors
+      [productItems.length]: {} // Use the new index as the key
     });
   };
 
@@ -225,10 +252,8 @@ export default function AddNew() {
     const errors: { [key: string]: string } = {};
     
     // Validate variation options
-    if (!item.variationOptionIds || item.variationOptionIds.length === 0) {
+    if (item.variationOptionIds.length === 0) {
       errors.variationOptionIds = "Tùy chọn biến thể là bắt buộc";
-    } else if (!selectedVariation.variationOptionId) {
-      errors.variationOptionIds = "Vui lòng chọn tùy chọn biến thể";
     }
     
     // Validate quantity
@@ -253,7 +278,7 @@ export default function AddNew() {
     }
     
     // Only validate image if no image URL exists
-    if (!item.imageUrl && !productItemImages[index] && !item.imageFile && productImage === null) {
+    if (!item.imageUrl && !productItemImages[index] && productImage === null) {
       errors.image = "Hình ảnh sản phẩm là bắt buộc";
     }
     
@@ -310,11 +335,17 @@ export default function AddNew() {
       skinIssues: '',
       status: 'Draft',
       visibility: 'Public',
-      tags: ''
+      tags: '',
+      stockQuantity: '',
     },
     validationSchema: Yup.object({
-      title: Yup.string().required('Tên sản phẩm là bắt buộc').max(20, 'Tên không được vượt quá 20 ký tự'),
-      // quantity: Yup.number().required('Quantity is required').min(1, 'Quantity must be at least 1'),
+      title: Yup.string()
+        .required('Tên sản phẩm là bắt buộc')
+        .max(20, 'Tên không được vượt quá 20 ký tự')
+        .matches(
+          /^[a-zA-Z0-9\s\u00C0-\u1EF9]+$/,
+          'Tên sản phẩm không được chứa ký tự đặc biệt'
+        ),
       brand: Yup.string().required('Thương hiệu là bắt buộc'),
       category: Yup.string().required('Danh mục là bắt buộc'),
       price: Yup.number().required('Giá là bắt buộc').min(0, 'Giá phải là số dương'),
@@ -322,14 +353,43 @@ export default function AddNew() {
       skinType: Yup.array().min(1, 'Phải chọn ít nhất một loại da').required('Loại da là bắt buộc'),
       description: Yup.string().required('Mô tả là bắt buộc'),
       detailedIngredients: Yup.string().required('Thành phần chi tiết là bắt buộc'),
-      mainFunction: Yup.string().required('Chức năng chính là bắt buộc'),
-      texture: Yup.string().required('Độ dày là bắt buộc'),
-      englishName: Yup.string().required('Tên tiếng Anh là bắt buộc'),
-      keyActiveIngredients: Yup.string().required('Thành phần chính là bắt buộc'),
+      mainFunction: Yup.string()
+        .required('Chức năng chính là bắt buộc')
+        .matches(
+          /^[a-zA-Z0-9\s\u00C0-\u1EF9.,]+$/,
+          'Không được chứa ký tự đặc biệt'
+        ),
+      texture: Yup.string()
+        .required('Kết cấu là bắt buộc')
+        .matches(
+          /^[a-zA-Z0-9\s\u00C0-\u1EF9.,]+$/,
+          'Không được chứa ký tự đặc biệt'
+        ),
+      englishName: Yup.string()
+        .matches(
+          /^[a-zA-Z0-9\s.,]*$/,
+          'Không được chứa ký tự đặc biệt'
+        ),
+      keyActiveIngredients: Yup.string()
+        .required('Thành phần chính là bắt buộc')
+        .matches(
+          /^[a-zA-Z0-9\s\u00C0-\u1EF9.,]+$/,
+          'Không được chứa ký tự đặc biệt'
+        ),
       storageInstruction: Yup.string().required('Hướng dẫn lưu trữ là bắt buộc'),
       usageInstruction: Yup.string().required('Hướng dẫn sử dụng là bắt buộc'),
-      expiryDate: Yup.string().required('Ngày hạn sử dụng là bắt buộc'),
-      skinIssues: Yup.string().required('Vấn đề da là bắt buộc'),
+      expiryDate: Yup.string()
+        .required('Ngày hạn sử dụng là bắt buộc')
+        .matches(
+          /^[a-zA-Z0-9\s\u00C0-\u1EF9.,]+$/,
+          'Không được chứa ký tự đặc biệt'
+        ),
+      skinIssues: Yup.string()
+        .required('Vấn đề da là bắt buộc')
+        .matches(
+          /^[a-zA-Z0-9\s\u00C0-\u1EF9.,]+$/,
+          'Không được chứa ký tự đặc biệt'
+        ),
     }),
     onSubmit: async (values) => {
       try {
@@ -420,11 +480,8 @@ export default function AddNew() {
           price: parseFloat(values.price.replace(/\s/g, '')),
           marketPrice: parseFloat(values.marketPrice.toString().replace(/\s/g, '')),
           skinTypeIds: values.skinType,
-          productImageUrls: productImageUrl ? [productImageUrl] : [], // Use single image URL
-          variations: selectedVariation.variationId ? [{
-            id: selectedVariation.variationId,
-            variationOptionIds: [selectedVariation.variationOptionId]
-          }] : [],
+          productImageUrls: productImageUrl ? [productImageUrl] : [],
+          variations: variations,
           productItems: updatedProductItems.map(item => ({
             variationOptionIds: item.variationOptionIds,
             price: parseFloat(item.price.toString().replace(/\s/g, '')),
@@ -553,7 +610,7 @@ export default function AddNew() {
       const updatedItems = [...productItems];
       updatedItems[index] = { 
         ...updatedItems[index], 
-        imageFile: file 
+        imageUrl: URL.createObjectURL(file) 
       };
       setProductItems(updatedItems);
     }
@@ -567,9 +624,86 @@ export default function AddNew() {
     // Remove the file reference from the product item
     const updatedItems = [...productItems];
     const updatedItem = { ...updatedItems[index] };
-    delete updatedItem.imageFile;
+    delete updatedItem.imageUrl;
     updatedItems[index] = updatedItem;
     setProductItems(updatedItems);
+  };
+
+  // Add this function to add a new variation
+  const addVariation = () => {
+    setVariations([
+      ...variations,
+      {
+        id: "",
+        variationOptionIds: []
+      }
+    ]);
+  };
+
+  // Add this function to remove a variation
+  const removeVariation = (index: number) => {
+    const newVariations = [...variations];
+    newVariations.splice(index, 1);
+    setVariations(newVariations);
+  };
+
+  // Add this function to update a variation
+  const updateVariation = (index: number, field: string, value: any) => {
+    const newVariations = [...variations];
+    if (field === 'id') {
+      newVariations[index] = {
+        ...newVariations[index],
+        id: value,
+        variationOptionIds: [] // Reset options when variation type changes
+      };
+    } else if (field === 'variationOptionIds') {
+      newVariations[index] = {
+        ...newVariations[index],
+        variationOptionIds: value
+      };
+    }
+    setVariations(newVariations);
+  };
+
+  // Update the generateProductItems function to correctly create combinations
+  const generateProductItems = () => {
+    // Check if we have valid variations
+    if (variations.length === 0 || variations.some(v => !v.id || v.variationOptionIds.length === 0)) {
+      showErrorAlert("Vui lòng chọn đầy đủ biến thể và tùy chọn trước khi tạo sản phẩm");
+      return;
+    }
+    
+    // Create a new array to hold the product items
+    const newProductItems: ProductItem[] = [];
+    
+    // For each variation, create a product item with that variation option
+    variations.forEach(variation => {
+      // For each selected variation option in this variation
+      variation.variationOptionIds.forEach(optionId => {
+        // Create a new product item with this variation option
+        newProductItems.push({
+          variationOptionIds: [optionId],
+          price: 0,
+          marketPrice: 0,
+          quantityInStock: 0
+        });
+      });
+    });
+    
+    // Set the new product items
+    setProductItems(newProductItems);
+    
+    // Initialize images and errors for each new product item
+    const newImages: { [key: number]: ProductImage | null } = {};
+    const newErrors: { [key: number]: { [key: string]: string } } = {};
+    
+    newProductItems.forEach((_: any, index: number) => {
+      newImages[index] = null;
+      newErrors[index] = {};
+    });
+    
+    setProductItemImages(newImages);
+    setProductItemErrors(newErrors);
   };
 
   return (
@@ -680,18 +814,16 @@ export default function AddNew() {
                     <label htmlFor="description" className="inline-block mb-2 text-base font-medium">
                       Mô Tả <span className="text-red-500">*</span>
                     </label>
-                    <textarea
+                    <Editor
                       id="description"
-                      name="description"
-                      className={`form-input w-full ${
-                        productFormik.touched.description && productFormik.errors.description ? 'border-red-500' : 'border-slate-200'
-                      }`}
-                      placeholder="Nhập mô tả sản phẩm"
-                      rows={3}
+                      apiKey={TINYMCE_API_KEY}
+                      init={editorConfig}
                       value={productFormik.values.description}
-                      onChange={productFormik.handleChange}
-                      onBlur={productFormik.handleBlur}
-                    ></textarea>
+                      onEditorChange={(content : any) => {
+                        productFormik.setFieldValue('description', content);
+                      }}
+                      onBlur={() => productFormik.setFieldTouched('description', true)}
+                    />
                     {productFormik.touched.description && productFormik.errors.description && (
                       <p className="mt-1 text-sm text-red-500">{productFormik.errors.description}</p>
                     )}
@@ -823,96 +955,119 @@ export default function AddNew() {
                 <div className="mt-8">
                   <div className="flex justify-between items-center mb-4">
                     <h6 className="text-15 font-medium">Biến Thể</h6>
+                    <button
+                      type="button"
+                      onClick={addVariation}
+                      className="flex items-center justify-center px-4 py-2 text-white rounded-lg bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all shadow-sm"
+                    >
+                      <Plus className="size-4 mr-2" /> Thêm Biến Thể
+                    </button>
                   </div>
                   
-                  <div className="p-4 mb-4 border rounded-lg bg-white shadow-sm">
-                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                      <div>
-                        <label className="inline-block mb-2 text-sm font-medium">
-                          Loại Biến Thể <span className="text-red-500">*</span>
-                        </label>
-                        <Select
-                          className="react-select"
-                          options={availableVariations.map(v => ({
-                            value: v.id,
-                            label: v.name
-                          }))}
-                          isSearchable={true}
-                          placeholder="Chọn loại biến thể..."
-                          value={availableVariations
-                            .filter(v => v.id === selectedVariation.variationId)
-                            .map(v => ({
-                              value: v.id,
-                              label: v.name
-                            }))[0]}
-                          onChange={(option) => 
-                            setSelectedVariation({
-                              ...selectedVariation,
-                              variationId: option?.value || "",
-                              variationOptionId: "" // Reset option when type changes
-                            })
-                          }
-                        />
+                  {variations.length === 0 && (
+                    <div className="p-4 text-center border border-dashed rounded-lg">
+                      <p className="text-slate-500">
+                        Chưa có biến thể. Click "Thêm Biến Thể" để tạo biến thể mới.
+                      </p>
+                    </div>
+                  )}
+                  
+                  {variations.map((variation, index) => (
+                    <div key={index} className="p-4 mb-4 border rounded-lg bg-white shadow-sm">
+                      <div className="flex justify-between items-center mb-3">
+                        <h6 className="text-base font-medium">Biến Thể #{index + 1}</h6>
+                        <button
+                          type="button"
+                          onClick={() => removeVariation(index)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
                       </div>
                       
-                      <div>
-                        <label className="inline-block mb-2 text-sm font-medium">
-                          Tùy Chọn Biến Thể <span className="text-red-500">*</span>
-                        </label>
-                        <Select
-                          className="react-select"
-                          options={
-                            // Filter variation options based on selected variation
-                            availableVariations
-                              .find(v => v.id === selectedVariation.variationId)?.variationOptions
-                              ?.map(option => ({
-                                value: option.id,
-                                label: option.value
-                              })) || []
-                          }
-                          isSearchable={true}
-                          isMulti={false}
-                          placeholder={selectedVariation.variationId ? "Chọn tùy chọn..." : "Chọn loại biến thể trước"}
-                          isDisabled={!selectedVariation.variationId}
-                          value={
-                            (availableVariations
-                              .find(v => v.id === selectedVariation.variationId)?.variationOptions || [])
-                              .filter(option => option.id === selectedVariation.variationOptionId)
-                              .map(option => ({
-                                value: option.id,
-                                label: option.value
-                              }))[0]
-                          }
-                          onChange={(option) => 
-                            setSelectedVariation({
-                              ...selectedVariation,
-                              variationOptionId: option?.value || ""
-                            })
-                          }
-                        />
+                      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                        <div>
+                          <label className="inline-block mb-2 text-sm font-medium">
+                            Loại Biến Thể <span className="text-red-500">*</span>
+                          </label>
+                          <Select
+                            className="react-select"
+                            options={availableVariations.map(v => ({
+                              value: v.id,
+                              label: v.name
+                            }))}
+                            isSearchable={true}
+                            placeholder="Chọn loại biến thể..."
+                            value={availableVariations
+                              .filter(v => v.id === variation.id)
+                              .map(v => ({
+                                value: v.id,
+                                label: v.name
+                              }))[0]}
+                            onChange={(option) => 
+                              updateVariation(index, 'id', option?.value || "")
+                            }
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="inline-block mb-2 text-sm font-medium">
+                            Tùy Chọn Biến Thể <span className="text-red-500">*</span>
+                          </label>
+                          <Select
+                            className="react-select"
+                            options={
+                              availableVariations
+                                .find(v => v.id === variation.id)?.variationOptions
+                                ?.map(option => ({
+                                  value: option.id,
+                                  label: option.value
+                                })) || []
+                            }
+                            isSearchable={true}
+                            isMulti={true}
+                            placeholder={variation.id ? "Chọn tùy chọn..." : "Chọn loại biến thể trước"}
+                            isDisabled={!variation.id}
+                            value={
+                              availableVariations
+                                .find(v => v.id === variation.id)?.variationOptions
+                                ?.filter(option => variation.variationOptionIds.includes(option.id))
+                                .map(option => ({
+                                  value: option.id,
+                                  label: option.value
+                                })) || []
+                            }
+                            onChange={(selectedOptions) => {
+                              const selectedIds = selectedOptions ? selectedOptions.map((option: any) => option.value) : [];
+                              updateVariation(index, 'variationOptionIds', selectedIds);
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
 
                 {/* Product Items Section */}
                 <div className="mt-8">
                   <div className="flex justify-between items-center mb-4">
                     <h6 className="text-15 font-medium">Sản Phẩm</h6>
-                    <button
-                      type="button"
-                      onClick={addProductItem}
-                      className="flex items-center justify-center px-4 py-2 text-white rounded-lg bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all shadow-sm"
-                      disabled={!selectedVariation.variationId}
-                    >
-                      <Plus className="size-4 mr-2" /> Thêm Sản Phẩm
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={generateProductItems}
+                        className="flex items-center justify-center px-4 py-2 text-white rounded-lg bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all shadow-sm"
+                        disabled={variations.length === 0}
+                      >
+                        <Plus className="size-4 mr-2" /> Tạo Sản Phẩm Từ Biến Thể
+                      </button>
+                    </div>
                   </div>
                   
                   {productItems.length === 0 && (
                     <div className="p-4 text-center border border-dashed rounded-lg">
                       <p className="text-slate-500">
-                        {selectedVariation.variationId ? "Chưa có sản phẩm. Click \"Thêm Sản Phẩm\" để tạo sản phẩm." : "Vui lòng chọn biến thể trước khi thêm sản phẩm."}
+                        Chưa có sản phẩm. Click "Tạo Sản Phẩm Từ Biến Thể" để tự động tạo sản phẩm từ các biến thể đã chọn.
                       </p>
                     </div>
                   )}
@@ -931,57 +1086,44 @@ export default function AddNew() {
                       </div>
                       
                       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                        <div>
-                          <label className="inline-block mb-2 text-sm font-medium">
-                            Tùy Chọn Biến Thể
-                          </label>
-                          <div className="p-3 border rounded-md bg-gray-50">
-                            {item.variationOptionIds.length > 0 ? (
-                              <div className="flex flex-wrap gap-2">
-                                {item.variationOptionIds.map((optionId: string, i: number) => {
-                                  // Search through all available variations to find the matching option
-                                  let optionValue = "Unknown";
-                                  let variationName = "";
-                                  
-                                  // Loop through all available variations to find the option
-                                  for (const variation of availableVariations) {
-                                    const foundOption = variation.variationOptions.find(opt => opt.id === optionId);
-                                    if (foundOption) {
-                                      optionValue = foundOption.value;
-                                      variationName = variation.name;
-                                      break;
-                                    }
-                                  }
-                                  
-                                  return (
-                                    <span key={i} className="px-2 py-1 text-sm bg-blue-100 text-blue-800 rounded">
-                                      {optionValue} {variationName ? `(${variationName})` : ""}
-                                    </span>
-                                  );
-                                })}
-                              </div>
-                            ) : (
-                              <p className="text-gray-500">No variation options selected</p>
-                            )}
-                          </div>
-                          {productItemErrors[index]?.variationOptionIds && (
-                            <p className="mt-1 text-sm text-red-500">{productItemErrors[index]?.variationOptionIds}</p>
-                          )}
-                          <p className="mt-1 text-xs text-gray-500">
-                            Variation options are automatically set based on your selections in the Variation section
-                          </p>
-                        </div>
+                        {/* Show only one field per variation option */}
+                        {item.variationOptionIds.map((optionId, optIndex) => {
+                          // Find which variation this option belongs to
+                          const variationInfo = availableVariations.find(v => 
+                            v.variationOptions.some(opt => opt.id === optionId)
+                          );
+                          
+                          // Find the specific option
+                          const option = variationInfo?.variationOptions.find(opt => opt.id === optionId);
+                          
+                          return variationInfo && option ? (
+                            <div key={optIndex}>
+                              <label className="inline-block mb-2 text-sm font-medium">
+                                {variationInfo.name} <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                className="form-input w-full bg-gray-100"
+                                value={option.value || ""}
+                                disabled
+                              />
+                            </div>
+                          ) : null;
+                        })}
                         
                         <div>
                           <label className="inline-block mb-2 text-sm font-medium">
                             Số Lượng Trong Kho <span className="text-red-500">*</span>
                           </label>
                           <input
-                            type="number"
+                            type="text"
                             className={`form-input w-full ${productItemErrors[index]?.quantityInStock ? 'border-red-500' : 'border-slate-200'}`}
-                            placeholder="Số lượng"
-                            value={item.quantityInStock}
-                            onChange={(e) => updateProductItem(index, 'quantityInStock', parseInt(e.target.value) || 0)}
+                            placeholder="Nhập số lượng trong kho"
+                            value={item.quantityInStock || ''}
+                            onChange={(e) => {
+                              const numericValue = e.target.value.replace(/\D/g, '');
+                              updateProductItem(index, 'quantityInStock', parseInt(numericValue) || 0);
+                            }}
                           />
                           {productItemErrors[index]?.quantityInStock && (
                             <p className="mt-1 text-sm text-red-500">{productItemErrors[index]?.quantityInStock}</p>
@@ -1100,18 +1242,16 @@ export default function AddNew() {
                       <label htmlFor="detailedIngredients" className="inline-block mb-2 text-base font-medium">
                         Thành Phần Chi Tiết <span className="text-red-500">*</span>
                       </label>
-                      <textarea
+                      <Editor
                         id="detailedIngredients"
-                        name="detailedIngredients"
-                        className={`form-input w-full ${
-                          productFormik.touched.detailedIngredients && productFormik.errors.detailedIngredients ? 'border-red-500' : 'border-slate-200'
-                        }`}
-                        placeholder="Nhập thành phần chi tiết"
-                        rows={3}
+                        apiKey={TINYMCE_API_KEY}
+                        init={editorConfig}
                         value={productFormik.values.detailedIngredients}
-                        onChange={productFormik.handleChange}
-                        onBlur={productFormik.handleBlur}
-                      ></textarea>
+                        onEditorChange={(content : any) => {
+                          productFormik.setFieldValue('detailedIngredients', content);
+                        }}
+                        onBlur={() => productFormik.setFieldTouched('detailedIngredients', true)}
+                      />
                       {productFormik.touched.detailedIngredients && productFormik.errors.detailedIngredients && (
                         <p className="mt-1 text-sm text-red-500">{productFormik.errors.detailedIngredients}</p>
                       )}
@@ -1140,17 +1280,23 @@ export default function AddNew() {
 
                     <div className="xl:col-span-6">
                       <label htmlFor="texture" className="inline-block mb-2 text-base font-medium">
-                        Độ Dày
+                        Kết Cấu <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         id="texture"
                         name="texture"
-                        className="form-input w-full border-slate-200"
-                        placeholder="Nhập độ dày"
-                        value={productFormik.values.texture}
+                        className={`form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200 ${
+                          productFormik.touched.texture && productFormik.errors.texture ? "border-red-500" : ""
+                        }`}
+                        placeholder="Nhập kết cấu sản phẩm"
                         onChange={productFormik.handleChange}
+                        onBlur={productFormik.handleBlur}
+                        value={productFormik.values.texture}
                       />
+                      {productFormik.touched.texture && productFormik.errors.texture && (
+                        <p className="mt-1 text-sm text-red-500">{productFormik.errors.texture}</p>
+                      )}
                     </div>
 
                     <div className="xl:col-span-6">
@@ -1193,17 +1339,15 @@ export default function AddNew() {
                       <label htmlFor="storageInstruction" className="inline-block mb-2 text-base font-medium">
                         Hướng Dẫn Lưu Trữ <span className="text-red-500">*</span>
                       </label>
-                      <input
-                        type="text"
+                      <Editor
                         id="storageInstruction"
-                        name="storageInstruction"
-                        className={`form-input w-full ${
-                          productFormik.touched.storageInstruction && productFormik.errors.storageInstruction ? 'border-red-500' : 'border-slate-200'
-                        }`}
-                        placeholder="Nhập hướng dẫn lưu trữ"
+                        apiKey={TINYMCE_API_KEY}
+                        init={editorConfig}
                         value={productFormik.values.storageInstruction}
-                        onChange={productFormik.handleChange}
-                        onBlur={productFormik.handleBlur}
+                        onEditorChange={(content : any) => {
+                          productFormik.setFieldValue('storageInstruction', content);
+                        }}
+                        onBlur={() => productFormik.setFieldTouched('storageInstruction', true)}
                       />
                       {productFormik.touched.storageInstruction && productFormik.errors.storageInstruction && (
                         <p className="mt-1 text-sm text-red-500">{productFormik.errors.storageInstruction}</p>
@@ -1214,18 +1358,16 @@ export default function AddNew() {
                       <label htmlFor="usageInstruction" className="inline-block mb-2 text-base font-medium">
                         Hướng Dẫn Sử Dụng <span className="text-red-500">*</span>
                       </label>
-                      <textarea
+                      <Editor
                         id="usageInstruction"
-                        name="usageInstruction"
-                        className={`form-input w-full ${
-                          productFormik.touched.usageInstruction && productFormik.errors.usageInstruction ? 'border-red-500' : 'border-slate-200'
-                        }`}
-                        placeholder="Nhập hướng dẫn sử dụng"
-                        rows={3}
+                        apiKey={TINYMCE_API_KEY}
+                        init={editorConfig}
                         value={productFormik.values.usageInstruction}
-                        onChange={productFormik.handleChange}
-                        onBlur={productFormik.handleBlur}
-                      ></textarea>
+                        onEditorChange={(content : any) => {
+                          productFormik.setFieldValue('usageInstruction', content);
+                        }}
+                        onBlur={() => productFormik.setFieldTouched('usageInstruction', true)}
+                      />
                       {productFormik.touched.usageInstruction && productFormik.errors.usageInstruction && (
                         <p className="mt-1 text-sm text-red-500">{productFormik.errors.usageInstruction}</p>
                       )}
@@ -1282,7 +1424,7 @@ export default function AddNew() {
                       productFormik.resetForm();
                       setProductImage(null);
                       setProductItems([]);
-                      setSelectedVariation({variationId: "", variationOptionId: ""});
+                      setVariations([{id: "", variationOptionIds: []}]);
                     }}
                     className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100"
                   >

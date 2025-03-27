@@ -101,6 +101,12 @@ const menuData: any = [
                 link: '/apps-ecommerce-voucher',
                 parentId: 'ecommerce'
             },
+            {
+                id: 'brand',
+                label: 'Thương Hiệu',
+                link: '/apps-ecommerce-brand',
+                parentId: 'ecommerce'
+            }
         ]
     },
 ];

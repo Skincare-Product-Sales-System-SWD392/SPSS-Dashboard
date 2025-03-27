@@ -11,6 +11,9 @@ import { useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 import { createSelector } from 'reselect';
 import { getProductById } from 'slices/product/thunk';
+import { Editor } from '@tinymce/tinymce-react';
+import { toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 
 // Define interfaces
 interface ProductImage {
@@ -31,9 +34,9 @@ interface VariationOption {
 
 interface Variation {
   id: string;
-  name: string;
-  variationOptions: VariationOption[];
-  productCategory?: any;
+  name?: string;
+  variationOptions?: VariationOption[];
+  variationOptionIds: string[];
 }
 
 interface ProductItem {
@@ -45,6 +48,28 @@ interface ProductItem {
   imageUrl?: string;
   imageFile?: File;  // Add this property
 }
+
+// Add this constant after imports
+const TINYMCE_API_KEY = process.env.REACT_APP_TINYMCE_API_KEY || "8wmapg650a8xkqj2cwz4qgka67mscn8xm3uaijvcyoh70b1g";
+
+// Add this editor configuration
+const editorConfig = {
+  height: 300,
+  width: '100%',
+  menubar: true,
+  branding: false,
+  statusbar: false,
+  plugins: [
+    'advlist autolink lists link image charmap print preview anchor',
+    'searchreplace visualblocks code fullscreen',
+    'insertdatetime media table paste code help wordcount'
+  ],
+  toolbar: 'undo redo | formatselect | ' +
+    'bold italic backcolor | alignleft aligncenter ' +
+    'alignright alignjustify | bullist numlist outdent indent | ' +
+    'removeformat | help',
+  content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px; padding: 10px; }'
+};
 
 export default function EditProduct() {
   const dispatch = useDispatch<any>();
@@ -109,6 +134,78 @@ export default function EditProduct() {
           file: null,
           formattedSize: "Existing image"
         });
+      } else if (productData.productImageUrls && productData.productImageUrls.length > 0) {
+        setThumbnail({
+          preview: productData.productImageUrls[0],
+          file: null,
+          formattedSize: "Existing image"
+        });
+        
+        // Set additional product images if available
+        if (productData.productImageUrls.length > 1) {
+          const additionalImages = productData.productImageUrls.slice(1).map((url: string) => ({
+            preview: url,
+            file: null,
+            formattedSize: "Existing image"
+          }));
+          setProductImages(additionalImages);
+        }
+      }
+      
+      // Initialize variations from productData
+      if (productData.variations && productData.variations.length > 0) {
+        console.log("Setting variations from product data:", productData.variations);
+        setVariations(productData.variations.map((variation: any) => ({
+          id: variation.id,
+          name: variation.name || '',
+          variationOptions: variation.variationOptions || [],
+          variationOptionIds: variation.variationOptionIds || []
+        })));
+      } else {
+        // If no variations, initialize with an empty one
+        setVariations([{
+          id: "",
+          name: "",
+          variationOptions: [],
+          variationOptionIds: []
+        }]);
+      }
+      
+      // Initialize product items from variationCombinations
+      if (productData.variationCombinations && productData.variationCombinations.length > 0) {
+        const items = productData.variationCombinations.map((item: any, index: number) => {
+          // Create an entry in productItemImages for existing images
+          if (item.imageUrl) {
+            const itemKey = item.id || `temp-${index}`;
+            setProductItemImages(prev => ({
+              ...prev,
+              [itemKey]: {
+                preview: item.imageUrl,
+                file: null,
+                formattedSize: "Existing image"
+              } as ProductImage
+            }));
+          }
+          
+          return {
+            id: item.id || `temp-${index}`,
+            variationOptionIds: item.variationOptionIds || [],
+            quantityInStock: item.quantityInStock || 0,
+            price: item.price || 0,
+            marketPrice: item.marketPrice || 0,
+            imageUrl: item.imageUrl || ""
+          };
+        });
+        
+        setProductItems(items);
+      } else {
+        // Initialize with an empty product item
+        setProductItems([{
+          variationOptionIds: [],
+          price: parseFloat(productData.price?.toString() || '0') || 0,
+          marketPrice: parseFloat(productData.marketPrice?.toString() || '0') || 0,
+          quantityInStock: 0
+        }]);
       }
     }
   }, [productData, loading]);
@@ -188,6 +285,7 @@ export default function EditProduct() {
   const [productVariations, setProductVariations] = useState<any[]>([]);
   const [productItemImages, setProductItemImages] = useState<Record<string, ProductImage>>({});
   const [productItemErrors, setProductItemErrors] = useState<{ [key: number]: { [key: string]: string } }>({});
+  const [variationErrors, setVariationErrors] = useState<{ [key: number]: { [key: string]: string } }>({});
 
   const handleThumbnailUpload = (files: File[]) => {
     if (files && files[0]) {
@@ -286,38 +384,33 @@ export default function EditProduct() {
         console.error("Unexpected variations response structure:", variationsResponse.data);
       }
       
-      // Fetch variation options for each variation
-      const variationsWithOptions = await Promise.all(
-        variationsData.map(async (variation: any) => {
-          try {
-            const optionsResponse = await axios.get(
-              `https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/variations/${variation.id}/options`
-            );
-            
-            let options = [];
-            if (optionsResponse.data && optionsResponse.data.success && optionsResponse.data.data) {
-              options = optionsResponse.data.data;
-            } else if (optionsResponse.data && optionsResponse.data.items) {
-              options = optionsResponse.data.items;
-            }
-            
+      // If variations don't have options, we might need to fetch them separately
+      const variationsWithOptions = await Promise.all(variationsData.map(async (variation: any) => {
+        // If variation already has options, use them
+        if (variation.variationOptions && variation.variationOptions.length > 0) {
+          return variation;
+        }
+        
+        // Otherwise, try to fetch options separately (if your API supports this)
+        try {
+          const optionsResponse = await axios.get(`https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/variations/${variation.id}`);
+          
+          if (optionsResponse.data && optionsResponse.data.variationOptions) {
             return {
               ...variation,
-              variationOptions: options.map((opt: any) => ({
-                id: opt.id,
-                value: opt.value,
-                variationId: variation.id
-              }))
-            };
-          } catch (error) {
-            console.error(`Error fetching options for variation ${variation.id}:`, error);
-            return {
-              ...variation,
-              variationOptions: []
+              variationOptions: optionsResponse.data.variationOptions
             };
           }
-        })
-      );
+        } catch (error) {
+          console.warn(`Could not fetch options for variation ${variation.id}:`, error);
+        }
+        
+        // If we couldn't fetch options, return variation with empty options
+        return {
+          ...variation,
+          variationOptions: []
+        };
+      }));
       
       console.log("Variations with options:", variationsWithOptions);
       setAvailableVariations(variationsWithOptions);
@@ -328,38 +421,26 @@ export default function EditProduct() {
     }
   };
 
-  // Update the addProductItem function to use the selected variation options
+  // Update the addProductItem function to use the selected variation option
   const addProductItem = () => {
-    // Get all selected variation options from the variations
-    const allSelectedVariationOptions: string[] = [];
-    productVariations.forEach(variation => {
-      if (variation.variationOptionIds && variation.variationOptionIds.length > 0) {
-        allSelectedVariationOptions.push(...variation.variationOptionIds);
+    setProductItems([
+      ...productItems,
+      {
+        variationOptionIds: [],
+        price: 0,
+        marketPrice: 0,
+        quantityInStock: 0
       }
+    ]);
+    
+    // Also initialize the image state
+    setProductItemImages({
+      ...productItemImages,
+      [productItems.length]: null // Use the new index as the key
     });
-    
-    // If no variation options are selected, show an error
-    if (allSelectedVariationOptions.length === 0) {
-      setErrorMessage("Please add and select variation options before adding product items");
-      return;
-    }
-    
-    const newItem = {
-      variationOptionIds: allSelectedVariationOptions, // Use all selected variation options
-      quantityInStock: 0,
-      price: 0,
-      marketPrice: 0,
-      imageUrl: ""
-    };
-    
-    const newItems = [...productItems, newItem];
-    setProductItems(newItems);
-    
-    // Validate the new item
-    const errors = validateProductItem(newItem, newItems.length - 1);
     setProductItemErrors({
       ...productItemErrors,
-      [newItems.length - 1]: errors
+      [productItems.length]: {} // Use the new index as the key
     });
   };
 
@@ -402,37 +483,47 @@ export default function EditProduct() {
     productFormik.setFieldValue(fieldName, numericValue);
   };
 
-  // Add function to add a new variation
+  // Update the addVariation function to match the Variation interface
   const addVariation = () => {
-    setProductVariations([
-      ...productVariations,
+    setVariations([
+      ...variations,
       {
-        id: Date.now().toString(), // Temporary ID for UI purposes
-        variationId: "", // Add this field
-        variationOptionIds: []
+        id: "",
+        name: "",
+        variationOptions: [],
+        variationOptionIds: [] // Add this required property
       }
     ]);
   };
 
-  // Add function to remove a variation
-  const removeVariation = (index: number) => {
-    setProductVariations(productVariations.filter((_, i) => i !== index));
-  };
-
-  // Update the updateVariation function to also update product items
+  // Update the updateVariation function to properly handle variationOptionIds
   const updateVariation = (index: number, field: string, value: any) => {
-    const updatedVariations = [...productVariations];
-    updatedVariations[index] = { ...updatedVariations[index], [field]: value };
+    const newVariations = [...variations];
     
-    // If the variation is changed, clear the selected options
-    if (field === 'variationId') {
-      updatedVariations[index].variationOptionIds = [];
+    if (field === 'id') {
+      // When changing variation type, reset options
+      newVariations[index] = {
+        ...newVariations[index],
+        id: value,
+        variationOptions: [],
+        variationOptionIds: []
+      };
+    } else if (field === 'variationOptions') {
+      // This is for multi-select of options
+      newVariations[index] = {
+        ...newVariations[index],
+        variationOptions: value
+      };
+    } else if (field === 'variationOptionIds') {
+      // This is for directly setting option IDs
+      newVariations[index] = {
+        ...newVariations[index],
+        variationOptionIds: value
+      };
     }
     
-    setProductVariations(updatedVariations);
-    
-    // No need to update product items here as the useEffect will handle it
-  };
+    setVariations(newVariations);
+  }
 
   // Add this function to format price with spaces for thousands
   const formatPriceDisplay = (price: number | string): string => {
@@ -503,44 +594,29 @@ export default function EditProduct() {
     setProductItems(updatedItems);
   };
 
-  // Update the validateProductItem function to remove quantity validation
+  // Update the validateProductItem function to validate quantity properly
   const validateProductItem = (item: any, index: number) => {
     const errors: { [key: string]: string } = {};
     
-    // Get all selected variation options from the variations
-    const allSelectedVariationOptions: string[] = [];
-    productVariations.forEach(variation => {
-      if (variation.variationOptionIds && variation.variationOptionIds.length > 0) {
-        allSelectedVariationOptions.push(...variation.variationOptionIds);
-      }
-    });
-    
-    // Validate variation options
-    if (!item.variationOptionIds || item.variationOptionIds.length === 0) {
-      errors.variationOptionIds = "Variation options are required";
-    } else {
-      // Check if all variation options in the item are in the selected variation options
-      const invalidOptions = item.variationOptionIds.filter(
-        (optionId: string) => !allSelectedVariationOptions.includes(optionId)
-      );
-      
-      if (invalidOptions.length > 0) {
-        errors.variationOptionIds = "Some selected options are not available in the variations";
-      }
+    // Validate quantity
+    if (item.quantityInStock === undefined || item.quantityInStock === null) {
+      errors.quantityInStock = "Vui lòng nhập số lượng";
+    } else if (item.quantityInStock < 0) {
+      errors.quantityInStock = "Số lượng không thể là số âm";
     }
     
     // Validate price
     if (item.price === undefined || item.price === null || item.price === 0) {
-      errors.price = "Price is required";
+      errors.price = "Vui lòng nhập giá";
     } else if (item.price < 0) {
-      errors.price = "Price cannot be negative";
+      errors.price = "Giá không thể là số âm";
     }
     
     // Validate market price
     if (item.marketPrice === undefined || item.marketPrice === null || item.marketPrice === 0) {
-      errors.marketPrice = "Market price is required";
+      errors.marketPrice = "Vui lòng nhập giá thị trường";
     } else if (item.marketPrice < 0) {
-      errors.marketPrice = "Market price cannot be negative";
+      errors.marketPrice = "Giá thị trường không thể là số âm";
     }
     
     // Validate image
@@ -552,7 +628,7 @@ export default function EditProduct() {
       item.imageFile;
       
     if (!hasImage) {
-      errors.image = "Product image is required";
+      errors.image = "Vui lòng tải lên hình ảnh sản phẩm";
     }
     
     return errors;
@@ -562,9 +638,11 @@ export default function EditProduct() {
   useEffect(() => {
     // Get all selected variation options from the variations
     const allSelectedVariationOptions: string[] = [];
-    productVariations.forEach(variation => {
-      if (variation.variationOptionIds && variation.variationOptionIds.length > 0) {
-        allSelectedVariationOptions.push(...variation.variationOptionIds);
+    variations.forEach(variation => {
+      if (variation.variationOptions && variation.variationOptions.length > 0) {
+        // Extract the IDs from the variationOptions objects
+        const optionIds = variation.variationOptions.map(option => option.id);
+        allSelectedVariationOptions.push(...optionIds);
       }
     });
     
@@ -588,7 +666,7 @@ export default function EditProduct() {
       
       setProductItemErrors(newErrors);
     }
-  }, [productVariations]);
+  }, [variations]);
 
   // Create a simplified form with Formik
   const productFormik = useFormik({
@@ -618,27 +696,48 @@ export default function EditProduct() {
       tags: ''
     },
     validationSchema: Yup.object({
-      title: Yup.string().required('Product title is required'),
-      brand: Yup.string().required('Brand is required'),
-      category: Yup.string().required('Category is required'),
-      price: Yup.number().required('Price is required').min(0, 'Price must be positive'),
-      marketPrice: Yup.number().required('Market price is required').min(0, 'Market price must be positive'),
-      skinType: Yup.array().min(1, 'At least one skin type must be selected').required('Skin type is required'),
-      description: Yup.string().required('Description is required'),
-      detailedIngredients: Yup.string().required('Detailed ingredients are required'),
-      mainFunction: Yup.string().required('Main function is required'),
-      texture: Yup.string().required('Texture is required'),
-      englishName: Yup.string().required('English name is required'),
-      keyActiveIngredients: Yup.string().required('Key active ingredients are required'),
-      storageInstruction: Yup.string().required('Storage instruction is required'),
-      usageInstruction: Yup.string().required('Usage instruction is required'),
-      expiryDate: Yup.string().required('Expiry date is required'),
-      skinIssues: Yup.string().required('Skin issues are required'),
+      title: Yup.string()
+        .required("Vui lòng nhập tên sản phẩm")
+        .matches(/^[a-zA-Z0-9\s\u00C0-\u1EF9]+$/, "Không được chứa ký tự đặc biệt"),
+      brand: Yup.string().required("Vui lòng chọn thương hiệu"),
+      category: Yup.string().required("Vui lòng chọn danh mục"),
+      price: Yup.number()
+        .typeError("Giá phải là số")
+        .required("Vui lòng nhập giá")
+        .min(0, "Giá không thể là số âm"),
+      marketPrice: Yup.number()
+        .typeError("Giá thị trường phải là số")
+        .required("Vui lòng nhập giá thị trường")
+        .min(0, "Giá thị trường không thể là số âm"),
+      description: Yup.string().required("Vui lòng nhập mô tả sản phẩm"),
+      detailedIngredients: Yup.string().required("Vui lòng nhập thành phần chi tiết"),
+      mainFunction: Yup.string()
+        .required("Vui lòng nhập chức năng chính")
+        .matches(/^[a-zA-Z0-9\s\u00C0-\u1EF9]+$/, "Không được chứa ký tự đặc biệt"),
+      texture: Yup.string()
+        .required("Vui lòng nhập kết cấu")
+        .matches(/^[a-zA-Z0-9\s\u00C0-\u1EF9]+$/, "Không được chứa ký tự đặc biệt"),
+      englishName: Yup.string()
+        .required("Vui lòng nhập tên tiếng Anh")
+        .matches(/^[a-zA-Z0-9\s]+$/, "Chỉ được chứa chữ cái, số và khoảng trắng"),
+      keyActiveIngredients: Yup.string()
+        .required("Vui lòng nhập thành phần hoạt chất chính")
+        .matches(/^[a-zA-Z0-9\s\u00C0-\u1EF9]+$/, "Không được chứa ký tự đặc biệt"),
+      storageInstruction: Yup.string().required("Vui lòng nhập hướng dẫn bảo quản"),
+      usageInstruction: Yup.string().required("Vui lòng nhập hướng dẫn sử dụng"),
+      expiryDate: Yup.string()
+        .required("Vui lòng nhập hạn sử dụng")
+        .matches(/^[a-zA-Z0-9\s\/]+$/, "Chỉ được chứa chữ cái, số, dấu / và khoảng trắng"),
+      skinIssues: Yup.string()
+        .required("Vui lòng nhập vấn đề về da")
+        .matches(/^[a-zA-Z0-9\s\u00C0-\u1EF9]+$/, "Không được chứa ký tự đặc biệt"),
+      status: Yup.string().required("Vui lòng chọn trạng thái"),
+      visibility: Yup.string().required("Vui lòng chọn hiển thị"),
     }),
-    onSubmit: async (values) => {
+    onSubmit: async (values: any) => {
       try {
-        // console.log("Form submission started with values:", values);
-        // console.log("Product items:", productItems);
+        console.log("Form submission started with values:", productFormik.values);
+        console.log("Product items:", productItems);
         
         // Validate all product items
         let hasProductItemErrors = false;
@@ -685,9 +784,9 @@ export default function EditProduct() {
             setIsSubmitting(false);
             return;
           }
-        } else if (productData?.thumbnailUrl) {
-          // Use existing thumbnail URL if no new file is uploaded
-          thumbnailUrl = productData.thumbnailUrl;
+        } else if (thumbnail?.preview) {
+          // Use existing preview if available
+          thumbnailUrl = thumbnail.preview;
         }
         
         // Upload product images if exist
@@ -720,41 +819,9 @@ export default function EditProduct() {
             setIsSubmitting(false);
             return;
           }
-        } else if (productData?.productImageUrls) {
-          // Use existing product image URLs if no new files are uploaded
-          productImageUrls = productData.productImageUrls;
         }
         
-        // Upload product item images if exist
-        console.log("Processing product items...");
-        const updatedProductItems = await Promise.all(productItems.map(async (item, index) => {
-          let imageUrl = item.imageUrl || "";
-          
-          // Get the item ID or use a temporary ID
-          const itemId = item.id || `temp-${index}`;
-          
-          // If there's an image file for this item, upload it
-          if (productItemImages[itemId]?.file) {
-            console.log(`Uploading image for product item #${index + 1}...`);
-            try {
-              imageUrl = await firebaseBackend.uploadFileWithDirectory(
-                productItemImages[itemId]!.file, 
-                "SPSS/Product-Item-Images"
-              );
-              console.log(`Image for product item #${index + 1} uploaded successfully:`, imageUrl);
-            } catch (uploadError) {
-              console.error(`Error uploading image for product item #${index + 1}:`, uploadError);
-              throw new Error(`Failed to upload image for product item #${index + 1}`);
-            }
-          }
-          
-          return {
-            ...item,
-            imageUrl
-          };
-        }));
-        
-        // Combine all image URLs - ensure thumbnail and all product images are included
+        // Combine all image URLs - ensure thumbnail is first if it exists
         const allProductImageUrls = [];
         
         // Add thumbnail if exists
@@ -767,14 +834,47 @@ export default function EditProduct() {
           allProductImageUrls.push(...productImageUrls);
         }
         
-        console.log("All product image URLs:", allProductImageUrls);
+        // Upload product item images and prepare variation combinations
+        const variationCombinations = await Promise.all(productItems.map(async (item, index) => {
+          let imageUrl = item.imageUrl || "";
+          
+          // Get the item ID or use a temporary ID
+          const itemId = item.id || `temp-${index}`;
+          
+          // If there's an image file for this item, upload it
+          if (productItemImages[itemId]?.file) {
+            try {
+              imageUrl = await firebaseBackend.uploadFileWithDirectory(
+                productItemImages[itemId]!.file, 
+                "SPSS/Product-Item-Images"
+              );
+            } catch (uploadError) {
+              console.error(`Error uploading image for product item #${index + 1}:`, uploadError);
+              throw new Error(`Failed to upload image for product item #${index + 1}`);
+            }
+          }
+          
+          return {
+            variationOptionIds: item.variationOptionIds || [],
+            imageUrl: imageUrl,
+            price: parseFloat(item.price.toString().replace(/\s/g, '')),
+            marketPrice: parseFloat(item.marketPrice.toString().replace(/\s/g, '')),
+            quantityInStock: parseInt(item.quantityInStock.toString())
+          };
+        }));
+        
+        // Prepare variations data
+        const variationsData = variations.map(v => ({
+          id: v.id,
+          variationOptionIds: v.variationOptionIds || []
+        }));
         
         // Get values from formik
         const values = productFormik.values;
         
-        // Prepare data for API submission - match the API structure
+        // Prepare data for API submission
         const updateProductData = {
-          id: productId, // Include product ID for update
+          id: productId,
           brandId: values.brand,
           productCategoryId: values.category,
           name: values.title,
@@ -783,34 +883,25 @@ export default function EditProduct() {
           marketPrice: parseFloat(values.marketPrice.toString().replace(/\s/g, '')),
           skinTypeIds: values.skinType,
           productImageUrls: allProductImageUrls,
-          variations: productVariations.map(variation => ({
-            id: variation.variationId,
-            variationOptionIds: variation.variationOptionIds
-          })),
-          variationCombinations: updatedProductItems.map(item => ({
-            variationOptionIds: item.variationOptionIds,
-            imageUrl: item.imageUrl,
-            price: parseFloat(item.price.toString().replace(/\s/g, '')),
-            marketPrice: parseFloat(item.marketPrice.toString().replace(/\s/g, '')),
-            quantityInStock: parseInt(item.quantityInStock.toString())
-          })),
-          detailedIngredients: values.detailedIngredients,
-          mainFunction: values.mainFunction,
-          texture: values.texture,
-          englishName: values.englishName,
-          keyActiveIngredients: values.keyActiveIngredients,
-          storageInstruction: values.storageInstruction,
-          usageInstruction: values.usageInstruction,
-          expiryDate: values.expiryDate,
-          skinIssues: values.skinIssues
+          variations: variationsData,
+          variationCombinations: variationCombinations,
+          specifications: {
+            detailedIngredients: values.detailedIngredients,
+            mainFunction: values.mainFunction,
+            texture: values.texture,
+            englishName: values.englishName,
+            keyActiveIngredients: values.keyActiveIngredients,
+            storageInstruction: values.storageInstruction,
+            usageInstruction: values.usageInstruction,
+            expiryDate: values.expiryDate,
+            skinIssues: values.skinIssues
+          }
         };
         
         console.log("Prepared product data for submission:", updateProductData);
         
-        // Make API call to update the product using PATCH instead of PUT
-        console.log(`Making API call to: https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/products/${productId}`);
-        
-        const response = await axios.patch( // Changed from PUT to PATCH
+        // Make API call to update the product
+        const response = await axios.patch(
           `https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/products/${productId}`,
           updateProductData,
           {
@@ -822,20 +913,36 @@ export default function EditProduct() {
         
         console.log("API response:", response.data);
         
-        if (response.data && response.data.success) {
-          setSuccessMessage("Product updated successfully!");
-          // Optionally redirect to products list after a delay
+        // More robust success check - similar to AddNew.tsx
+        if (response.data) {
+          console.log("SUCCESS DETECTED! Redirecting to product list...");
+          
+          // Show success toast - using the same approach as AddNew.tsx
+          toast.success("Sản phẩm đã được cập nhật thành công!", {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true
+          });
+          
+          // Force redirect after a short delay
           setTimeout(() => {
-            window.location.href = "/ecommerce/products";
-          }, 2000);
+            console.log("Executing redirect now...");
+            window.location.href = "/apps-ecommerce-product-list";
+          }, 1500);
         } else {
-          const errorMsg = response.data?.message || "Failed to update product. Please try again.";
+          const errorMsg = response.data?.message || "Không thể cập nhật sản phẩm. Vui lòng thử lại.";
           console.error("API error message:", errorMsg);
           setErrorMessage(errorMsg);
+          toast.error(errorMsg);
         }
       } catch (error: any) {
         console.error("Error updating product:", error);
-        setErrorMessage(error.message || "Failed to update product. Please try again.");
+        const errorMessage = error.message || "Không thể cập nhật sản phẩm. Vui lòng thử lại.";
+        setErrorMessage(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setIsSubmitting(false);
       }
@@ -854,171 +961,105 @@ export default function EditProduct() {
   };
 
   // Update the form title and button text based on whether this is an edit or create
-  const formTitle = productId ? "Edit Product" : "Add New Product";
-  const submitButtonText = productId ? "Update Product" : "Create Product";
+  const formTitle = productId ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm mới";
+  const submitButtonText = productId ? "Cập nhật sản phẩm" : "Thêm sản phẩm";
 
-  // Add this function inside the EditProduct component
+  // Add this function to show error alerts
+  const showErrorAlert = (message: string) => {
+    setErrorMessage(message);
+    // Optionally scroll to the error message
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Add this function to check if the form has any validation errors
+  const hasFormErrors = () => {
+    // Check formik errors
+    const formikErrors = Object.keys(productFormik.errors).length > 0;
+    
+    // Check if any fields are touched and have errors
+    const touchedErrors = Object.entries(productFormik.touched).some(
+      ([key, isTouched]) => isTouched && key in productFormik.errors
+    );
+    
+    // Check product item errors
+    const itemErrors = Object.values(productItemErrors).some(
+      errors => Object.keys(errors).length > 0
+    );
+    
+    // Check if there are no product items
+    const noItems = productItems.length === 0;
+    
+    return formikErrors || touchedErrors || itemErrors || noItems;
+  };
+
+  // Add this function to handle removing variations
+  const removeVariation = (index: number) => {
+    const newVariations = [...variations];
+    newVariations.splice(index, 1);
+    setVariations(newVariations);
+  };
+
+  // Add this function to generate product items from variations
+  const generateProductItems = () => {
+    if (variations.length === 0 || variations.some(v => !v.id || v.variationOptionIds.length === 0)) {
+      toast.error("Vui lòng chọn đầy đủ biến thể và tùy chọn trước khi tạo sản phẩm");
+      return;
+    }
+    
+    // Generate all possible combinations of variation options
+    let combinations: string[][] = [[]];
+    
+    variations.forEach(variation => {
+      const newCombinations: string[][] = [];
+      variation.variationOptionIds.forEach(optionId => {
+        combinations.forEach(combo => {
+          newCombinations.push([...combo, optionId]);
+        });
+      });
+      combinations = newCombinations;
+    });
+    
+    // Create product items from combinations
+    const newProductItems = combinations.map(combo => ({
+      variationOptionIds: combo,
+      price: parseFloat(productFormik.values.price.toString()) || 0,
+      marketPrice: parseFloat(productFormik.values.marketPrice?.toString() || '0') || 0,
+      quantityInStock: 0
+    }));
+    
+    setProductItems(newProductItems);
+  };
+
+  // Add this function to handle the product update
   const handleUpdateProduct = async () => {
     try {
-      console.log("Direct update function called");
-      
-      // Validate form first
-      const formErrors = await productFormik.validateForm();
-      if (Object.keys(formErrors).length > 0) {
-        console.log("Form validation errors:", formErrors);
-        productFormik.setTouched(
-          Object.keys(formErrors).reduce((acc, key) => ({ ...acc, [key]: true }), {})
-        );
-        setErrorMessage("Please fix all errors in the form");
-        return;
-      }
-      
-      // Continue with the rest of your update logic...
       setIsSubmitting(true);
       
-      // Get Firebase backend instance
-      const firebaseBackend = getFirebaseBackend();
-      console.log("Firebase backend initialized");
-      
-      // Upload thumbnail if exists
-      let thumbnailUrl = "";
-      if (thumbnail?.file) {
-        console.log("Uploading thumbnail...");
-        try {
-          thumbnailUrl = await firebaseBackend.uploadFileWithDirectory(thumbnail.file, "SPSS/Product-Thumbnail");
-          console.log("Thumbnail uploaded successfully:", thumbnailUrl);
-        } catch (uploadError) {
-          console.error("Error uploading thumbnail:", uploadError);
-          setErrorMessage("Failed to upload thumbnail. Please try again.");
-          setIsSubmitting(false);
-          return;
-        }
-      } else if (productData?.thumbnailUrl) {
-        // Use existing thumbnail URL if no new file is uploaded
-        thumbnailUrl = productData.thumbnailUrl;
-      }
-      
-      // Upload product images if exist
-      let productImageUrls: string[] = [];
-      if (productImages.length > 0) {
-        console.log("Uploading product images...");
-        try {
-          const imageFiles = productImages.map(image => image.file).filter(Boolean);
-          const existingUrls = productImages
-            .filter(image => !image.file && image.preview)
-            .map(image => image.preview);
-          
-          // Upload new files
-          if (imageFiles.length > 0) {
-            const uploadPromises = imageFiles.map(file => 
-              firebaseBackend.uploadFileWithDirectory(file, "SPSS/Product-Images")
-            );
-            
-            // Wait for all uploads to complete
-            const uploadedUrls = await Promise.all(uploadPromises);
-            productImageUrls = [...existingUrls, ...uploadedUrls];
-          } else {
-            productImageUrls = existingUrls;
-          }
-          
-          console.log("Product images processed successfully:", productImageUrls);
-        } catch (uploadError) {
-          console.error("Error uploading product images:", uploadError);
-          setErrorMessage("Failed to upload product images. Please try again.");
-          setIsSubmitting(false);
-          return;
-        }
-      } else if (productData?.productImageUrls) {
-        // Use existing product image URLs if no new files are uploaded
-        productImageUrls = productData.productImageUrls;
-      }
-      
-      // Upload product item images if exist
-      console.log("Processing product items...");
-      const updatedProductItems = await Promise.all(productItems.map(async (item, index) => {
-        let imageUrl = item.imageUrl || "";
-        
-        // Get the item ID or use a temporary ID
-        const itemId = item.id || `temp-${index}`;
-        
-        // If there's an image file for this item, upload it
-        if (productItemImages[itemId]?.file) {
-          console.log(`Uploading image for product item #${index + 1}...`);
-          try {
-            imageUrl = await firebaseBackend.uploadFileWithDirectory(
-              productItemImages[itemId]!.file, 
-              "SPSS/Product-Item-Images"
-            );
-            console.log(`Image for product item #${index + 1} uploaded successfully:`, imageUrl);
-          } catch (uploadError) {
-            console.error(`Error uploading image for product item #${index + 1}:`, uploadError);
-            throw new Error(`Failed to upload image for product item #${index + 1}`);
-          }
-        }
-        
-        return {
-          ...item,
-          imageUrl
-        };
-      }));
-      
-      // Combine all image URLs - ensure thumbnail and all product images are included
-      const allProductImageUrls = [];
-      
-      // Add thumbnail if exists
-      if (thumbnailUrl) {
-        allProductImageUrls.push(thumbnailUrl);
-      }
-      
-      // Add all product images
-      if (productImageUrls.length > 0) {
-        allProductImageUrls.push(...productImageUrls);
-      }
-      
-      console.log("All product image URLs:", allProductImageUrls);
-      
-      // Prepare data from formik values
-      const values = productFormik.values;
-      
-      // Prepare data for API submission - match the API structure
+      // Prepare data for API submission
       const updateProductData = {
-        id: productId, // Include product ID for update
-        brandId: values.brand,
-        productCategoryId: values.category,
-        name: values.title,
-        description: values.description,
-        price: parseFloat(values.price.toString().replace(/\s/g, '')),
-        marketPrice: parseFloat(values.marketPrice.toString().replace(/\s/g, '')),
-        skinTypeIds: values.skinType,
-        productImageUrls: allProductImageUrls,
-        variations: productVariations.map(variation => ({
-          id: variation.variationId,
-          variationOptionIds: variation.variationOptionIds
-        })),
-        variationCombinations: updatedProductItems.map(item => ({
-          variationOptionIds: item.variationOptionIds,
-          imageUrl: item.imageUrl,
-          price: parseFloat(item.price.toString().replace(/\s/g, '')),
-          marketPrice: parseFloat(item.marketPrice.toString().replace(/\s/g, '')),
-          quantityInStock: parseInt(item.quantityInStock.toString())
-        })),
-        detailedIngredients: values.detailedIngredients,
-        mainFunction: values.mainFunction,
-        texture: values.texture,
-        englishName: values.englishName,
-        keyActiveIngredients: values.keyActiveIngredients,
-        storageInstruction: values.storageInstruction,
-        usageInstruction: values.usageInstruction,
-        expiryDate: values.expiryDate,
-        skinIssues: values.skinIssues
+        id: productId,
+        brandId: productFormik.values.brand,
+        productCategoryId: productFormik.values.category,
+        name: productFormik.values.title,
+        description: productFormik.values.description,
+        price: parseFloat(productFormik.values.price.toString().replace(/\s/g, '')),
+        marketPrice: parseFloat(productFormik.values.marketPrice.toString().replace(/\s/g, '')),
+        skinTypeIds: productFormik.values.skinType,
+        productImageUrls: [], // Add your image URLs here
+        specifications: {
+          detailedIngredients: productFormik.values.detailedIngredients,
+          mainFunction: productFormik.values.mainFunction,
+          texture: productFormik.values.texture,
+          englishName: productFormik.values.englishName,
+          keyActiveIngredients: productFormik.values.keyActiveIngredients,
+          storageInstruction: productFormik.values.storageInstruction,
+          usageInstruction: productFormik.values.usageInstruction,
+          expiryDate: productFormik.values.expiryDate,
+          skinIssues: productFormik.values.skinIssues
+        }
       };
       
-      console.log("Prepared product data for submission:", updateProductData);
-      
-      // Make API call to update the product using PATCH instead of PUT
-      console.log(`Making API call to: https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/products/${productId}`);
-      
-      const response = await axios.patch( // Changed from PUT to PATCH
+      const response = await axios.patch(
         `https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/products/${productId}`,
         updateProductData,
         {
@@ -1030,20 +1071,36 @@ export default function EditProduct() {
       
       console.log("API response:", response.data);
       
-      if (response.data && response.data.success) {
-        setSuccessMessage("Product updated successfully!");
-        // Optionally redirect to products list after a delay
+      // More robust success check - similar to AddNew.tsx
+      if (response.data) {
+        console.log("SUCCESS DETECTED! Redirecting to product list...");
+        
+        // Show success toast - using the same approach as AddNew.tsx
+        toast.success("Sản phẩm đã được cập nhật thành công!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true
+        });
+        
+        // Force redirect after a short delay
         setTimeout(() => {
-          window.location.href = "/ecommerce/products";
-        }, 2000);
+          console.log("Executing redirect now...");
+          window.location.href = "/apps-ecommerce-product-list";
+        }, 1500);
       } else {
-        const errorMsg = response.data?.message || "Failed to update product. Please try again.";
+        const errorMsg = response.data?.message || "Không thể cập nhật sản phẩm. Vui lòng thử lại.";
         console.error("API error message:", errorMsg);
         setErrorMessage(errorMsg);
+        toast.error(errorMsg);
       }
     } catch (error: any) {
       console.error("Error updating product:", error);
-      setErrorMessage(error.message || "Failed to update product. Please try again.");
+      const errorMessage = error.message || "Không thể cập nhật sản phẩm. Vui lòng thử lại.";
+      setErrorMessage(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -1051,7 +1108,18 @@ export default function EditProduct() {
 
   return (
     <React.Fragment>
-      <BreadCrumb title={formTitle} pageTitle='Products' />
+      <ToastContainer 
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+      <BreadCrumb title={formTitle} pageTitle='Sản phẩm' />
       
       {loading ? (
         <div className="flex items-center justify-center h-60">
@@ -1062,7 +1130,7 @@ export default function EditProduct() {
           <div className="xl:col-span-12">
             <div className="card">
               <div className="card-body">
-                <h6 className="mb-4 text-15">Create Product</h6>
+                <h6 className="mb-4 text-15">Chỉnh sửa sản phẩm</h6>
                 
                 {successMessage && (
                   <div className="p-4 mb-4 text-sm text-green-700 bg-green-100 rounded-lg">
@@ -1070,17 +1138,11 @@ export default function EditProduct() {
                   </div>
                 )}
                 
-                {errorMessage && (
-                  <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg">
-                    {errorMessage}
-                  </div>
-                )}
-
                 <form 
                   onSubmit={(e) => {
                     e.preventDefault();
                     console.log("Form submitted");
-                    productFormik.handleSubmit();
+                    handleUpdateProduct();
                   }}
                   className="space-y-6"
                 >
@@ -1088,7 +1150,7 @@ export default function EditProduct() {
                     {/* Product Thumbnail Section - Simplified */}
                     <div className="xl:col-span-12">
                       <label className="inline-block mb-2 text-base font-medium">
-                        Product Thumbnail
+                        Hình ảnh sản phẩm
                       </label>
                       <Dropzone
                         onDrop={(acceptedFiles) => handleThumbnailUpload(acceptedFiles)}
@@ -1112,17 +1174,17 @@ export default function EditProduct() {
                                     className="h-32 mx-auto object-contain"
                                   />
                                   <p className="mt-2 text-sm text-slate-500">
-                                    {thumbnail.formattedSize || "Existing image"}
+                                    {thumbnail.formattedSize || "Hình ảnh hiện tại"}
                                   </p>
                                 </div>
                               ) : (
                                 <>
                                   <UploadCloud className="size-6 mx-auto mb-3" />
                                   <h5 className="mb-1">
-                                    Drop thumbnail here or click to upload.
+                                    Kéo thả hình ảnh vào đây hoặc nhấp để tải lên.
                                   </h5>
                                   <p className="text-slate-500 dark:text-zink-200">
-                                    Maximum size: 2MB
+                                    Kích thước tối đa: 2MB
                                   </p>
                                 </>
                               )}
@@ -1137,7 +1199,7 @@ export default function EditProduct() {
                   <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-12">
                     <div className="xl:col-span-6">
                       <label htmlFor="title" className="inline-block mb-2 text-base font-medium">
-                        Product Title <span className="text-red-500">*</span>
+                        Tên sản phẩm <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -1146,40 +1208,38 @@ export default function EditProduct() {
                         className={`form-input w-full ${
                           productFormik.touched.title && productFormik.errors.title ? 'border-red-500' : 'border-slate-200'
                         }`}
-                        placeholder="Product title"
+                        placeholder="Nhập tên sản phẩm"
                         value={productFormik.values.title}
                         onChange={productFormik.handleChange}
                         onBlur={productFormik.handleBlur}
                       />
                       {productFormik.touched.title && productFormik.errors.title && (
-                        <p className="mt-1 text-sm text-red-500">{productFormik.errors.title}</p>
+                        <p className="mt-1 text-sm text-red-500">{String(productFormik.errors.title)}</p>
                       )}
                     </div>
 
                     <div className="xl:col-span-6">
                       <label htmlFor="description" className="inline-block mb-2 text-base font-medium">
-                        Description <span className="text-red-500">*</span>
+                        Mô Tả <span className="text-red-500">*</span>
                       </label>
-                      <textarea
+                      <Editor
                         id="description"
-                        name="description"
-                        className={`form-input w-full ${
-                          productFormik.touched.description && productFormik.errors.description ? 'border-red-500' : 'border-slate-200'
-                        }`}
-                        placeholder="Enter product description"
-                        rows={3}
+                        apiKey={TINYMCE_API_KEY}
+                        init={editorConfig}
                         value={productFormik.values.description}
-                        onChange={productFormik.handleChange}
-                        onBlur={productFormik.handleBlur}
-                      ></textarea>
+                        onEditorChange={(content: any) => {
+                          productFormik.setFieldValue('description', content);
+                        }}
+                        onBlur={() => productFormik.setFieldTouched('description', true)}
+                      />
                       {productFormik.touched.description && productFormik.errors.description && (
-                        <p className="mt-1 text-sm text-red-500">{productFormik.errors.description}</p>
+                        <p className="mt-1 text-sm text-red-500">{String(productFormik.errors.description)}</p>
                       )}
                     </div>
 
                     <div className="xl:col-span-6">
                       <label htmlFor="brand" className="inline-block mb-2 text-base font-medium">
-                        Brand <span className="text-red-500">*</span>
+                        Thương Hiệu <span className="text-red-500">*</span>
                       </label>
                       <Select
                         className="react-select"
@@ -1187,19 +1247,19 @@ export default function EditProduct() {
                         isSearchable={true}
                         name="brand"
                         id="brand"
-                        placeholder="Select brand..."
+                        placeholder="Chọn thương hiệu..."
                         value={brandOptions.find(option => option.value === productFormik.values.brand)}
                         onChange={(option) => productFormik.setFieldValue('brand', option?.value || '')}
                         onBlur={() => productFormik.setFieldTouched('brand', true)}
                       />
                       {productFormik.touched.brand && productFormik.errors.brand && (
-                        <p className="mt-1 text-sm text-red-500">{productFormik.errors.brand}</p>
+                        <p className="mt-1 text-sm text-red-500">{String(productFormik.errors.brand)}</p>
                       )}
                     </div>
 
                     <div className="xl:col-span-6">
                       <label htmlFor="category" className="inline-block mb-2 text-base font-medium">
-                        Category <span className="text-red-500">*</span>
+                        Danh Mục <span className="text-red-500">*</span>
                       </label>
                       <Select
                         className="react-select"
@@ -1207,13 +1267,13 @@ export default function EditProduct() {
                         isSearchable={true}
                         name="category"
                         id="category"
-                        placeholder="Select category..."
+                        placeholder="Chọn danh mục..."
                         value={categoryOptions.find(option => option.value === productFormik.values.category)}
                         onChange={(option) => productFormik.setFieldValue('category', option?.value || '')}
                         onBlur={() => productFormik.setFieldTouched('category', true)}
                       />
                       {productFormik.touched.category && productFormik.errors.category && (
-                        <p className="mt-1 text-sm text-red-500">{productFormik.errors.category}</p>
+                        <p className="mt-1 text-sm text-red-500">{String(productFormik.errors.category)}</p>
                       )}
                     </div>
 
@@ -1236,7 +1296,7 @@ export default function EditProduct() {
                         />
                       </div>
                       {productFormik.touched.price && productFormik.errors.price && (
-                        <p className="mt-1 text-sm text-red-500">{productFormik.errors.price}</p>
+                        <p className="mt-1 text-sm text-red-500">{String(productFormik.errors.price)}</p>
                       )}
                     </div>
 
@@ -1259,7 +1319,7 @@ export default function EditProduct() {
                         onBlur={productFormik.handleBlur}
                       />
                       {productFormik.touched.marketPrice && productFormik.errors.marketPrice && (
-                        <p className="mt-1 text-sm text-red-500">{productFormik.errors.marketPrice}</p>
+                        <p className="mt-1 text-sm text-red-500">{String(productFormik.errors.marketPrice)}</p>
                       )}
                     </div>
 
@@ -1295,116 +1355,127 @@ export default function EditProduct() {
                     </div>
                   </div>
 
-                  {/* Variations Section - Simplified for single variation */}
+                  {/* Variations Section */}
                   <div className="mt-8">
                     <div className="flex justify-between items-center mb-4">
-                      <h6 className="text-15 font-medium">Variation</h6>
+                      <h6 className="text-15 font-medium">Biến Thể</h6>
+                      <button
+                        type="button"
+                        onClick={addVariation}
+                        className="flex items-center justify-center px-4 py-2 text-white rounded-lg bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all shadow-sm"
+                      >
+                        <Plus className="size-4 mr-2" /> Thêm Biến Thể
+                      </button>
                     </div>
                     
-                    <div className="p-4 mb-4 border rounded-lg bg-white shadow-sm">
-                      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                        <div>
-                          <label className="inline-block mb-2 text-sm font-medium">
-                            Variation Type <span className="text-red-500">*</span>
-                          </label>
-                          <Select
-                            className="react-select"
-                            options={availableVariations.map(v => ({
-                              value: v.id,
-                              label: v.name
-                            }))}
-                            isSearchable={true}
-                            placeholder="Select variation type..."
-                            value={productVariations.length > 0 ? 
-                              availableVariations
-                                .filter(v => v.id === productVariations[0].variationId)
+                    {variations.length === 0 && (
+                      <div className="p-4 text-center border border-dashed rounded-lg">
+                        <p className="text-slate-500">
+                          Chưa có biến thể. Click "Thêm Biến Thể" để tạo biến thể mới.
+                        </p>
+                      </div>
+                    )}
+                    
+                    {variations.map((variation, index) => (
+                      <div key={index} className="p-4 mb-4 border rounded-lg bg-white shadow-sm">
+                        <div className="flex justify-between items-center mb-3">
+                          <h6 className="text-base font-medium">Biến Thể #{index + 1}</h6>
+                          <button
+                            type="button"
+                            onClick={() => removeVariation(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="size-4" />
+                          </button>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                          <div>
+                            <label className="inline-block mb-2 text-sm font-medium">
+                              Loại Biến Thể <span className="text-red-500">*</span>
+                            </label>
+                            <Select
+                              className="react-select"
+                              options={availableVariations.map(v => ({
+                                value: v.id,
+                                label: v.name
+                              }))}
+                              isSearchable={true}
+                              placeholder="Chọn loại biến thể..."
+                              value={availableVariations
+                                .filter(v => v.id === variation.id)
                                 .map(v => ({
                                   value: v.id,
                                   label: v.name
-                                }))[0] : null
-                            }
-                            onChange={(option) => {
-                              if (option) {
-                                setProductVariations([{
-                                  id: option.value,
-                                  variationId: option.value,
-                                  variationOptionIds: []
-                                }]);
-                              } else {
-                                setProductVariations([]);
+                                }))[0]}
+                              onChange={(option) => 
+                                updateVariation(index, 'id', option?.value || "")
                               }
-                            }}
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="inline-block mb-2 text-sm font-medium">
-                            Variation Option <span className="text-red-500">*</span>
-                          </label>
-                          <Select
-                            className="react-select"
-                            options={
-                              productVariations.length > 0 ?
+                            />
+                          </div>
+                          
+                          <div>
+                            <label className="inline-block mb-2 text-sm font-medium">
+                              Tùy Chọn Biến Thể <span className="text-red-500">*</span>
+                            </label>
+                            <Select
+                              className="react-select"
+                              options={
                                 availableVariations
-                                  .find(v => v.id === productVariations[0].variationId)?.variationOptions
+                                  .find(v => v.id === variation.id)?.variationOptions
                                   ?.map(option => ({
                                     value: option.id,
                                     label: option.value
-                                  })) || [] : []
-                            }
-                            isSearchable={true}
-                            placeholder={productVariations.length > 0 ? "Select option..." : "Select a variation type first"}
-                            isDisabled={productVariations.length === 0}
-                            value={
-                              productVariations.length > 0 && productVariations[0].variationOptionIds.length > 0 ?
-                                (availableVariations
-                                  .find(v => v.id === productVariations[0].variationId)?.variationOptions || [])
-                                  .filter(option => productVariations[0].variationOptionIds.includes(option.id))
+                                  })) || []
+                              }
+                              isSearchable={true}
+                              isMulti={true}
+                              placeholder={variation.id ? "Chọn tùy chọn..." : "Chọn loại biến thể trước"}
+                              isDisabled={!variation.id}
+                              value={
+                                availableVariations
+                                  .find(v => v.id === variation.id)?.variationOptions
+                                  ?.filter(option => variation.variationOptionIds.includes(option.id))
                                   .map(option => ({
                                     value: option.id,
                                     label: option.value
-                                  }))[0] : null
-                            }
-                            onChange={(option) => {
-                              if (option && productVariations.length > 0) {
-                                const updatedVariations = [...productVariations];
-                                updatedVariations[0] = {
-                                  ...updatedVariations[0],
-                                  variationOptionIds: [option.value]
-                                };
-                                setProductVariations(updatedVariations);
+                                  })) || []
                               }
-                            }}
-                          />
+                              onChange={(selectedOptions) => {
+                                const selectedIds = selectedOptions ? selectedOptions.map((option: any) => option.value) : [];
+                                updateVariation(index, 'variationOptionIds', selectedIds);
+                              }}
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
 
                   {/* Product Items Section */}
                   <div className="mt-6">
                     <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-lg font-medium">Product Items</h4>
+                      <h4 className="text-lg font-medium">Sản Phẩm</h4>
                       <button
                         type="button"
                         onClick={addProductItem}
                         className="inline-flex items-center gap-1 px-3 py-1.5 text-white transition-all duration-200 ease-linear rounded-md bg-blue-500 hover:bg-blue-600 focus:ring-2 focus:ring-blue-200"
                       >
                         <Plus className="size-4" />
-                        Add Item
+                        Thêm Sản Phẩm
                       </button>
                     </div>
                     
                     {productItems.length === 0 ? (
                       <div className="p-4 mb-4 text-sm text-blue-700 bg-blue-100 rounded-lg">
-                        Add product items after selecting variation options.
+                        Vui lòng thêm ít nhất một sản phẩm.
                       </div>
                     ) : (
                       <div className="space-y-4">
                         {productItems.map((item, index) => (
                           <div key={item.id || `item-${index}`} className="mb-6 p-4 border rounded-lg bg-white">
                             <div className="flex justify-between items-center mb-4">
-                              <h6 className="text-sm font-medium">Item #{index + 1}</h6>
+                              <h6 className="text-sm font-medium">Sản phẩm #{index + 1}</h6>
                               <button
                                 type="button"
                                 onClick={() => removeProductItem(index)}
@@ -1417,14 +1488,14 @@ export default function EditProduct() {
                             <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                               <div>
                                 <label className="inline-block mb-2 text-sm font-medium">
-                                  Quantity <span className="text-red-500">*</span>
+                                  Số lượng <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                   type="number"
                                   className={`form-input w-full ${
                                     productItemErrors[index]?.quantityInStock ? 'border-red-500' : 'border-slate-200'
                                   }`}
-                                  placeholder="Enter quantity"
+                                  placeholder="Nhập số lượng"
                                   value={item.quantityInStock}
                                   onChange={(e) => updateProductItem(index, 'quantityInStock', parseInt(e.target.value) || 0)}
                                 />
@@ -1435,14 +1506,14 @@ export default function EditProduct() {
                               
                               <div>
                                 <label className="inline-block mb-2 text-sm font-medium">
-                                  Price (VND) <span className="text-red-500">*</span>
+                                  Giá (VND) <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                   type="text"
                                   className={`form-input w-full ${
                                     productItemErrors[index]?.price ? 'border-red-500' : 'border-slate-200'
                                   }`}
-                                  placeholder="Enter price"
+                                  placeholder="Nhập giá"
                                   value={formatPriceDisplay(item.price)}
                                   onChange={(e) => {
                                     const numericValue = e.target.value.replace(/\D/g, '');
@@ -1456,14 +1527,14 @@ export default function EditProduct() {
                               
                               <div>
                                 <label className="inline-block mb-2 text-sm font-medium">
-                                  Market Price (VND) <span className="text-red-500">*</span>
+                                  Giá thị trường (VND) <span className="text-red-500">*</span>
                                 </label>
                                 <input
                                   type="text"
                                   className={`form-input w-full ${
                                     productItemErrors[index]?.marketPrice ? 'border-red-500' : 'border-slate-200'
                                   }`}
-                                  placeholder="Enter market price"
+                                  placeholder="Nhập giá thị trường"
                                   value={formatPriceDisplay(item.marketPrice)}
                                   onChange={(e) => {
                                     const numericValue = e.target.value.replace(/\D/g, '');
@@ -1477,7 +1548,7 @@ export default function EditProduct() {
                               
                               <div className="lg:col-span-3">
                                 <label className="inline-block mb-2 text-sm font-medium">
-                                  Product Image <span className="text-red-500">*</span>
+                                  Hình ảnh sản phẩm <span className="text-red-500">*</span>
                                 </label>
                                 <Dropzone
                                   onDrop={(acceptedFiles) => handleProductItemImageUpload(index, acceptedFiles)}
@@ -1516,7 +1587,7 @@ export default function EditProduct() {
                                               ×
                                             </button>
                                             <p className="mt-2 text-sm text-slate-500">
-                                              {productItemImages[item.id || `temp-${index}`]?.formattedSize || "Uploaded image"}
+                                              {productItemImages[item.id || `temp-${index}`]?.formattedSize || "Hình ảnh đã tải lên"}
                                             </p>
                                           </div>
                                         ) : item.imageUrl ? (
@@ -1536,16 +1607,16 @@ export default function EditProduct() {
                                             >
                                               ×
                                             </button>
-                                            <p className="mt-2 text-sm text-slate-500">Existing image</p>
+                                            <p className="mt-2 text-sm text-slate-500">Hình ảnh hiện tại</p>
                                           </div>
                                         ) : (
                                           <>
                                             <UploadCloud className="size-6 mx-auto mb-3" />
                                             <h5 className="mb-1">
-                                              Drop image here or click to upload.
+                                              Kéo thả hình ảnh vào đây hoặc nhấp để tải lên.
                                             </h5>
                                             <p className="text-slate-500 dark:text-zink-200">
-                                              Maximum size: 2MB
+                                              Kích thước tối đa: 2MB
                                             </p>
                                           </>
                                         )}
@@ -1570,28 +1641,26 @@ export default function EditProduct() {
                     <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-12">
                       <div className="xl:col-span-6">
                         <label htmlFor="detailedIngredients" className="inline-block mb-2 text-base font-medium">
-                          Detailed Ingredients <span className="text-red-500">*</span>
+                          Thành Phần Chi Tiết <span className="text-red-500">*</span>
                         </label>
-                        <textarea
+                        <Editor
                           id="detailedIngredients"
-                          name="detailedIngredients"
-                          className={`form-input w-full ${
-                            productFormik.touched.detailedIngredients && productFormik.errors.detailedIngredients ? 'border-red-500' : 'border-slate-200'
-                          }`}
-                          placeholder="Enter detailed ingredients"
-                          rows={3}
+                          apiKey={TINYMCE_API_KEY}
+                          init={editorConfig}
                           value={productFormik.values.detailedIngredients}
-                          onChange={productFormik.handleChange}
-                          onBlur={productFormik.handleBlur}
-                        ></textarea>
+                          onEditorChange={(content: any) => {
+                            productFormik.setFieldValue('detailedIngredients', content);
+                          }}
+                          onBlur={() => productFormik.setFieldTouched('detailedIngredients', true)}
+                        />
                         {productFormik.touched.detailedIngredients && productFormik.errors.detailedIngredients && (
-                          <p className="mt-1 text-sm text-red-500">{productFormik.errors.detailedIngredients}</p>
+                          <p className="mt-1 text-sm text-red-500">{String(productFormik.errors.detailedIngredients)}</p>
                         )}
                       </div>
 
                       <div className="xl:col-span-6">
                         <label htmlFor="mainFunction" className="inline-block mb-2 text-base font-medium">
-                          Main Function <span className="text-red-500">*</span>
+                          Chức năng chính <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
@@ -1600,34 +1669,40 @@ export default function EditProduct() {
                           className={`form-input w-full ${
                             productFormik.touched.mainFunction && productFormik.errors.mainFunction ? 'border-red-500' : 'border-slate-200'
                           }`}
-                          placeholder="Enter main function"
+                          placeholder="Nhập chức năng chính"
                           value={productFormik.values.mainFunction}
                           onChange={productFormik.handleChange}
                           onBlur={productFormik.handleBlur}
                         />
                         {productFormik.touched.mainFunction && productFormik.errors.mainFunction && (
-                          <p className="mt-1 text-sm text-red-500">{productFormik.errors.mainFunction}</p>
+                          <p className="mt-1 text-sm text-red-500">{String(productFormik.errors.mainFunction)}</p>
                         )}
                       </div>
 
                       <div className="xl:col-span-6">
                         <label htmlFor="texture" className="inline-block mb-2 text-base font-medium">
-                          Texture
+                          Kết Cấu <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
                           id="texture"
                           name="texture"
-                          className="form-input w-full border-slate-200"
-                          placeholder="Enter texture"
+                          className={`form-input w-full ${
+                            productFormik.touched.texture && productFormik.errors.texture ? 'border-red-500' : 'border-slate-200'
+                          }`}
+                          placeholder="Nhập kết cấu sản phẩm"
                           value={productFormik.values.texture}
                           onChange={productFormik.handleChange}
+                          onBlur={productFormik.handleBlur}
                         />
+                        {productFormik.touched.texture && productFormik.errors.texture && (
+                          <p className="mt-1 text-sm text-red-500">{String(productFormik.errors.texture)}</p>
+                        )}
                       </div>
 
                       <div className="xl:col-span-6">
                         <label htmlFor="englishName" className="inline-block mb-2 text-base font-medium">
-                          English Name <span className="text-red-500">*</span>
+                          Tên tiếng Anh <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
@@ -1636,13 +1711,13 @@ export default function EditProduct() {
                           className={`form-input w-full ${
                             productFormik.touched.englishName && productFormik.errors.englishName ? 'border-red-500' : 'border-slate-200'
                           }`}
-                          placeholder="Enter English name"
+                          placeholder="Nhập tên tiếng Anh"
                           value={productFormik.values.englishName}
                           onChange={productFormik.handleChange}
                           onBlur={productFormik.handleBlur}
                         />
                         {productFormik.touched.englishName && productFormik.errors.englishName && (
-                          <p className="mt-1 text-sm text-red-500">{productFormik.errors.englishName}</p>
+                          <p className="mt-1 text-sm text-red-500">{String(productFormik.errors.englishName)}</p>
                         )}
                       </div>
 
@@ -1657,55 +1732,51 @@ export default function EditProduct() {
                           className={`form-input w-full ${
                             productFormik.touched.keyActiveIngredients && productFormik.errors.keyActiveIngredients ? 'border-red-500' : 'border-slate-200'
                           }`}
-                          placeholder="Enter key active ingredients"
+                          placeholder="Nhập thành phần hoạt chất chính"
                           value={productFormik.values.keyActiveIngredients}
                           onChange={productFormik.handleChange}
                           onBlur={productFormik.handleBlur}
                         />
                         {productFormik.touched.keyActiveIngredients && productFormik.errors.keyActiveIngredients && (
-                          <p className="mt-1 text-sm text-red-500">{productFormik.errors.keyActiveIngredients}</p>
+                          <p className="mt-1 text-sm text-red-500">{String(productFormik.errors.keyActiveIngredients)}</p>
                         )}
                       </div>
 
                       <div className="xl:col-span-6">
                         <label htmlFor="storageInstruction" className="inline-block mb-2 text-base font-medium">
-                          Storage Instruction <span className="text-red-500">*</span>
+                          Hướng Dẫn Lưu Trữ <span className="text-red-500">*</span>
                         </label>
-                        <input
-                          type="text"
+                        <Editor
                           id="storageInstruction"
-                          name="storageInstruction"
-                          className={`form-input w-full ${
-                            productFormik.touched.storageInstruction && productFormik.errors.storageInstruction ? 'border-red-500' : 'border-slate-200'
-                          }`}
-                          placeholder="Enter storage instructions"
+                          apiKey={TINYMCE_API_KEY}
+                          init={editorConfig}
                           value={productFormik.values.storageInstruction}
-                          onChange={productFormik.handleChange}
-                          onBlur={productFormik.handleBlur}
+                          onEditorChange={(content: any) => {
+                            productFormik.setFieldValue('storageInstruction', content);
+                          }}
+                          onBlur={() => productFormik.setFieldTouched('storageInstruction', true)}
                         />
                         {productFormik.touched.storageInstruction && productFormik.errors.storageInstruction && (
-                          <p className="mt-1 text-sm text-red-500">{productFormik.errors.storageInstruction}</p>
+                          <p className="mt-1 text-sm text-red-500">{String(productFormik.errors.storageInstruction)}</p>
                         )}
                       </div>
 
                       <div className="xl:col-span-6">
                         <label htmlFor="usageInstruction" className="inline-block mb-2 text-base font-medium">
-                          Usage Instruction <span className="text-red-500">*</span>
+                          Hướng Dẫn Sử Dụng <span className="text-red-500">*</span>
                         </label>
-                        <textarea
+                        <Editor
                           id="usageInstruction"
-                          name="usageInstruction"
-                          className={`form-input w-full ${
-                            productFormik.touched.usageInstruction && productFormik.errors.usageInstruction ? 'border-red-500' : 'border-slate-200'
-                          }`}
-                          placeholder="Enter usage instructions"
-                          rows={3}
+                          apiKey={TINYMCE_API_KEY}
+                          init={editorConfig}
                           value={productFormik.values.usageInstruction}
-                          onChange={productFormik.handleChange}
-                          onBlur={productFormik.handleBlur}
-                        ></textarea>
+                          onEditorChange={(content: any) => {
+                            productFormik.setFieldValue('usageInstruction', content);
+                          }}
+                          onBlur={() => productFormik.setFieldTouched('usageInstruction', true)}
+                        />
                         {productFormik.touched.usageInstruction && productFormik.errors.usageInstruction && (
-                          <p className="mt-1 text-sm text-red-500">{productFormik.errors.usageInstruction}</p>
+                          <p className="mt-1 text-sm text-red-500">{String(productFormik.errors.usageInstruction)}</p>
                         )}
                       </div>
 
@@ -1720,19 +1791,19 @@ export default function EditProduct() {
                           className={`form-input w-full ${
                             productFormik.touched.expiryDate && productFormik.errors.expiryDate ? 'border-red-500' : 'border-slate-200'
                           }`}
-                          placeholder="Enter expiry date (e.g., 12/2025)"
+                          placeholder="Nhập hạn sử dụng (ví dụ: 12/2025)"
                           value={productFormik.values.expiryDate}
                           onChange={productFormik.handleChange}
                           onBlur={productFormik.handleBlur}
                         />
                         {productFormik.touched.expiryDate && productFormik.errors.expiryDate && (
-                          <p className="mt-1 text-sm text-red-500">{productFormik.errors.expiryDate}</p>
+                          <p className="mt-1 text-sm text-red-500">{String(productFormik.errors.expiryDate)}</p>
                         )}
                       </div>
 
                       <div className="xl:col-span-6">
                         <label htmlFor="skinIssues" className="inline-block mb-2 text-base font-medium">
-                          Skin Issues <span className="text-red-500">*</span>
+                          Vấn đề về da <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
@@ -1741,28 +1812,29 @@ export default function EditProduct() {
                           className={`form-input w-full ${
                             productFormik.touched.skinIssues && productFormik.errors.skinIssues ? 'border-red-500' : 'border-slate-200'
                           }`}
-                          placeholder="Enter skin issues this product addresses"
+                          placeholder="Nhập vấn đề về da mà sản phẩm này giải quyết"
                           value={productFormik.values.skinIssues}
                           onChange={productFormik.handleChange}
                           onBlur={productFormik.handleBlur}
                         />
                         {productFormik.touched.skinIssues && productFormik.errors.skinIssues && (
-                          <p className="mt-1 text-sm text-red-500">{productFormik.errors.skinIssues}</p>
+                          <p className="mt-1 text-sm text-red-500">{String(productFormik.errors.skinIssues)}</p>
                         )}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex justify-end gap-2 mt-6">
+                  <div className="flex justify-end mt-6 gap-4">
                     <button
                       type="button"
                       onClick={() => {
-                        window.location.href = "/ecommerce/products";
+                        window.location.href = "/apps-ecommerce-product-list";
                       }}
-                      className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100"
+                      className="text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none"
                     >
-                      Cancel
+                      Hủy
                     </button>
+                    
                     <button
                       type="button"
                       onClick={() => {
@@ -1770,17 +1842,21 @@ export default function EditProduct() {
                         handleUpdateProduct();
                       }}
                       disabled={isSubmitting}
-                      className="text-white btn bg-custom-500 hover:text-white hover:bg-custom-600 focus:text-white focus:bg-custom-600"
+                      className={`text-white btn ${
+                        isSubmitting 
+                          ? 'bg-gray-400 cursor-not-allowed' 
+                          : 'bg-custom-500 hover:text-white hover:bg-custom-600 focus:text-white focus:bg-custom-600'
+                      }`}
                     >
                       {isSubmitting ? (
                         <>
                           <span className="mr-2 animate-spin">
                             <i className="mdi mdi-loading"></i>
                           </span>
-                          Updating...
+                          Đang cập nhật...
                         </>
                       ) : (
-                        "Update Product"
+                        "Cập nhật sản phẩm"
                       )}
                     </button>
                   </div>

@@ -388,9 +388,15 @@ const ListView = () => {
         accessorKey: "description",
         enableColumnFilter: false,
         cell: (cell: any) => (
-          <span className="description line-clamp-1 max-w-[250px]">
-            {cell.getValue()}
-          </span>
+          <span 
+            className="description line-clamp-1 max-w-[250px]"
+            dangerouslySetInnerHTML={{ 
+              __html: cell.getValue() ? 
+                // Strip out potentially dangerous tags and limit to plain text
+                cell.getValue().replace(/<(?!br\s*\/?)[^>]+>/g, '') : 
+                ''
+            }}
+          />
         ),
       },
       {
@@ -482,7 +488,7 @@ const ListView = () => {
 
   return (
     <React.Fragment>
-      <BreadCrumb title="Products" pageTitle="Products" />
+      <BreadCrumb title="Sản phẩm" pageTitle="Sản phẩm" />
       <DeleteModal
         show={deleteModal}
         onHide={deleteToggle}
@@ -692,7 +698,11 @@ const ListView = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
                     <p className="text-sm text-slate-500">Mô Tả</p>
-                    <p>{eventData?.description}</p>
+                    <div 
+                      dangerouslySetInnerHTML={{ 
+                        __html: eventData?.description || '' 
+                      }}
+                    />
                   </div>
                   <div>
                     <p className="text-sm text-slate-500">Giá</p>

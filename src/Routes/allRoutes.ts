@@ -47,7 +47,7 @@ import UserProfile from "pages/Authentication/UserProfile";
 import VariationOption from "pages/Ecommerce/VariationOption";
 import Account from "pages/Ecommerce/Account";
 import EditProduct from "pages/Ecommerce/Products/EditProduct";
-
+import Brand from "pages/Ecommerce/Brand";
 interface RouteObject {
   path: string;
   component: React.ComponentType<any>; // Use React.ComponentType to specify the type of the component
@@ -98,6 +98,7 @@ const authProtectedRoutes: Array<RouteObject> = [
   { path: "/apps-ecommerce-variation-option", component: VariationOption },
   { path: "/apps-ecommerce-account", component: Account },
   { path: "/apps-ecommerce-product-edit", component: EditProduct },
+  {path: "/apps-ecommerce-brand", component: Brand },
 
   // profile
   { path: "/user-profile", component: UserProfile },
