@@ -861,23 +861,6 @@ const OrderOverview = () => {
                   </div>
                 </div>
                 
-                {/* Add voucher information if available */}
-                {currentOrder.voucherCode && (
-                  <div>
-                    <h6 className="mb-1 text-sm font-medium text-slate-700 dark:text-zink-200">
-                      Mã giảm giá
-                    </h6>
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-600 rounded-md border border-green-200 dark:bg-green-500/20 dark:border-green-500/20 dark:text-green-400">
-                        {currentOrder.voucherCode}
-                      </span>
-                      <span className="text-slate-500 dark:text-zink-200">
-                        (-{formatCurrency(currentOrder.discountAmount || 0)})
-                      </span>
-                    </div>
-                  </div>
-                )}
-                
                 <div>
                   <h6 className="mb-1 text-sm font-medium text-slate-700 dark:text-zink-200">
                     Địa chỉ thanh toán
@@ -899,52 +882,78 @@ const OrderOverview = () => {
                 
                 <div>
                   <h6 className="mb-1 text-sm font-medium text-slate-700 dark:text-zink-200">
+                    Trạng thái thanh toán
+                  </h6>
+                  <span className={`px-2.5 py-0.5 text-xs inline-block font-medium rounded border 
+                    ${(currentOrder.paymentStatus === "Paid" || currentOrder.status === "Delivering" || currentOrder.status === "Delivered") 
+                      ? "bg-green-100 text-green-500 border-green-200 dark:bg-green-500/20 dark:border-green-500/20" 
+                      : currentOrder.status === "Cancelled"
+                        ? "bg-red-100 text-red-500 border-red-200 dark:bg-red-500/20 dark:border-red-500/20"
+                        : "bg-orange-100 text-orange-500 border-orange-200 dark:bg-orange-500/20 dark:border-orange-500/20"}`}>
+                    {(currentOrder.paymentStatus === "Paid" || currentOrder.status === "Delivering" || currentOrder.status === "Delivered") 
+                      ? "Đã thanh toán" 
+                      : currentOrder.status === "Cancelled"
+                        ? "Đã hủy"
+                        : "Chưa thanh toán"}
+                  </span>
+                </div>
+                
+                <div>
+                  <h6 className="mb-1 text-sm font-medium text-slate-700 dark:text-zink-200">
                     Tổng thanh toán
                   </h6>
-                  {currentOrder.originalOrderTotal !== currentOrder.discountedOrderTotal ? (
-                    <div className="flex flex-col">
-                      <p className="text-lg font-medium text-custom-500">
-                        {formatCurrency(currentOrder.discountedOrderTotal || currentOrder.orderTotal)}
-                      </p>
+                  <div className="flex flex-col">
+                    <p className="text-lg font-medium text-custom-500">
+                      {formatCurrency(currentOrder.discountedOrderTotal || currentOrder.orderTotal || 0)}
+                    </p>
+                    {currentOrder.discountAmount > 0 && currentOrder.originalOrderTotal && (
                       <div className="flex items-center gap-2">
                         <p className="text-sm line-through text-slate-400">
                           {formatCurrency(currentOrder.originalOrderTotal || 0)}
                         </p>
                         <span className="px-1.5 py-0.5 text-xs font-medium bg-red-100 text-red-600 rounded-sm">
-                          -{calculateDiscountPercentage(currentOrder.originalOrderTotal, currentOrder.discountedOrderTotal)}%
+                          -{Math.round((currentOrder.discountAmount / currentOrder.originalOrderTotal) * 100)}%
                         </span>
                       </div>
-                    </div>
-                  ) : (
-                    <p className="text-lg font-medium text-custom-500">
-                      {formatCurrency(currentOrder.orderTotal || 0)}
-                    </p>
-                  )}
+                    )}
+                  </div>
                 </div>
                 
-                <div>
-                  <h6 className="mb-1 text-sm font-medium text-slate-700 dark:text-zink-200">
-                    Trạng thái thanh toán
-                  </h6>
-                  <span className={`px-2.5 py-0.5 text-xs inline-block font-medium rounded border 
-                    ${currentOrder.paymentStatus === "Paid" || 
-                      (currentOrder.paymentMethodId !== "COD" && 
-                       currentOrder.status !== "Awaiting Payment" && 
-                       currentOrder.status !== "Cancelled")
-                        ? "bg-green-100 text-green-500 border-green-200 dark:bg-green-500/20 dark:border-green-500/20" 
-                        : currentOrder.status === "Cancelled"
-                          ? "bg-red-100 text-red-500 border-red-200 dark:bg-red-500/20 dark:border-red-500/20"
-                          : "bg-orange-100 text-orange-500 border-orange-200 dark:bg-orange-500/20 dark:border-orange-500/20"}`}>
-                    {currentOrder.paymentStatus === "Paid" || 
-                     (currentOrder.paymentMethodId !== "COD" && 
-                      currentOrder.status !== "Awaiting Payment" && 
-                      currentOrder.status !== "Cancelled")
-                        ? "Đã thanh toán" 
-                        : currentOrder.status === "Cancelled"
-                          ? "Đã hủy"
-                          : "Chưa thanh toán"}
-                  </span>
-                </div>
+                {/* Add voucher information if available */}
+                {currentOrder.voucherCode && (
+                  <div>
+                    <h6 className="mb-1 text-sm font-medium text-slate-700 dark:text-zink-200">
+                      Mã giảm giá
+                    </h6>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-600 rounded-md border border-green-200 dark:bg-green-500/20 dark:border-green-500/20 dark:text-green-400">
+                        {currentOrder.voucherCode}
+                      </span>
+                      <span className="text-slate-500 dark:text-zink-200">
+                        (-{formatCurrency(currentOrder.discountAmount || 0)})
+                      </span>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Add discount information if available */}
+                {currentOrder.discountAmount > 0 && (
+                  <div>
+                    <h6 className="mb-1 text-sm font-medium text-slate-700 dark:text-zink-200">
+                      Giảm giá
+                    </h6>
+                    <div className="flex items-center gap-2">
+                      <span className="text-red-500 font-medium">
+                        -{formatCurrency(currentOrder.discountAmount || 0)}
+                      </span>
+                      {currentOrder.voucherCode && (
+                        <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-600 rounded-md border border-green-200 dark:bg-green-500/20 dark:border-green-500/20 dark:text-green-400">
+                          {currentOrder.voucherCode}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
                 
                 {/* Payment Date Information */}
                 {(currentOrder.paymentStatus === "Paid" || 
