@@ -19,12 +19,13 @@ interface RevenueResponse {
   errors: null | string[];
 }
 
+const baseUrl = "https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api";
 export const fetchTotalRevenue = createAsyncThunk(
   'dashboard/fetchTotalRevenue',
   async () => {
     try {
       const response = await axios.get<RevenueResponse>(
-        'http://localhost:5041/api/dashboards/total-revenue',
+        `${baseUrl}/dashboards/total-revenue`,
         {
           params: { pageNumber: 1, pageSize: 10 }
         }

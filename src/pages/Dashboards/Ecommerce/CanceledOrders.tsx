@@ -18,6 +18,7 @@ interface CanceledOrder {
   refundAmount: number;
 }
 
+const baseUrl = "https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api";
 const CanceledOrders = () => {
     // Local state to manage the data
     const [orders, setOrders] = useState<CanceledOrder[]>([]);
@@ -31,7 +32,7 @@ const CanceledOrders = () => {
                 setLoading(true);
                 console.log('Fetching canceled orders...');
                 
-                const response = await axios.get('http://localhost:5041/api/orders/canceled-orders');
+                const response = await axios.get(`${baseUrl}/orders/canceled-orders`);
                 console.log('Raw API Response:', response);
                 console.log('API Response data:', response.data);
                 
