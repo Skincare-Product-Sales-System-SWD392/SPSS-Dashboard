@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import BreadCrumb from "Common/BreadCrumb";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Dropdown } from "Common/Components/Dropdown";
 import Modal from "Common/Components/Modal";
 import { useFormik } from "formik";
@@ -44,6 +44,8 @@ const ListView = () => {
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [refreshFlag, setRefreshFlag] = useState(false);
   const [isOverview, setIsOverview] = useState<boolean>(false);
+
+  const navigate = useNavigate();
 
   // Updated selector with better error handling
   const productSelector = createSelector(
@@ -165,14 +167,12 @@ const ListView = () => {
 
   // Update Data
   const handleUpdateDataClick = (ele: any) => {
-    // Navigate to the edit product page with the product ID as a query parameter
-    window.location.href = `/apps-ecommerce-product-edit?id=${ele.id}`;
+    navigate(`/apps-ecommerce-product-edit?id=${ele.id}`);
   };
 
-  // Update handleOverviewClick to pass the ID in the URL
+  // Update handleOverviewClick to use navigate instead of window.location.href
   const handleOverviewClick = (data: any) => {
-    // Navigate to the overview page with the product ID as a query parameter
-    window.location.href = `/apps-ecommerce-product-overview?id=${data.id}`;
+    navigate(`/apps-ecommerce-product-overview?id=${data.id}`);
   };
 
   // Toggle modal
@@ -441,25 +441,17 @@ const ListView = () => {
             >
               <li>
                 <Link
-                  to="#!"
+                  to={`/apps-ecommerce-product-overview?id=${cell.row.original.id}`}
                   className="block px-4 py-1.5 text-base transition-all duration-200 ease-linear text-slate-600 dropdown-item hover:bg-slate-100 hover:text-slate-500 focus:bg-slate-100 focus:text-slate-500 dark:text-zink-100 dark:hover:bg-zink-500 dark:hover:text-zink-200 dark:focus:bg-zink-500 dark:focus:text-zink-200"
-                  onClick={() => {
-                    const data = cell.row.original;
-                    handleOverviewClick(data);
-                  }}
                 >
                   <Eye className="inline-block size-3 ltr:mr-1 rtl:ml-1" />{" "}
-                  <span className="align-middle">Xem chi tiết</span>
+                  <span className="align-middle">Xem Chi Tiết</span>
                 </Link>
               </li>
               <li>
                 <Link
-                  to="#!"
+                  to={`/apps-ecommerce-product-edit?id=${cell.row.original.id}`}
                   className="block px-4 py-1.5 text-base transition-all duration-200 ease-linear text-slate-600 dropdown-item hover:bg-slate-100 hover:text-slate-500 focus:bg-slate-100 focus:text-slate-500 dark:text-zink-100 dark:hover:bg-zink-500 dark:hover:text-zink-200 dark:focus:bg-zink-500 dark:focus:text-zink-200"
-                  onClick={() => {
-                    const data = cell.row.original;
-                    handleUpdateDataClick(data);
-                  }}
                 >
                   <FileEdit className="inline-block size-3 ltr:mr-1 rtl:ml-1" />{" "}
                   <span className="align-middle">Chỉnh sửa</span>

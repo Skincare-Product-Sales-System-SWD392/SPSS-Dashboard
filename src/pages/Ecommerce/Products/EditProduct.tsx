@@ -14,6 +14,7 @@ import { getProductById } from 'slices/product/thunk';
 import { Editor } from '@tinymce/tinymce-react';
 import { toast } from 'react-toastify';
 import { ToastContainer } from 'react-toastify';
+import { Link } from "react-router-dom";
 
 // Define interfaces
 interface ProductImage {
@@ -1235,7 +1236,7 @@ export default function EditProduct() {
     } catch (error) {
       console.error("Navigation error:", error);
       // Fallback to direct navigation if there's an error
-      window.location.href = '/apps-ecommerce-product-list';
+      navigate('/apps-ecommerce-product-list');
     }
   };
 
