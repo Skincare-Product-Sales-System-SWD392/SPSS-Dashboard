@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import BreadCrumb from "Common/BreadCrumb";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createSelector } from "reselect";
 import moment from "moment";
@@ -53,6 +53,8 @@ const getStatusLabel = (status: string) => {
     case "Pending":
       return "Đang chờ";
     case "Shipping":
+      return "Đang giao";
+    case "Delivering":
       return "Đang giao";
     case "Delivered":
       return "Đã giao";
@@ -225,6 +227,13 @@ const OrderOverview = () => {
 
   // Store the invoice ID in state so it remains consistent
   const [invoiceId] = useState(generateInvoiceId());
+
+  // Add this function to calculate discount percentage
+  const calculateDiscountPercentage = (original: number, discounted: number) => {
+    if (!original || !discounted || original === 0) return 0;
+    const percentage = ((original - discounted) / original) * 100;
+    return Math.round(percentage);
+  };
 
   // Create a reusable invoice template function with larger text and better spacing
   const createInvoiceTemplate = () => {
@@ -593,14 +602,14 @@ const OrderOverview = () => {
       toast.dismiss(loadingToast);
 
       // Show success with MUI Snackbar
-      setSnackbarMessage(`Order status updated to ${selectedStatus}`);
+      setSnackbarMessage(`Trạng thái được cập nhật thành công: ${selectedStatus}`);
       setSnackbarSeverity("success");
       setOpenSnackbar(true);
 
       setShowStatusModal(false);
     } catch (error) {
       // Show error with MUI Snackbar
-      setSnackbarMessage("Failed to update order status");
+      setSnackbarMessage("Không thể cập nhật trạng thái đơn hàng");
       setSnackbarSeverity("error");
       setOpenSnackbar(true);
       setShowStatusModal(false);
@@ -710,6 +719,34 @@ const OrderOverview = () => {
     };
   }, []);
 
+  // Add this function to handle status filtering
+  const handleStatusFilter = (status: string) => {
+    // Navigate to the orders page with the status filter
+    navigate(`/apps-ecommerce-orders?status=${status}`);
+  };
+
+  // Add this to your component to display status filter buttons
+  const StatusFilterButtons = () => {
+    return (
+      <div className="flex flex-wrap gap-2 mb-4">
+        {ORDER_STATUSES.map((status) => (
+          <button
+            key={status.value}
+            onClick={() => handleStatusFilter(status.value)}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md flex items-center gap-1.5
+                       ${status.bgClass} ${status.textClass} hover:opacity-80 transition-opacity`}
+          >
+            <span className={`inline-block w-2 h-2 rounded-full ${status.dotClass}`}></span>
+            {status.label}
+          </button>
+        ))}
+      </div>
+    );
+  };
+
+  // Make sure to import useNavigate
+  const navigate = useNavigate();
+
   if (loading || !currentOrder) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -784,7 +821,7 @@ const OrderOverview = () => {
             </div>
           </div>
           
-          {/* Add Billing Details Card */}
+          {/* Update Billing Details Card */}
           <div className="card mt-5">
             <div className="card-body">
               <div className="flex items-center justify-center size-12 bg-amber-100 rounded-md dark:bg-amber-500/20 ltr:float-right rtl:float-left">
@@ -824,6 +861,23 @@ const OrderOverview = () => {
                   </div>
                 </div>
                 
+                {/* Add voucher information if available */}
+                {currentOrder.voucherCode && (
+                  <div>
+                    <h6 className="mb-1 text-sm font-medium text-slate-700 dark:text-zink-200">
+                      Mã giảm giá
+                    </h6>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-600 rounded-md border border-green-200 dark:bg-green-500/20 dark:border-green-500/20 dark:text-green-400">
+                        {currentOrder.voucherCode}
+                      </span>
+                      <span className="text-slate-500 dark:text-zink-200">
+                        (-{formatCurrency(currentOrder.discountAmount || 0)})
+                      </span>
+                    </div>
+                  </div>
+                )}
+                
                 <div>
                   <h6 className="mb-1 text-sm font-medium text-slate-700 dark:text-zink-200">
                     Địa chỉ thanh toán
@@ -834,6 +888,7 @@ const OrderOverview = () => {
                       ? `, ${currentOrder.address.addressLine2}`
                       : ""}
                     <br />
+                    {currentOrder.address?.ward && `${currentOrder.address.ward}, `}
                     {currentOrder.address?.city || ""}
                     {currentOrder.address?.city ? ", " : ""}
                     {currentOrder.address?.province || ""}
@@ -846,9 +901,25 @@ const OrderOverview = () => {
                   <h6 className="mb-1 text-sm font-medium text-slate-700 dark:text-zink-200">
                     Tổng thanh toán
                   </h6>
-                  <p className="text-lg font-medium text-custom-500">
-                    {formatCurrency(currentOrder.orderTotal)}
-                  </p>
+                  {currentOrder.originalOrderTotal !== currentOrder.discountedOrderTotal ? (
+                    <div className="flex flex-col">
+                      <p className="text-lg font-medium text-custom-500">
+                        {formatCurrency(currentOrder.discountedOrderTotal || currentOrder.orderTotal)}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm line-through text-slate-400">
+                          {formatCurrency(currentOrder.originalOrderTotal || 0)}
+                        </p>
+                        <span className="px-1.5 py-0.5 text-xs font-medium bg-red-100 text-red-600 rounded-sm">
+                          -{calculateDiscountPercentage(currentOrder.originalOrderTotal, currentOrder.discountedOrderTotal)}%
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-lg font-medium text-custom-500">
+                      {formatCurrency(currentOrder.orderTotal || 0)}
+                    </p>
+                  )}
                 </div>
                 
                 <div>
@@ -1051,14 +1122,16 @@ const OrderOverview = () => {
                         Tổng tiền :
                       </td>
                       <td className="px-6 py-3">
-                        {formatCurrency(currentOrder.orderTotal)}
+                        {formatCurrency(currentOrder.originalOrderTotal || currentOrder.orderTotal)}
                       </td>
                     </tr>
                     <tr>
                       <td colSpan={3} className="px-6 py-3 text-right">
                         Giảm giá :
                       </td>
-                      <td className="px-6 py-3">{formatCurrency(0)}</td>
+                      <td className="px-6 py-3">
+                        {formatCurrency(currentOrder.discountAmount || 0)}
+                      </td>
                     </tr>
                     <tr>
                       <td colSpan={3} className="px-6 py-3 text-right">
@@ -1077,7 +1150,7 @@ const OrderOverview = () => {
                         Tổng tiền :
                       </td>
                       <td className="px-6 py-3">
-                        {formatCurrency(currentOrder.orderTotal)}
+                        {formatCurrency(currentOrder.discountedOrderTotal || currentOrder.orderTotal)}
                       </td>
                     </tr>
                   </tfoot>

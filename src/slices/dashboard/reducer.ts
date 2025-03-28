@@ -268,56 +268,30 @@ export const fetchPendingOrders = createAsyncThunk(
   }
 );
 
-// Update the fetchCanceledOrders thunk with more detailed debugging
+// Update the fetchCanceledOrders thunk to remove pagination parameters
 export const fetchCanceledOrders = createAsyncThunk(
   'dashboard/fetchCanceledOrders',
-  async ({ pageNumber = 1, pageSize = 10 }: { pageNumber?: number; pageSize?: number }, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      console.log('Fetching canceled orders with URL:', `https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/orders/canceled-orders?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+      console.log('Fetching canceled orders with URL:', `http://localhost:5041/api/orders/canceled-orders`);
       
-      // Use a direct fetch to see if there's any issue with axios
-      const response = await fetch(
-        `https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/orders/canceled-orders?pageNumber=${pageNumber}&pageSize=${pageSize}`
-      );
+      const response = await axios.get(`http://localhost:5041/api/orders/canceled-orders`);
       
-      if (!response.ok) {
-        console.error('API returned error status:', response.status);
-        return rejectWithValue(`API error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('Raw API response data:', data);
+      console.log('Canceled orders API response:', response.data);
       
       // Check if we have a valid response
-      if (!data) {
+      if (!response.data) {
         console.error('API returned undefined or null data');
         return rejectWithValue('API returned no data');
       }
       
-      // Handle the response format - directly access data.data.items
-      if (data.success && data.data && Array.isArray(data.data.items)) {
-        console.log('Found items in response data:', data.data.items);
-        console.log('Number of items:', data.data.items.length);
-        
-        // Return the items array directly
-        return data.data.items;
+      // Handle the response format based on the new API structure
+      if (response.data.success && Array.isArray(response.data.data)) {
+        console.log('Found items in response data:', response.data.data);
+        return response.data.data;
       } else {
-        // If we can't find the expected structure, log what we did receive
-        console.error('Unexpected response format. Response structure:', JSON.stringify(data));
-        
-        // Try to extract any data we can find
-        if (data.data) {
-          console.log('data.data content:', data.data);
-          if (typeof data.data === 'object' && data.data !== null) {
-            const possibleArrays = Object.values(data.data).filter(val => Array.isArray(val));
-            if (possibleArrays.length > 0) {
-              console.log('Found possible array in response:', possibleArrays[0]);
-              return possibleArrays[0];
-            }
-          }
-        }
-        
-        return rejectWithValue('Could not find items array in API response');
+        console.error('Unexpected response format:', response.data);
+        return rejectWithValue('Unexpected response format');
       }
     } catch (error: any) {
       console.error('Error fetching canceled orders:', error);
@@ -400,37 +374,18 @@ const dashboardSlice = createSlice({
       .addCase(fetchCanceledOrders.pending, (state) => {
         state.loading = true;
         state.error = null;
+        console.log('fetchCanceledOrders.pending');
       })
       .addCase(fetchCanceledOrders.fulfilled, (state, action) => {
         state.loading = false;
-        
-        // Log the action payload to see what we're getting
-        console.log('Action payload in fulfilled case:', action.payload);
-        
-        // Make sure we're setting the state correctly
-        if (Array.isArray(action.payload)) {
-          state.canceledOrders = action.payload;
-        } else if (action.payload && typeof action.payload === 'object') {
-          // If payload is an object but not an array, try to find an array property
-          const possibleArrays = Object.values(action.payload).filter(val => Array.isArray(val));
-          if (possibleArrays.length > 0) {
-            state.canceledOrders = possibleArrays[0];
-          } else {
-            // If we can't find an array, convert the object to an array
-            state.canceledOrders = [action.payload];
-          }
-        } else {
-          // Default to empty array if payload is not valid
-          state.canceledOrders = [];
-        }
-        
-        console.log('Canceled orders stored in state after processing:', state.canceledOrders);
+        state.canceledOrders = action.payload || [];
+        state.error = null;
+        console.log('Canceled orders stored in state:', state.canceledOrders?.length || 0);
       })
       .addCase(fetchCanceledOrders.rejected, (state, action) => {
         state.loading = false;
-        state.error = typeof action.payload === 'string' 
-          ? action.payload 
-          : action.error.message || 'Failed to fetch canceled orders';
+        state.error = action.payload as string || 'Failed to fetch canceled orders';
+        console.error('Error fetching canceled orders:', action.payload);
       });
   }
 });

@@ -7,7 +7,7 @@ import Dropzone from "react-dropzone";
 import { UploadCloud, Plus, Trash2 } from "lucide-react";
 import BreadCrumb from "Common/BreadCrumb";
 import { getFirebaseBackend } from "../../../helpers/firebase_helper";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 import { createSelector } from 'reselect';
 import { getProductById } from 'slices/product/thunk';
@@ -74,6 +74,7 @@ const editorConfig = {
 export default function EditProduct() {
   const dispatch = useDispatch<any>();
   const location = useLocation();
+  const navigate = useNavigate();
   
   // Get product ID from URL query parameter
   const productId = new URLSearchParams(location.search).get('id');
@@ -926,7 +927,7 @@ export default function EditProduct() {
         
         // Wait for toast to be visible before redirecting
         setTimeout(() => {
-          window.location.href = "/apps-ecommerce-product-list";
+          navigate('/apps-ecommerce-product-list');
         }, 2000);
         
       } catch (error: any) {
@@ -1195,7 +1196,7 @@ export default function EditProduct() {
       
       // Wait for toast to be visible before redirecting
       setTimeout(() => {
-        window.location.href = "/apps-ecommerce-product-list";
+        navigate('/apps-ecommerce-product-list');
       }, 2000);
       
     } catch (error: any) {
@@ -1216,6 +1217,45 @@ export default function EditProduct() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Replace window.location.href with navigate
+  const handleBackToList = () => {
+    // First, check if we need to save any state to localStorage
+    try {
+      // Save any necessary auth state to localStorage if needed
+      const authToken = localStorage.getItem('authUser');
+      if (authToken) {
+        // Ensure token is still valid in localStorage before navigation
+        console.log("Auth token exists, proceeding with navigation");
+      }
+      
+      // Use navigate with replace option to avoid history stack issues
+      navigate('/apps-ecommerce-product-list', { replace: true });
+    } catch (error) {
+      console.error("Navigation error:", error);
+      // Fallback to direct navigation if there's an error
+      window.location.href = '/apps-ecommerce-product-list';
+    }
+  };
+
+  // Also update the success handler
+  const handleUpdateSuccess = () => {
+    toast.success("Sản phẩm đã được cập nhật thành công!", {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+    
+    // Wait for toast to be visible before redirecting
+    setTimeout(() => {
+      // Use navigate with replace option
+      navigate('/apps-ecommerce-product-list', { replace: true });
+    }, 2000);
   };
 
   return (
@@ -1939,9 +1979,7 @@ export default function EditProduct() {
                   <div className="flex justify-end mt-6 gap-4">
                     <button
                       type="button"
-                      onClick={() => {
-                        window.location.href = "/apps-ecommerce-product-list";
-                      }}
+                      onClick={handleBackToList}
                       className="text-gray-700 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none"
                     >
                       Hủy

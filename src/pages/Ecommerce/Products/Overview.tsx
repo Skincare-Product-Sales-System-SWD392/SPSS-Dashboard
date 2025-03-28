@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import BreadCrumb from "Common/BreadCrumb";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import DeleteModal from "Common/DeleteModal";
 
 import { useDispatch, useSelector } from 'react-redux';
@@ -15,6 +15,7 @@ const formatNumberWithSpaces = (num: number | undefined): string => {
 const Overview = () => {
     const dispatch = useDispatch<any>();
     const location = useLocation();
+    const navigate = useNavigate();
     const [deleteModal, setDeleteModal] = useState<boolean>(false);
     const deleteToggle = () => setDeleteModal(!deleteModal);
     const [selectedVariation, setSelectedVariation] = useState<any>(null);
@@ -81,14 +82,20 @@ const Overview = () => {
         return Math.round((1 - price / marketPrice) * 100);
     };
 
+    // Add a handler function for navigation
+    const handleBackToList = (e: React.MouseEvent) => {
+        e.preventDefault();
+        navigate('/apps-ecommerce-product-list');
+    };
+
     return (
         <React.Fragment>
             <BreadCrumb title='Chi Tiết Sản Phẩm' pageTitle='Sản Phẩm' />
 
-            {/* Add Back to Products button */}
+            {/* Update the Back to Products button to use the handler */}
             <div className="flex justify-between items-center mb-4">
-                <Link 
-                    to="/apps-ecommerce-product-list"
+                <button 
+                    onClick={handleBackToList}
                     className="py-2 px-4 text-sm font-medium rounded-md flex items-center gap-2
                             bg-blue-500 text-white
                             hover:bg-blue-600 transition-colors duration-200
@@ -96,7 +103,7 @@ const Overview = () => {
                 >
                     <i className="ri-arrow-left-line text-16"></i>
                     <span>Quay Lại Danh Sách</span>
-                </Link>
+                </button>
             </div>
 
             <DeleteModal show={deleteModal} onHide={deleteToggle} onDelete={handleDelete} />
