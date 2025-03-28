@@ -201,11 +201,7 @@ const Brand = () => {
     },
     validationSchema: Yup.object({
       name: Yup.string()
-        .required("Tên thương hiệu không được để trống")
-        .matches(
-          /^[a-zA-Z0-9\s\u00C0-\u1EF9]+$/,
-          "Tên thương hiệu không được chứa ký tự đặc biệt"
-        ),
+        .required("Tên thương hiệu không được để trống"),
       title: Yup.string()
         .required("Tiêu đề thương hiệu không được để trống"),
       description: Yup.string(),
