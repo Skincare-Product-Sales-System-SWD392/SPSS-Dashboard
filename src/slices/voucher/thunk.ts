@@ -6,6 +6,7 @@ import {
   updateVoucher as updateVoucherApi,
   deleteVoucher as deleteVoucherApi,
 } from "../../helpers/fakebackend_helper";
+import { er } from "@fullcalendar/core/internal-common";
 
 export const getAllVouchers = createAsyncThunk(
   "voucher/getAllVouchers",
@@ -34,14 +35,14 @@ export const addVoucher = createAsyncThunk(
   async (voucher: any) => {
     try {
       const response = await createVoucherApi(voucher);
-      toast.success("Voucher added successfully");
-      // Return the item from the response
+      toast.success("Mã giảm giá đã được thêm thành công");
       return { data: response.data.items ? response.data.items[0] : response.data };
     } catch (error: any) {
-      if (error.response?.data?.data) {
-        toast.error(error.response.data.data);
+      // Handle 400 Bad Request with the specific error message
+      if (error === "Request failed with status code 400") {
+        toast.error("Mã voucher đã tồn tại");
       } else {
-        toast.error("Failed to add voucher");
+        toast.error("Thêm mã giảm giá thất bại");
       }
       throw error;
     }
@@ -53,15 +54,12 @@ export const updateVoucher = createAsyncThunk(
   async (voucher: { id: string, data: any }) => {
     try {
       const response = await updateVoucherApi(voucher.id, voucher.data);
-      toast.success("Voucher updated successfully");
+      toast.success("Mã giảm giá đã được cập nhật thành công");
       // Return the updated item
       return { data: response.data.items ? response.data.items[0] : response.data };
     } catch (error: any) {
-      if (error.response?.data?.data) {
-        toast.error(error.response.data.data);
-      } else {
-        toast.error("Failed to update voucher");
-      }
+      const errorMessage = error.response?.data?.message || "Mã voucher đã tồn tại";
+      toast.error(errorMessage);
       throw error;
     }
   }
@@ -72,14 +70,14 @@ export const deleteVoucher = createAsyncThunk(
   async (id: string) => {
     try {
       const response = await deleteVoucherApi(id);
-      toast.success("Voucher deleted successfully");
+      toast.success("Mã giảm giá đã được xóa thành công");
       // Return the ID of the deleted item
       return { data: id };
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to delete voucher");
+        toast.error("Xóa mã giảm giá thất bại");
       }
       throw error;
     }

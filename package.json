@@ -26,6 +26,7 @@
     "@testing-library/jest-dom": "^6.3.0",
     "@testing-library/react": "^14.1.2",
     "@testing-library/user-event": "^14.5.2",
+    "@tinymce/tinymce-react": "^6.0.0",
     "@types/jest": "^29.5.11",
     "@types/leaflet": "^1.9.8",
     "@types/node": "^20.11.6",
@@ -43,6 +44,7 @@
     "ckeditor5": "^44.3.0",
     "ckeditor5-premium-features": "^44.3.0",
     "cleave.js": "^1.6.0",
+    "file-saver": "^2.0.5",
     "firebase": "^10.7.2",
     "flatpickr": "^4.6.13",
     "formik": "^2.4.5",
@@ -50,6 +52,7 @@
     "html2canvas": "^1.4.1",
     "i18next": "^23.7.19",
     "i18next-browser-languagedetector": "^7.2.0",
+    "jsonwebtoken": "^9.0.2",
     "jspdf": "^3.0.0",
     "jspdf-autotable": "^5.0.2",
     "leaflet": "^1.9.4",
@@ -118,6 +121,7 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "@types/cleave.js": "^1.4.12"
+    "@types/cleave.js": "^1.4.12",
+    "@types/jsonwebtoken": "^9.0.9"
   }
 }

@@ -34,14 +34,14 @@ export const addProduct = createAsyncThunk(
   async (product: any) => {
     try {
       const response = await createProductApi(product);
-      toast.success("Product added successfully");
+      toast.success("Tạo sản phẩm thành công");
       // Return the item from the response
       return { data: response.data.items ? response.data.items[0] : response.data };
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to add product");
+        toast.error("Thêm sản phẩm thất bại");
       }
       throw error;
     }
@@ -53,14 +53,14 @@ export const updateProduct = createAsyncThunk(
   async (product: { id: string, data: any }) => {
     try {
       const response = await updateProductApi(product.id, product.data);
-      toast.success("Product updated successfully");
+      toast.success("Cập nhật sản phẩm thành công");
       // Return the updated item
       return { data: response.data.items ? response.data.items[0] : response.data };
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to update product");
+        toast.error("Cập nhật sản phẩm thất bại");
       }
       throw error;
     }
@@ -72,14 +72,14 @@ export const deleteProduct = createAsyncThunk(
   async (id: string) => {
     try {
       const response = await deleteProductApi(id);
-      toast.success("Product deleted successfully");
+      toast.success("Xóa sản phẩm thành công");
       // Return the ID of the deleted item
       return { data: id };
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to delete product");
+        toast.error("Xóa sản phẩm thất bại");
       }
       throw error;
     }
@@ -96,7 +96,7 @@ export const getProductById = createAsyncThunk(
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to fetch product details");
+        toast.error("Lấy chi tiết sản phẩm thất bại");
       }
       throw error;
     }

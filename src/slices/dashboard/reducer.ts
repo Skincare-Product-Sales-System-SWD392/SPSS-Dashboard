@@ -56,10 +56,55 @@ interface NewProductsResponse {
   errors: null | string[];
 }
 
+// Add this new interface for pending orders
+interface OrderDetail {
+  productId: string;
+  productItemId: string;
+  productImage: string;
+  productName: string;
+  variationOptionValues: string[];
+  quantity: number;
+  price: number;
+  isReviewable: boolean;
+}
+
+interface PendingOrder {
+  id: string;
+  status: string;
+  orderTotal: number;
+  cancelReasonId: string | null;
+  createdTime: string;
+  paymentMethodId: string;
+  orderDetails: OrderDetail[];
+}
+
+// Add this new interface for canceled orders
+interface CanceledOrder {
+  orderId: string;
+  userId: string;
+  username: string;
+  fullname: string;
+  total: number;
+  refundTime: string;
+  refundReason: string;
+  refundRate: number;
+  refundAmount: number;
+}
+
+interface CanceledOrdersResponse {
+  items: CanceledOrder[];
+  totalCount: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 interface DashboardState {
   totalRevenue: number;
-  bestSellers: BestSellersResponse | null;
+  bestSellers: BestSellersResponse | null;  
   newProducts: BestSeller[] | null;
+  pendingOrders: PendingOrder[];
+  canceledOrders: CanceledOrder[]; // Add this new property
   loading: boolean;
   error: string | null;
 }
@@ -75,6 +120,8 @@ const initialState: DashboardState = {
     totalPages: 0
   },
   newProducts: null,
+  pendingOrders: [],
+  canceledOrders: [], // Initialize the new property
   loading: false,
   error: null
 };
@@ -85,7 +132,7 @@ export const fetchTotalRevenue = createAsyncThunk(
   async ({ pageNumber = 1, pageSize = 10 }: { pageNumber?: number; pageSize?: number }) => {
     try {
       const { data } = await axios.get<RevenueResponse>(
-        'https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/dashboards/total-revenue',
+        'http://localhost:5041/api/dashboards/total-revenue',
         { params: { pageNumber, pageSize } }
       );
       return data.data.items[0]?.totalRevenue ?? 0;
@@ -101,7 +148,7 @@ export const fetchBestSellers = createAsyncThunk(
   async ({ pageNumber = 1, pageSize = 10 }: { pageNumber?: number; pageSize?: number }) => {
     try {
       const response = await axios.get(
-        `https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/dashboards/best-sellers`,
+        `http://localhost:5041/api/dashboards/best-sellers`,
         {
           params: { pageNumber, pageSize }
         }
@@ -151,7 +198,7 @@ export const fetchNewProducts = createAsyncThunk(
   async ({ pageNumber = 1, pageSize = 10 }: { pageNumber?: number; pageSize?: number }) => {
     try {
       const response = await axios.get(
-        `https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/products`,
+        `http://localhost:5041/api/products`,
         {
           params: { pageNumber, pageSize, sortBy: 'news' }
         }
@@ -180,6 +227,101 @@ export const fetchNewProducts = createAsyncThunk(
         throw new Error(error.response?.data?.message || error.message);
       }
       throw error;
+    }
+  }
+);
+
+// Update the fetchPendingOrders thunk with the correct API endpoint
+export const fetchPendingOrders = createAsyncThunk(
+  'dashboard/fetchPendingOrders',
+  async ({ topCount }: { topCount: number }, { rejectWithValue }) => {
+    try {
+      console.log('Fetching pending orders with URL:', `http://localhost:5041/api/dashboards/top-pending?topCount=${topCount}`);
+      
+      const response = await axios.get(`http://localhost:5041/api/dashboards/top-pending?topCount=${topCount}`);
+      
+      console.log('Pending orders raw response:', response);
+      console.log('Pending orders API response data:', response.data);
+      
+      // Check if we have a valid response
+      if (!response.data) {
+        console.error('API returned undefined or null data');
+        return [];
+      }
+      
+      // The API returns the data directly, not nested under a data property
+      if (response.data && response.data.items) {
+        console.log('Found items in response data:', response.data.items);
+        return response.data.items;
+      } else if (Array.isArray(response.data)) {
+        console.log('Response data is an array:', response.data);
+        return response.data;
+      }
+      
+      console.error('Unexpected response format for pending orders:', response.data);
+      return [];
+    } catch (error : any) {
+      console.error('Error fetching pending orders:', error);
+      console.error('Error details:', error.response || error.message || error);
+      return rejectWithValue(error.response?.data || 'Error fetching pending orders');
+    }
+  }
+);
+
+// Update the fetchCanceledOrders thunk with more detailed debugging
+export const fetchCanceledOrders = createAsyncThunk(
+  'dashboard/fetchCanceledOrders',
+  async ({ pageNumber = 1, pageSize = 10 }: { pageNumber?: number; pageSize?: number }, { rejectWithValue }) => {
+    try {
+      console.log('Fetching canceled orders with URL:', `https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/orders/canceled-orders?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+      
+      // Use a direct fetch to see if there's any issue with axios
+      const response = await fetch(
+        `https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api/orders/canceled-orders?pageNumber=${pageNumber}&pageSize=${pageSize}`
+      );
+      
+      if (!response.ok) {
+        console.error('API returned error status:', response.status);
+        return rejectWithValue(`API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Raw API response data:', data);
+      
+      // Check if we have a valid response
+      if (!data) {
+        console.error('API returned undefined or null data');
+        return rejectWithValue('API returned no data');
+      }
+      
+      // Handle the response format - directly access data.data.items
+      if (data.success && data.data && Array.isArray(data.data.items)) {
+        console.log('Found items in response data:', data.data.items);
+        console.log('Number of items:', data.data.items.length);
+        
+        // Return the items array directly
+        return data.data.items;
+      } else {
+        // If we can't find the expected structure, log what we did receive
+        console.error('Unexpected response format. Response structure:', JSON.stringify(data));
+        
+        // Try to extract any data we can find
+        if (data.data) {
+          console.log('data.data content:', data.data);
+          if (typeof data.data === 'object' && data.data !== null) {
+            const possibleArrays = Object.values(data.data).filter(val => Array.isArray(val));
+            if (possibleArrays.length > 0) {
+              console.log('Found possible array in response:', possibleArrays[0]);
+              return possibleArrays[0];
+            }
+          }
+        }
+        
+        return rejectWithValue('Could not find items array in API response');
+      }
+    } catch (error: any) {
+      console.error('Error fetching canceled orders:', error);
+      return rejectWithValue(error.message || 'Error fetching canceled orders');
     }
   }
 );
@@ -237,6 +379,58 @@ const dashboardSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch new products';
         state.newProducts = null;
+      })
+      // Pending Orders
+      .addCase(fetchPendingOrders.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchPendingOrders.fulfilled, (state, action) => {
+        state.loading = false;
+        state.pendingOrders = action.payload || [];
+        console.log('Pending orders stored in state:', action.payload);
+      })
+      .addCase(fetchPendingOrders.rejected, (state, action) => {
+        state.loading = false;
+        state.error = typeof action.payload === 'string' 
+          ? action.payload 
+          : action.error.message || 'Failed to fetch pending orders';
+      })
+      // Canceled Orders
+      .addCase(fetchCanceledOrders.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCanceledOrders.fulfilled, (state, action) => {
+        state.loading = false;
+        
+        // Log the action payload to see what we're getting
+        console.log('Action payload in fulfilled case:', action.payload);
+        
+        // Make sure we're setting the state correctly
+        if (Array.isArray(action.payload)) {
+          state.canceledOrders = action.payload;
+        } else if (action.payload && typeof action.payload === 'object') {
+          // If payload is an object but not an array, try to find an array property
+          const possibleArrays = Object.values(action.payload).filter(val => Array.isArray(val));
+          if (possibleArrays.length > 0) {
+            state.canceledOrders = possibleArrays[0];
+          } else {
+            // If we can't find an array, convert the object to an array
+            state.canceledOrders = [action.payload];
+          }
+        } else {
+          // Default to empty array if payload is not valid
+          state.canceledOrders = [];
+        }
+        
+        console.log('Canceled orders stored in state after processing:', state.canceledOrders);
+      })
+      .addCase(fetchCanceledOrders.rejected, (state, action) => {
+        state.loading = false;
+        state.error = typeof action.payload === 'string' 
+          ? action.payload 
+          : action.error.message || 'Failed to fetch canceled orders';
       });
   }
 });

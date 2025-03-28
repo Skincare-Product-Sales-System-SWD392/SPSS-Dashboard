@@ -35,11 +35,8 @@ export const addUser = createAsyncThunk(
       toast.success("User added successfully");
       return response;
     } catch (error: any) {
-      if (error.response?.data?.data) {
-        toast.error(error.response.data.data);
-      } else {
-        toast.error("Failed to add user");
-      }
+      const errorMessage = error.response?.data?.message || "Email, số điện thoại hoặc tên người dùng này có thể đã được sử dụng. Vui lòng kiểm tra lại thông tin và thử lại.";
+      toast.error(errorMessage);
       throw error;
     }
   }
@@ -53,11 +50,8 @@ export const updateUser = createAsyncThunk(
       toast.success("User updated successfully");
       return response;
     } catch (error: any) {
-      if (error.response?.data?.data) {
-        toast.error(error.response.data.data);
-      } else {
-        toast.error("Failed to update user");
-      }
+      const errorMessage = error.response?.data?.message || "Email, số điện thoại hoặc tên người dùng này có thể đã được sử dụng. Vui lòng kiểm tra lại thông tin và thử lại.";
+      toast.error(errorMessage);
       throw error;
     }
   }

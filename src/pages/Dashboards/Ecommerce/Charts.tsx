@@ -1,6 +1,147 @@
 import React from "react";
 import ReactApexChart from "react-apexcharts";
 import useChartColors from "Common/useChartColors";
+import { Download } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import { ApexOptions } from "apexcharts";
+
+// Add proper type definitions for chart data
+interface Product {
+    id?: string;
+    name: string;
+    price: number;
+    marketPrice?: number;
+    image?: string;
+    [key: string]: any;
+}
+
+interface ChartExportData {
+    products: Product[];
+    type: 'priceComparison' | 'discount' | 'priceRange';
+}
+
+interface ProductDataItem {
+    name: string;
+    price?: number;
+    marketPrice?: number;
+    discount?: number;
+}
+
+// Simplified Excel export function focusing only on essential data
+const exportChartToExcel = (chartData: any, chartName: string, fileName: string) => {
+    try {
+        // Create workbook and worksheet
+        const workbook = XLSX.utils.book_new();
+        const worksheet = XLSX.utils.aoa_to_sheet([]);
+        
+        // Add title and timestamp
+        XLSX.utils.sheet_add_aoa(worksheet, [
+            [chartName.toUpperCase()],
+            [`Xuất dữ liệu lúc: ${new Date().toLocaleString('vi-VN')}`],
+            [""]
+        ], { origin: "A1" });
+        
+        // For price comparison chart (Giá thực tế vs Giá thị trường)
+        if (chartData.products && chartData.type === 'priceComparison') {
+            // Add headers
+            XLSX.utils.sheet_add_aoa(worksheet, [
+                ["STT", "Tên sản phẩm", "Giá thực tế", "Giá thị trường", "Giảm giá (%)"]
+            ], { origin: "A4" });
+            
+            // Add product data
+            chartData.products.forEach((product: any, idx: number) => {
+                const discountPercent = product.marketPrice ? 
+                    ((product.marketPrice - product.price) / product.marketPrice * 100).toFixed(2) : "0";
+                
+                XLSX.utils.sheet_add_aoa(worksheet, [[
+                    idx + 1,
+                    product.name,
+                    product.price.toLocaleString('vi-VN'),
+                    product.marketPrice.toLocaleString('vi-VN'),
+                    `${discountPercent}%`
+                ]], { origin: `A${idx + 5}` });
+            });
+        }
+        // For discount chart
+        else if (chartData.products && chartData.type === 'discount') {
+            // Add headers
+            XLSX.utils.sheet_add_aoa(worksheet, [
+                ["STT", "Tên sản phẩm", "Giá thực tế", "Giá thị trường", "Giảm giá (%)"]
+            ], { origin: "A4" });
+            
+            // Sort products by discount percentage
+            const sortedProducts = [...chartData.products].sort((a, b) => {
+                const discountA = a.marketPrice ? (a.marketPrice - a.price) / a.marketPrice * 100 : 0;
+                const discountB = b.marketPrice ? (b.marketPrice - b.price) / b.marketPrice * 100 : 0;
+                return discountB - discountA;
+            });
+            
+            // Add product data
+            sortedProducts.forEach((product: any, idx: number) => {
+                const discountPercent = product.marketPrice ? 
+                    ((product.marketPrice - product.price) / product.marketPrice * 100).toFixed(2) : "0";
+                
+                XLSX.utils.sheet_add_aoa(worksheet, [[
+                    idx + 1,
+                    product.name,
+                    product.price.toLocaleString('vi-VN'),
+                    product.marketPrice.toLocaleString('vi-VN'),
+                    `${discountPercent}%`
+                ]], { origin: `A${idx + 5}` });
+            });
+        }
+        // For price range chart
+        else if (chartData.products && chartData.type === 'priceRange') {
+            // Add headers
+            XLSX.utils.sheet_add_aoa(worksheet, [
+                ["STT", "Tên sản phẩm", "Giá thực tế", "Giá thị trường", "Phạm vi giá"]
+            ], { origin: "A4" });
+            
+            // Add product data
+            chartData.products.forEach((product: any, idx: number) => {
+                let priceRange = "";
+                if (product.price < 100000) priceRange = "Dưới 100K";
+                else if (product.price < 200000) priceRange = "100K - 200K";
+                else if (product.price < 300000) priceRange = "200K - 300K";
+                else if (product.price < 500000) priceRange = "300K - 500K";
+                else if (product.price < 1000000) priceRange = "500K - 1M";
+                else priceRange = "Trên 1M";
+                
+                XLSX.utils.sheet_add_aoa(worksheet, [[
+                    idx + 1,
+                    product.name,
+                    product.price.toLocaleString('vi-VN'),
+                    product.marketPrice ? product.marketPrice.toLocaleString('vi-VN') : "N/A",
+                    priceRange
+                ]], { origin: `A${idx + 5}` });
+            });
+        }
+        // Fallback for other chart types
+        else {
+            XLSX.utils.sheet_add_aoa(worksheet, [
+                ["Không có dữ liệu sản phẩm"]
+            ], { origin: "A4" });
+        }
+        
+        // Set column widths
+        worksheet['!cols'] = [
+            { wch: 5 },   // STT
+            { wch: 40 },  // Tên sản phẩm
+            { wch: 15 },  // Giá thực tế
+            { wch: 15 },  // Giá thị trường
+            { wch: 15 }   // Giảm giá/Phạm vi giá
+        ];
+        
+        // Add the worksheet to the workbook
+        XLSX.utils.book_append_sheet(workbook, worksheet, chartName);
+        
+        // Generate Excel file and download
+        XLSX.writeFile(workbook, fileName);
+    } catch (error) {
+        console.error('Error exporting chart to Excel:', error);
+        alert('Có lỗi khi xuất Excel. Vui lòng thử lại sau.');
+    }
+};
 
 const OrderStatisticsChart = ({ chartId }: any) => {
 
@@ -16,7 +157,7 @@ const OrderStatisticsChart = ({ chartId }: any) => {
     }];
     var options: any = {
         chart: {
-            type: 'line',
+            type: 'line' as const,
             height: 310,
             toolbar: {
                 show: false,
@@ -74,7 +215,7 @@ const SalesRevenueOverviewChart = ({ chartId }: any) => {
     }];
     var options: any = {
         chart: {
-            type: 'bar',
+            type: 'bar' as const,
             height: 300,
             stacked: true,
             stackType: '100%',
@@ -138,7 +279,7 @@ const TrafficResourcesChart = ({ chartId }: any) => {
     var options: any = {
         chart: {
             height: 222,
-            type: 'radialBar',
+            type: 'radialBar' as const,
         },
         plotOptions: {
             radialBar: {
@@ -333,7 +474,7 @@ const SalesMonthChart = ({ chartId }: any) => {
 
         chart: {
             height: 285,
-            type: 'rangeArea',
+            type: 'rangeArea' as const,
             animations: {
                 speed: 500
             },
@@ -408,7 +549,7 @@ const AudienceChart = ({ chartId }: any) => {
     }];
     var options: any = {
         chart: {
-            type: 'bar',
+            type: 'bar' as const,
             height: 390,
             stacked: true,
             toolbar: {
@@ -466,30 +607,31 @@ const AudienceChart = ({ chartId }: any) => {
     );
 };
 
-const ProductPriceComparisonChart = ({ chartId, products }: { chartId: string, products: any[] }) => {
+const ProductPriceComparisonChart = ({ chartId, products }: { chartId: string, products: Product[] }) => {
     const chartColors = useChartColors(chartId);
     
-    // Extract data from products
-    const productNames = products.slice(0, 5).map(product => product.name.substring(0, 15) + '...');
-    const actualPrices = products.slice(0, 5).map(product => product.price / 1000); // Convert to K
-    const marketPrices = products.slice(0, 5).map(product => product.marketPrice / 1000); // Convert to K
+    // Process data for the chart - limit product name length and format properly
+    const productData = products.slice(0, 5).map((product: Product) => ({
+        name: product.name.length > 15 ? product.name.substring(0, 15) + '...' : product.name,
+        marketPrice: product.marketPrice || 0,
+        price: product.price || 0
+    }));
     
-    // Product Price Comparison Chart
     const series = [
         {
-            name: 'Actual Price',
-            data: actualPrices
+            name: 'Giá thực tế',
+            data: productData.map((item: ProductDataItem) => item.price ?? 0)
         },
         {
-            name: 'Market Price',
-            data: marketPrices
+            name: 'Giá thị trường',
+            data: productData.map((item: ProductDataItem) => item.marketPrice ?? 0)
         }
     ];
     
-    const options: any = {
+    const options = {
         chart: {
-            type: 'bar',
-            height: 350,
+            type: 'bar' as const,
+            height: 260,
             toolbar: {
                 show: false,
             }
@@ -510,11 +652,26 @@ const ProductPriceComparisonChart = ({ chartId, products }: { chartId: string, p
             colors: ['transparent']
         },
         xaxis: {
-            categories: productNames,
+            categories: productData.map((item: ProductDataItem) => item.name),
+            labels: {
+                style: {
+                    fontSize: '11px',
+                    fontFamily: 'Helvetica, Arial, sans-serif',
+                }
+            }
         },
         yaxis: {
             title: {
-                text: 'Price (K)'
+                text: 'Giá (K)',
+                style: {
+                    fontSize: '11px',
+                    fontFamily: 'Helvetica, Arial, sans-serif',
+                }
+            },
+            labels: {
+                formatter: function(val: number) {
+                    return val.toLocaleString('vi-VN') + "K";
+                }
             }
         },
         fill: {
@@ -523,27 +680,51 @@ const ProductPriceComparisonChart = ({ chartId, products }: { chartId: string, p
         tooltip: {
             y: {
                 formatter: function (val: number) {
-                    return val + "K"
+                    return val.toLocaleString('vi-VN') + "K"
                 }
             }
         },
         legend: {
             position: 'top',
+            fontSize: '11px',
         },
         colors: chartColors
     };
     
+    // Function to handle export
+    const handleExport = () => {
+        exportChartToExcel(
+            { 
+                products: products, 
+                type: 'priceComparison' 
+            }, 
+            'Phân tích giá sản phẩm', 
+            'phan_tich_gia_san_pham.xlsx'
+        );
+    };
+    
     return (
         <React.Fragment>
-            <ReactApexChart
-                options={options}
-                series={series}
-                data-chart-colors='["bg-custom-500", "bg-orange-500"]'
-                id={chartId}
-                className="apex-charts"
-                type='bar'
-                height={350}
-            />
+            <div className="relative">
+                <div className="absolute top-0 right-0 z-10 p-2" style={{ marginTop: "-42px", position:"absolute" }}>
+                    <button 
+                        onClick={handleExport}
+                        className="flex items-center px-4 py-2 text-sm font-medium text-white bg-custom-500 border border-transparent rounded-md hover:bg-custom-600 focus:outline-none"
+                    >
+                        <Download className="size-4 mr-1.5" />
+                        Xuất Excel
+                    </button>
+                </div>
+                <ReactApexChart
+                    options={options as ApexOptions}
+                    series={series}
+                    data-chart-colors='["bg-custom-500", "bg-green-500"]'
+                    id={chartId}
+                    className="apex-charts"
+                    type='bar'
+                    height={280}
+                />
+            </div>
         </React.Fragment>
     );
 };
@@ -572,7 +753,7 @@ const ProductCategoryChart = ({ chartId, products }: { chartId: string, products
     
     const options: any = {
         chart: {
-            type: 'pie',
+            type: 'pie' as const,
             height: 350,
         },
         labels: categories,
@@ -587,37 +768,158 @@ const ProductCategoryChart = ({ chartId, products }: { chartId: string, products
                 }
             }
         }],
-        colors: chartColors
+        colors: chartColors,
+        title: {
+            text: 'Phân loại sản phẩm',
+            align: 'center',
+            style: {
+                fontSize: '16px',
+                fontWeight: 'bold'
+            }
+        }
+    };
+    
+    // Function to handle export
+    const handleExport = () => {
+        exportChartToExcel(series, 'Phân loại sản phẩm', 'phan_loai_san_pham.xlsx');
     };
     
     return (
         <React.Fragment>
-            <ReactApexChart
-                options={options}
-                series={series}
-                data-chart-colors='["bg-sky-500", "bg-purple-500", "bg-green-500", "bg-yellow-500", "bg-red-500", "bg-blue-500"]'
-                id={chartId}
-                className="apex-charts"
-                type='pie'
-                height={350}
-            />
+            <div className="relative">
+                <div className="absolute top-0 right-0 z-10 p-2" style={{ marginBottom: "1000px" }}>
+                    <button 
+                        onClick={handleExport}
+                        className="flex items-center px-5 py-2.5 text-sm font-medium text-white bg-custom-500 border border-transparent rounded-md hover:bg-custom-600 focus:outline-none"
+                    >
+                        <Download className="size-5 mr-2" />
+                        Xuất Excel
+                    </button>
+                </div>
+                <ReactApexChart
+                    options={options}
+                    series={series}
+                    data-chart-colors='["bg-sky-500", "bg-purple-500", "bg-green-500", "bg-yellow-500", "bg-red-500", "bg-blue-500"]'
+                    id={chartId}
+                    className="apex-charts"
+                    type='pie'
+                    height={350}
+                />
+            </div>
         </React.Fragment>
     );
 };
 
-const PriceDiscountChart = ({ chartId, products }: { chartId: string, products: any[] }) => {
+const PriceDiscountChart = ({ chartId, products }: any) => {
     const chartColors = useChartColors(chartId);
     
     // Calculate discount percentages
-    const productData = products.slice(0, 6).map(product => {
-        const discountPercent = ((product.marketPrice - product.price) / product.marketPrice * 100).toFixed(1);
+    const productData = products.slice(0, 6).map((product: Product) => {
+        const discountPercent = product.marketPrice ? 
+            ((product.marketPrice - product.price) / product.marketPrice * 100).toFixed(1) :
+            '0.0';
         return {
             name: product.name.substring(0, 12) + '...',
             discount: parseFloat(discountPercent)
         };
-    }).sort((a, b) => b.discount - a.discount); // Sort by discount percentage
+    }).sort((a: ProductDataItem, b: ProductDataItem) => (b.discount || 0) - (a.discount || 0)); // Sort by discount percentage
     
     // Price Discount Chart
+    const series = [{
+        name: 'Phần trăm giảm giá',
+        data: productData.map((item: ProductDataItem) => item.discount ?? 0)
+    }];
+    
+    const options: any = {
+        chart: {
+            type: 'bar' as const,
+            height: 360,
+            toolbar: {
+                show: false,
+            }
+        },
+        plotOptions: {
+            bar: {
+                borderRadius: 4,
+                horizontal: true,
+            }
+        },
+        dataLabels: {
+            enabled: true,
+            formatter: function(val: number) {
+                return val.toFixed(1) + '%';
+            },
+            style: {
+                fontSize: '11px',
+                colors: ['#fff']
+            }
+        },
+        xaxis: {
+            categories: productData.map((item: ProductDataItem) => item.name),
+            labels: {
+                formatter: function(val: number) {
+                    // Return just the numeric value without the percentage symbol
+                    return val.toFixed(1);
+                },
+                style: {
+                    fontSize: '11px',
+                }
+            }
+        },
+        colors: chartColors
+    };
+    
+    // Function to handle export
+    const handleExport = () => {
+        exportChartToExcel(
+            { 
+                products: products, 
+                type: 'discount' 
+            }, 
+            'Phân tích giảm giá sản phẩm', 
+            'phan_tich_giam_gia.xlsx'
+        );
+    };
+    
+    return (
+        <React.Fragment>
+            <div className="relative">
+                <div className="absolute top-0 right-0 z-10 p-2" style={{ marginTop: "-45px" , position:"absolute" }}>
+                    <button 
+                        onClick={handleExport}
+                        className="flex items-center px-4 py-2 text-sm font-medium text-white bg-custom-500 border border-transparent rounded-md hover:bg-custom-600 focus:outline-none"
+                    >
+                        <Download className="size-4 mr-1.5" />
+                        Xuất Excel
+                    </button>
+                </div>
+                <ReactApexChart
+                    options={options}
+                    series={series}
+                    data-chart-colors='["bg-green-500"]'
+                    id={chartId}
+                    className="apex-charts"
+                    type='bar'
+                    height={300}
+                />
+            </div>
+        </React.Fragment>
+    );
+};
+
+const TopDiscountedProductsChart = ({ chartId, products }: { chartId: string, products: any[] }) => {
+    const chartColors = useChartColors(chartId);
+    
+    // Calculate discount percentages
+    const productData = products.slice(0, 5).map(product => {
+        const discountPercent = ((product.marketPrice - product.price) / product.marketPrice * 100).toFixed(1);
+        return {
+            name: product.name.substring(0, 18) + (product.name.length > 18 ? '...' : ''),
+            discount: parseFloat(discountPercent)
+        };
+    }).sort((a, b) => b.discount - a.discount); // Sort by discount percentage
+    
+    // Top Discounted Products Chart
     const series = [{
         name: 'Discount %',
         data: productData.map(item => item.discount)
@@ -625,7 +927,7 @@ const PriceDiscountChart = ({ chartId, products }: { chartId: string, products: 
     
     const options: any = {
         chart: {
-            type: 'bar',
+            type: 'bar' as const,
             height: 350,
             toolbar: {
                 show: false,
@@ -651,8 +953,14 @@ const PriceDiscountChart = ({ chartId, products }: { chartId: string, products: 
             categories: productData.map(item => item.name),
             labels: {
                 formatter: function(val: number) {
-                    return val.toFixed(1) + '%';
+                    // Return just the numeric value without the percentage symbol
+                    return val.toFixed(1);
                 }
+            }
+        },
+        yaxis: {
+            title: {
+                text: undefined
             }
         },
         colors: chartColors
@@ -673,7 +981,7 @@ const PriceDiscountChart = ({ chartId, products }: { chartId: string, products: 
     );
 };
 
-const NewProductsPriceRangeChart = ({ chartId, products }: { chartId: string, products: any[] }) => {
+const NewProductsPriceRangeChart = ({ chartId, products }: { chartId: string, products: Product[] }) => {
     const chartColors = useChartColors(chartId);
     
     // Group products by price ranges
@@ -701,7 +1009,7 @@ const NewProductsPriceRangeChart = ({ chartId, products }: { chartId: string, pr
     
     const options: any = {
         chart: {
-            type: 'donut',
+            type: 'donut' as const,
             height: 350,
         },
         labels: Object.keys(priceRanges),
@@ -718,7 +1026,7 @@ const NewProductsPriceRangeChart = ({ chartId, products }: { chartId: string, pr
         }],
         colors: chartColors,
         title: {
-            text: 'New Products by Price Range',
+            text: 'Sản phẩm mới theo phạm vi giá',
             align: 'center',
             style: {
                 fontSize: '16px',
@@ -727,42 +1035,65 @@ const NewProductsPriceRangeChart = ({ chartId, products }: { chartId: string, pr
         }
     };
     
+    // Function to handle export
+    const handleExport = () => {
+        exportChartToExcel(
+            { 
+                products: products, 
+                type: 'priceRange' 
+            }, 
+            'Sản phẩm mới theo phạm vi giá', 
+            'san_pham_moi_theo_gia.xlsx'
+        );
+    };
+    
     return (
         <React.Fragment>
-            <ReactApexChart
-                options={options}
-                series={series}
-                data-chart-colors='["bg-sky-500", "bg-purple-500", "bg-green-500", "bg-yellow-500"]'
-                id={chartId}
-                className="apex-charts"
-                type='donut'
-                height={350}
-            />
+            <div className="relative">
+                <div className="absolute top-0 right-0 z-10 p-2" style={{ marginTop: "-15px" }}>
+                    {/* <button 
+                        onClick={handleExport}
+                        className="flex items-center px-5 py-2.5 text-sm font-medium text-white bg-custom-500 border border-transparent rounded-md hover:bg-custom-600 focus:outline-none"
+                    >
+                        <Download className="size-5 mr-2" />
+                        Xuất Excel
+                    </button> */}
+                </div>
+                <ReactApexChart
+                    options={options}
+                    series={series}
+                    data-chart-colors='["bg-sky-500", "bg-purple-500", "bg-green-500", "bg-yellow-500"]'
+                    id={chartId}
+                    className="apex-charts"
+                    type='donut'
+                    height={350}
+                />
+            </div>
         </React.Fragment>
     );
 };
 
-const NewProductsDiscountChart = ({ chartId, products }: { chartId: string, products: any[] }) => {
+const NewProductsDiscountChart = ({ chartId, products }: { chartId: string, products: Product[] }) => {
     const chartColors = useChartColors(chartId);
     
-    // Calculate discount percentages and sort by highest discount
-    const productData = products.map(product => {
-        const discountPercent = ((product.marketPrice - product.price) / product.marketPrice * 100).toFixed(1);
+    // Calculate discount percentages
+    const productData: ProductDataItem[] = products.slice(0, 5).map(product => {
+        const discountPercent = ((product.marketPrice || 0) - product.price) / (product.marketPrice || 1) * 100;
         return {
-            name: product.name.substring(0, 15) + '...',
-            discount: parseFloat(discountPercent)
+            name: product.name.substring(0, 18) + (product.name.length > 18 ? '...' : ''),
+            discount: parseFloat(discountPercent.toFixed(1))
         };
-    }).sort((a, b) => b.discount - a.discount).slice(0, 5); // Get top 5 discounted products
+    }).sort((a, b) => (b.discount || 0) - (a.discount || 0)); // Sort by discount percentage
     
-    // New Products Discount Chart
+    // Top Discounted Products Chart
     const series = [{
-        name: 'Discount %',
-        data: productData.map(item => item.discount)
+        name: 'Giảm giá %',
+        data: productData.map(item => item.discount ?? 0)
     }];
     
     const options: any = {
         chart: {
-            type: 'bar',
+            type: 'bar' as const,
             height: 350,
             toolbar: {
                 show: false,
@@ -788,32 +1119,53 @@ const NewProductsDiscountChart = ({ chartId, products }: { chartId: string, prod
             categories: productData.map(item => item.name),
             labels: {
                 formatter: function(val: number) {
-                    return val.toFixed(1) + '%';
+                    // Return just the numeric value without the percentage symbol
+                    return val.toFixed(1);
                 }
             }
         },
-        title: {
-            text: 'Top Discounted New Products',
-            align: 'center',
-            style: {
-                fontSize: '16px',
-                fontWeight: 'bold'
+        yaxis: {
+            title: {
+                text: undefined
             }
         },
         colors: chartColors
     };
     
+    // Function to handle export
+    const handleExport = () => {
+        exportChartToExcel(
+            { 
+                products: products, 
+                type: 'discount' 
+            } as ChartExportData, 
+            'Sản phẩm mới giảm giá nhiều nhất', 
+            'san_pham_moi_giam_gia.xlsx'
+        );
+    };
+    
     return (
         <React.Fragment>
-            <ReactApexChart
-                options={options}
-                series={series}
-                data-chart-colors='["bg-green-500"]'
-                id={chartId}
-                className="apex-charts"
-                type='bar'
-                height={350}
-            />
+            <div className="relative">
+                <div className="absolute top-0 right-0 z-10 p-2" style={{ marginTop: "-15px" }}>
+                    {/* <button 
+                        onClick={handleExport}
+                        className="flex items-center px-5 py-2.5 text-sm font-medium text-white bg-custom-500 border border-transparent rounded-md hover:bg-custom-600 focus:outline-none"
+                    >
+                        <Download className="size-5 mr-2" />
+                        Xuất Excel
+                    </button> */}
+                </div>
+                <ReactApexChart
+                    options={options}
+                    series={series}
+                    data-chart-colors='["bg-green-500"]'
+                    id={chartId}
+                    className="apex-charts"
+                    type='bar'
+                    height={350}
+                />
+            </div>
         </React.Fragment>
     );
 };
@@ -827,6 +1179,7 @@ export {
     ProductPriceComparisonChart,
     ProductCategoryChart,
     PriceDiscountChart,
+    TopDiscountedProductsChart,
     NewProductsPriceRangeChart,
     NewProductsDiscountChart
 };

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Dropdown } from "Common/Components/Dropdown";
 import Modal from "Common/Components/Modal";
 import { useFormik } from "formik";
+import { toast } from "react-hot-toast";
 
 // Icon
 import {
@@ -113,18 +114,27 @@ const Voucher = () => {
     setData(filteredData);
   };
 
-  // Delete handler: Processes the deletion of a skin type
-  // Called when user confirms deletion in the modal
+  // Delete handler: Processes the deletion of a voucher
   const handleDelete = () => {
     if (eventData && eventData.id) {
       dispatch(deleteVoucher(eventData.id))
         .then(() => {
           setDeleteModal(false);
           setRefreshFlag((prev) => !prev); // Trigger data refresh after deletion
+          toast.success("Xóa mã giảm giá thành công!");
         })
         .catch((error: any) => {
+          const errorMessage = error.message || "Xóa mã giảm giá thất bại";
+          toast.error(errorMessage);
         });
     }
+  };
+
+  // Add handleUsageLimitChange function
+  const handleUsageLimitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/\s+/g, '');
+    const numericValue = rawValue ? Number(rawValue) : '';
+    validation.setFieldValue('usageLimit', numericValue);
   };
 
   // Form validation schema using Yup
@@ -154,29 +164,37 @@ const Voucher = () => {
           : "",
     },
     validationSchema: Yup.object({
-      code: Yup.string().required("Voucher code is required"),
+      code: Yup.string()
+        .required("Mã giảm giá không được để trống"),
       description: Yup.string(),
       status: Yup.string()
-        .required("Status is required")
-        .oneOf(["Active", "Inactive", "Expired"], "Invalid status"),
+        .required("Trạng thái không được để trống")
+        .oneOf(["Active", "Inactive", "Expired"], "Trạng thái không hợp lệ"),
       discountRate: Yup.number()
-        .required("Discount rate is required")
-        .min(0, "Must be at least 0")
-        .max(100, "Must not exceed 100%")
-        .typeError("Discount rate must be a number"),
-      usageLimit: Yup.string(),
+        .required("Tỷ lệ giảm giá không được để trống")
+        .min(0, "Tỷ lệ giảm giá phải lớn hơn hoặc bằng 0")
+        .max(100, "Tỷ lệ giảm giá không được vượt quá 100%")
+        .typeError("Tỷ lệ giảm giá phải là số"),
+      usageLimit: Yup.number()
+        .required("Giới hạn sử dụng không được để trống")
+        .min(0, "Giới hạn sử dụng phải lớn hơn hoặc bằng 0")
+        .typeError("Giới hạn sử dụng phải là số"),
       minimumOrderValue: Yup.number()
-        .required("Minimum order value is required")
-        .min(0, "Must be at least 0")
-        .typeError("Minimum order value must be a number"),
-      startDate: Yup.date().required("Start date is required"),
+        .required("Giá trị đơn tối thiểu không được để trống")
+        .min(0, "Giá trị đơn tối thiểu phải lớn hơn hoặc bằng 0")
+        .typeError("Giá trị đơn tối thiểu phải là số"),
+      startDate: Yup.date()
+        .required("Ngày bắt đầu không được để trống")
+        .typeError("Ngày bắt đầu không hợp lệ"),
       endDate: Yup.date()
-        .required("End date is required")
-        .min(Yup.ref("startDate"), "End date must be after start date"),
+        .required("Ngày kết thúc không được để trống")
+        .min(Yup.ref("startDate"), "Ngày kết thúc phải sau ngày bắt đầu")
+        .typeError("Ngày kết thúc không hợp lệ"),
     }),
     onSubmit: async (values) => {
       if (isEdit) {
         if (!eventData.id) {
+          console.error("Thiếu ID mã giảm giá khi chỉnh sửa");
           return;
         }
 
@@ -187,35 +205,51 @@ const Voucher = () => {
             description: values.description,
             status: values.status,
             discountRate: Number(values.discountRate),
-            usageLimit: values.usageLimit,
-            minimumOrderValue: Number(values.minimumOrderValue),
+            usageLimit: Number(values.usageLimit.toString().replace(/\s+/g, '')),
+            minimumOrderValue: Number(values.minimumOrderValue.toString().replace(/\s+/g, '')),
             startDate: new Date(values.startDate).toISOString(),
             endDate: new Date(values.endDate).toISOString(),
           },
         };
-
-        dispatch(updateVoucher(updateData))
-          .then((response: any) => {
-            toggle();
-            setRefreshFlag((prev) => !prev);
-          })
-          .catch((error: any) => {
-          });
+        
+        try {
+          const result = await dispatch(updateVoucher(updateData)).unwrap();
+          if (result.error) {
+            toast.error(result.error.message || "Cập nhật mã giảm giá thất bại");
+            return;
+          }
+          toggle(); // Close modal
+          setRefreshFlag(prev => !prev); // Refresh the list
+          toast.success("Cập nhật mã giảm giá thành công!");
+        } catch (error: any) {
+          const errorMessage = error.response?.data?.message || "Cập nhật mã giảm giá thất bại";
+          toast.error(errorMessage);
+        }
       } else {
         const newData = {
           code: values.code,
           description: values.description,
           status: values.status,
           discountRate: Number(values.discountRate),
-          usageLimit: values.usageLimit,
-          minimumOrderValue: Number(values.minimumOrderValue),
+          usageLimit: Number(values.usageLimit.toString().replace(/\s+/g, '')),
+          minimumOrderValue: Number(values.minimumOrderValue.toString().replace(/\s+/g, '')),
           startDate: new Date(values.startDate).toISOString(),
           endDate: new Date(values.endDate).toISOString(),
         };
-        dispatch(addVoucher(newData)).then(() => {
-          toggle();
-          setRefreshFlag((prev) => !prev);
-        });
+        
+        try {
+          const result = await dispatch(addVoucher(newData)).unwrap();
+          if (result.error) {
+            toast.error(result.error.message || "Thêm mã giảm giá thất bại");
+            return;
+          }
+          toggle(); // Close modal
+          setRefreshFlag(prev => !prev); // Refresh the list
+          toast.success("Thêm mã giảm giá thành công!");
+        } catch (error: any) {
+          const errorMessage = error.response?.data?.message || "Thêm mã giảm giá thất bại";
+          toast.error(errorMessage);
+        }
       }
     },
   });
@@ -248,24 +282,46 @@ const Voucher = () => {
     }
   }, [show, validation]);
 
+  // Improve the formatNumber function to ensure proper formatting
+  const formatNumber = (num: number | string) => {
+    if (!num) return '';
+    // Convert to string, remove existing spaces, then format
+    return num.toString().replace(/\s+/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  };
+
+  // Update the handleMinimumOrderValueChange function with a simpler approach
+  const handleMinimumOrderValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Get the raw input value without spaces
+    const rawValue = e.target.value.replace(/\s+/g, '');
+    
+    // Only keep digits
+    const numericValue = rawValue.replace(/\D/g, '');
+    
+    // Update formik with the numeric value (without spaces)
+    validation.setFieldValue('minimumOrderValue', numericValue);
+    
+    // Force the input to show the formatted value
+    e.target.value = formatNumber(numericValue);
+  };
+
   const columns = useMemo(
     () => [
       {
-        header: "Code",
+        header: "Mã Voucher",
         accessorKey: "code",
         enableColumnFilter: false,
         enableSorting: true,
         size: 120,
       },
       {
-        header: "Description",
+        header: "Mô Tả",
         accessorKey: "description",
         enableColumnFilter: false,
         enableSorting: true,
         size: 200,
       },
       {
-        header: "Status",
+        header: "Trạng Thái",
         accessorKey: "status",
         enableColumnFilter: false,
         enableSorting: true,
@@ -279,13 +335,14 @@ const Voucher = () => {
                 : "text-red-500 bg-red-100 border-red-200 dark:text-red-400 dark:bg-red-500/20 dark:border-red-500/20"
             }`}
           >
-            {cell.getValue()}
+            {cell.getValue() === "Active" ? "Hoạt Động" : 
+             cell.getValue() === "Inactive" ? "Không Hoạt Động" : "Hết Hạn"}
           </span>
         ),
         size: 100,
       },
       {
-        header: "Discount Rate",
+        header: "Tỷ Lệ Giảm Giá",
         accessorKey: "discountRate",
         enableColumnFilter: false,
         enableSorting: true,
@@ -293,14 +350,15 @@ const Voucher = () => {
         size: 120,
       },
       {
-        header: "Min. Order Value",
+        header: "Giá Trị Đơn Tối Thiểu",
         accessorKey: "minimumOrderValue",
         enableColumnFilter: false,
         enableSorting: true,
         size: 150,
+        cell: (cell: any) => <span>{formatNumber(cell.getValue())}</span>,
       },
       {
-        header: "Start Date",
+        header: "Ngày Bắt Đầu",
         accessorKey: "startDate",
         enableColumnFilter: false,
         enableSorting: true,
@@ -313,7 +371,7 @@ const Voucher = () => {
         },
       },
       {
-        header: "End Date",
+        header: "Ngày Kết Thúc",
         accessorKey: "endDate",
         enableColumnFilter: false,
         enableSorting: true,
@@ -326,7 +384,7 @@ const Voucher = () => {
         },
       },
       {
-        header: "Action",
+        header: "Hành Động",
         enableColumnFilter: false,
         enableSorting: true,
         size: 100,
@@ -354,7 +412,7 @@ const Voucher = () => {
                   }}
                 >
                   <Eye className="inline-block size-3 ltr:mr-1 rtl:ml-1" />{" "}
-                  <span className="align-middle">Overview</span>
+                  <span className="align-middle">Xem Chi Tiết</span>
                 </Link>
               </li>
               <li>
@@ -368,7 +426,7 @@ const Voucher = () => {
                   }}
                 >
                   <FileEdit className="inline-block size-3 ltr:mr-1 rtl:ml-1" />{" "}
-                  <span className="align-middle">Edit</span>
+                  <span className="align-middle">Chỉnh Sửa</span>
                 </Link>
               </li>
               <li>
@@ -381,7 +439,7 @@ const Voucher = () => {
                   }}
                 >
                   <Trash2 className="inline-block size-3 ltr:mr-1 rtl:ml-1" />{" "}
-                  <span className="align-middle">Delete</span>
+                  <span className="align-middle">Xóa</span>
                 </Link>
               </li>
             </Dropdown.Content>
@@ -394,7 +452,7 @@ const Voucher = () => {
 
   return (
     <React.Fragment>
-      <BreadCrumb title="Vouchers" pageTitle="Vouchers" />
+      <BreadCrumb title="Mã Giảm Giá" pageTitle="Mã Giảm Giá" />
       <DeleteModal
         show={deleteModal}
         onHide={deleteToggle}
@@ -409,23 +467,23 @@ const Voucher = () => {
                 <input
                   type="text"
                   className="ltr:pl-8 rtl:pr-8 search form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Search for name, type, description..."
+                  placeholder="Tìm kiếm mã giảm giá..."
                   autoComplete="off"
                   onChange={(e) => filterSearchData(e)}
                 />
                 <Search className="inline-block size-4 absolute ltr:left-2.5 rtl:right-2.5 top-2.5 text-slate-500 dark:text-zink-200 fill-slate-100 dark:fill-zink-600" />
               </div>
             </div>
-            <div className="lg:col-span-2 ltr:lg:text-right rtl:lg:text-left xl:col-span-2 xl:col-start-11">
+            <div className="lg:col-span-2 ltr:lg:text-right rtl:lg:text-left xl:col-span-3 xl:col-start-10">
               <Link
                 to="#!"
                 data-modal-target="addVoucherModal"
                 type="button"
-                className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
+                className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20 whitespace-nowrap"
                 onClick={toggle}
               >
                 <Plus className="inline-block size-4" />{" "}
-                <span className="align-middle">Add Voucher</span>
+                <span className="align-middle">Thêm Mã Giảm Giá</span>
               </Link>
             </div>
           </div>
@@ -454,10 +512,10 @@ const Voucher = () => {
             <div className="noresult">
               <div className="py-6 text-center">
                 <Search className="size-6 mx-auto mb-3 text-sky-500 fill-sky-100 dark:fill-sky-500/20" />
-                <h5 className="mt-2 mb-1">Sorry! No Result Found</h5>
+                <h5 className="mt-2 mb-1">Xin lỗi! Không Tìm Thấy Kết Quả</h5>
                 <p className="mb-0 text-slate-500 dark:text-zink-200">
-                  We've searched more than 199+ vouchers. We did not find any
-                  voucher for your search.
+                  Chúng tôi đã tìm kiếm hơn 199+ mã giảm giá. Chúng tôi không tìm thấy
+                  mã giảm giá nào cho tìm kiếm của bạn.
                 </p>
               </div>
             </div>
@@ -478,10 +536,10 @@ const Voucher = () => {
         >
           <Modal.Title className="text-16">
             {isOverview
-              ? "Voucher Details"
+              ? "Chi Tiết Mã Giảm Giá"
               : isEdit
-              ? "Edit Voucher"
-              : "Add Voucher"}
+              ? "Chỉnh Sửa Mã Giảm Giá"
+              : "Thêm Mã Giảm Giá"}
           </Modal.Title>
         </Modal.Header>
 
@@ -495,36 +553,37 @@ const Voucher = () => {
             }}
           >
             <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
-              {isOverview && (
-                <div className="xl:col-span-6">
-                  <label
-                    htmlFor="codeInput"
-                    className="inline-block mb-2 text-base font-medium"
-                  >
-                    Code
-                  </label>
-                  <input
-                    type="text"
-                    id="codeInput"
-                    className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                    value={eventData?.code || ""}
-                    disabled={true}
-                  />
-                </div>
-              )}
+              {/* Remove this block that shows duplicate code in overview mode */}
+              {/* {isOverview && (
+                  <div className="xl:col-span-6">
+                      <label
+                          htmlFor="codeInput"
+                          className="inline-block mb-2 text-base font-medium"
+                      >
+                          Mã Giảm Giá
+                      </label>
+                      <input
+                          type="text"
+                          id="codeInput"
+                          className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
+                          value={eventData?.code || ""}
+                          disabled={true}
+                      />
+                  </div>
+              )} */}
 
               <div className="xl:col-span-6">
                 <label
                   htmlFor="codeInput"
                   className="inline-block mb-2 text-base font-medium"
                 >
-                  Code <span className="text-red-500 ml-1">*</span>
+                  Mã Giảm Giá <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
                   type="text"
                   id="codeInput"
                   className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Enter voucher code"
+                  placeholder="Nhập mã giảm giá"
                   name="code"
                   onChange={validation.handleChange}
                   onBlur={validation.handleBlur}
@@ -541,12 +600,12 @@ const Voucher = () => {
                   htmlFor="descriptionInput"
                   className="inline-block mb-2 text-base font-medium"
                 >
-                  Description
+                  Mô Tả
                 </label>
                 <textarea
                   id="descriptionInput"
                   className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Enter description"
+                  placeholder="Nhập mô tả"
                   name="description"
                   onChange={validation.handleChange}
                   onBlur={validation.handleBlur}
@@ -561,7 +620,7 @@ const Voucher = () => {
                   htmlFor="statusInput"
                   className="inline-block mb-2 text-base font-medium"
                 >
-                  Status <span className="text-red-500 ml-1">*</span>
+                  Trạng Thái <span className="text-red-500 ml-1">*</span>
                 </label>
                 <select
                   id="statusInput"
@@ -572,9 +631,9 @@ const Voucher = () => {
                   value={validation.values.status || ""}
                   disabled={isOverview}
                 >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                  <option value="Expired">Expired</option>
+                  <option value="Active">Hoạt Động</option>
+                  <option value="Inactive">Không Hoạt Động</option>
+                  <option value="Expired">Hết Hạn</option>
                 </select>
                 {validation.touched.status && validation.errors.status && (
                   <p className="text-red-400">{validation.errors.status}</p>
@@ -586,13 +645,13 @@ const Voucher = () => {
                   htmlFor="discountRateInput"
                   className="inline-block mb-2 text-base font-medium"
                 >
-                  Discount Rate (%) <span className="text-red-500 ml-1">*</span>
+                  Tỷ Lệ Giảm Giá (%) <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
                   type="number"
                   id="discountRateInput"
                   className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Enter discount rate"
+                  placeholder="Nhập tỷ lệ giảm giá"
                   name="discountRate"
                   onChange={validation.handleChange}
                   onBlur={validation.handleBlur}
@@ -613,41 +672,65 @@ const Voucher = () => {
                   htmlFor="usageLimitInput"
                   className="inline-block mb-2 text-base font-medium"
                 >
-                  Usage Limit
+                  Giới Hạn Sử Dụng <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
                   type="text"
                   id="usageLimitInput"
                   className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Enter usage limit"
+                  placeholder="Nhập giới hạn sử dụng"
                   name="usageLimit"
-                  onChange={validation.handleChange}
+                  onChange={handleUsageLimitChange}
                   onBlur={validation.handleBlur}
-                  value={validation.values.usageLimit || ""}
+                  value={formatNumber(validation.values.usageLimit)}
                   disabled={isOverview}
                 />
+                {validation.touched.usageLimit && validation.errors.usageLimit && (
+                  <p className="text-red-400">{validation.errors.usageLimit}</p>
+                )}
               </div>
+
+              {isOverview && validation.values.usageLimit && (
+                <div className="xl:col-span-6">
+                  <label
+                    htmlFor="formattedUsageLimit"
+                    className="inline-block mb-2 text-base font-medium"
+                  >
+                    Giới Hạn Sử Dụng (Định Dạng)
+                  </label>
+                  <input
+                    type="text"
+                    id="formattedUsageLimit"
+                    className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
+                    value={formatNumber(Number(validation.values.usageLimit))}
+                    disabled={true}
+                  />
+                </div>
+              )}
 
               <div className="xl:col-span-6">
                 <label
                   htmlFor="minimumOrderValueInput"
                   className="inline-block mb-2 text-base font-medium"
                 >
-                  Minimum Order Value{" "}
-                  <span className="text-red-500 ml-1">*</span>
+                  Giá Trị Đơn Tối Thiểu <span className="text-red-500 ml-1">*</span>
                 </label>
-                <input
-                  type="number"
-                  id="minimumOrderValueInput"
-                  className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Enter minimum order value"
-                  name="minimumOrderValue"
-                  onChange={validation.handleChange}
-                  onBlur={validation.handleBlur}
-                  value={validation.values.minimumOrderValue}
-                  disabled={isOverview}
-                  step="any"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    id="minimumOrderValueInput"
+                    className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200 pr-12"
+                    placeholder="Nhập giá trị đơn tối thiểu"
+                    name="minimumOrderValue"
+                    onChange={handleMinimumOrderValueChange}
+                    onBlur={validation.handleBlur}
+                    value={formatNumber(validation.values.minimumOrderValue)}
+                    disabled={isOverview}
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-zink-200">
+                    VND
+                  </span>
+                </div>
                 {validation.touched.minimumOrderValue &&
                   validation.errors.minimumOrderValue && (
                     <p className="text-red-400">
@@ -655,13 +738,31 @@ const Voucher = () => {
                     </p>
                   )}
               </div>
+              
+              {isOverview && validation.values.minimumOrderValue && (
+                <div className="xl:col-span-6">
+                  <label
+                    htmlFor="formattedMinimumOrderValue"
+                    className="inline-block mb-2 text-base font-medium"
+                  >
+                    Giá Trị Đơn Tối Thiểu (Định Dạng)
+                  </label>
+                  <input
+                    type="text"
+                    id="formattedMinimumOrderValue"
+                    className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
+                    value={formatNumber(Number(validation.values.minimumOrderValue))}
+                    disabled={true}
+                  />
+                </div>
+              )}
 
               <div className="xl:col-span-6">
                 <label
                   htmlFor="startDateInput"
                   className="inline-block mb-2 text-base font-medium"
                 >
-                  Start Date & Time <span className="text-red-500 ml-1">*</span>
+                  Ngày Bắt Đầu <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
                   type="datetime-local"
@@ -686,7 +787,7 @@ const Voucher = () => {
                   htmlFor="endDateInput"
                   className="inline-block mb-2 text-base font-medium"
                 >
-                  End Date & Time <span className="text-red-500 ml-1">*</span>
+                  Ngày Kết Thúc <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
                   type="datetime-local"
@@ -710,14 +811,14 @@ const Voucher = () => {
                 className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10"
                 onClick={toggle}
               >
-                {isOverview ? "Close" : "Cancel"}
+                {isOverview ? "Đóng" : "Hủy"}
               </button>
               {!isOverview && (
                 <button
                   type="submit"
                   className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
                 >
-                  {!!isEdit ? "Update" : "Add Voucher"}
+                  {!!isEdit ? "Cập Nhật" : "Thêm Mã Giảm Giá"}
                 </button>
               )}
             </div>

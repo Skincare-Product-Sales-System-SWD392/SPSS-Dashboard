@@ -137,6 +137,13 @@ const VariationOption = () => {
     onSubmit: (values) => {
       if (isEdit) {
         console.log("Updating with eventData:", eventData);
+        console.log("Form values:", values);
+        
+        // Make sure we have a valid ID before sending the update request
+        if (!eventData || !eventData.id) {
+          console.error("Cannot update: Missing variation option ID");
+          return;
+        }
         
         const updateData = {
           id: eventData.id,
@@ -149,11 +156,12 @@ const VariationOption = () => {
         console.log("Update data being sent:", updateData);
         
         dispatch(updateVariationOption(updateData))
-          .then(() => {
+          .then((response: any) => {
+            console.log("Update successful:", response);
             toggle();
-            setRefreshFlag(!refreshFlag);
+            setRefreshFlag(prev => !prev); // Use function form to ensure latest state
           })
-          .catch((error : any) => {
+          .catch((error: any) => {
             console.error("Update failed:", error);
           });
       } else {
@@ -208,7 +216,7 @@ const VariationOption = () => {
     () => [
       {
         id: "value",
-        header: () => <div className="text-left">Value</div>,
+        header: () => <div className="text-left">Giá Trị</div>,
         accessorKey: "value",
         enableColumnFilter: false,
         enableSorting: true,
@@ -222,7 +230,7 @@ const VariationOption = () => {
       },
       {
         id: "variation",
-        header: () => <div className="text-center">Variation</div>,
+        header: () => <div className="text-center">Biến Thể</div>,
         accessorKey: "variationDto2.name",
         enableColumnFilter: false,
         enableSorting: true,
@@ -237,7 +245,7 @@ const VariationOption = () => {
       },
       {
         id: "action",
-        header: () => <div className="text-right">Action</div>,
+        header: () => <div className="text-right">Thao Tác</div>,
         enableColumnFilter: false,
         enableSorting: false,
         cell: (cell: any) => (
@@ -262,18 +270,22 @@ const VariationOption = () => {
                     onClick={() => {
                       const row = cell.row.original;
                       console.log("Edit clicked with row:", row);
-                      console.log("Row ID:", row.id);
                       
-                      // Make sure we capture the ID correctly
-                      setEventData({
-                        id: row.id, // Explicitly set the ID
+                      // Ensure we have all the necessary data
+                      const editData = {
+                        id: row.id,
                         value: row.value || "",
                         variationId: row.variationId || ""
-                      });
+                      };
                       
+                      console.log("Setting eventData to:", editData);
+                      
+                      setEventData(editData);
                       setIsEdit(true);
                       setIsOverview(false);
-                      toggle();
+                      setShow(true);
+                      
+                      // Make sure form values are set correctly
                       validation.setValues({
                         value: row.value || "",
                         variationId: row.variationId || "",
@@ -281,7 +293,7 @@ const VariationOption = () => {
                     }}
                   >
                     <FileEdit className="inline-block size-3 ltr:mr-1 rtl:ml-1" />{" "}
-                    <span className="align-middle">Edit</span>
+                    <span className="align-middle">Chỉnh Sửa</span>
                   </Link>
                 </li>
                 <li>
@@ -291,7 +303,7 @@ const VariationOption = () => {
                     onClick={() => onClickDelete(cell.row.original)}
                   >
                     <Trash2 className="inline-block size-3 ltr:mr-1 rtl:ml-1" />{" "}
-                    <span className="align-middle">Delete</span>
+                    <span className="align-middle">Xóa</span>
                   </Link>
                 </li>
               </Dropdown.Content>
@@ -321,7 +333,7 @@ const VariationOption = () => {
                 <input
                   type="text"
                   className="ltr:pl-8 rtl:pr-8 search form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Search for value, variation..."
+                  placeholder="Tìm kiếm giá trị, biến thể..."
                   autoComplete="off"
                   onChange={(e) => filterSearchData(e)}
                 />
@@ -337,7 +349,7 @@ const VariationOption = () => {
                 onClick={toggle}
               >
                 <Plus className="inline-block size-4" />{" "}
-                <span className="align-middle">Add Variation Option</span>
+                <span className="align-middle">Thêm Giá Trị Biến Thể</span>
               </Link>
             </div>
           </div>
@@ -372,10 +384,10 @@ const VariationOption = () => {
             <div className="noresult">
               <div className="py-6 text-center">
                 <Search className="size-6 mx-auto mb-3 text-sky-500 fill-sky-100 dark:fill-sky-500/20" />
-                <h5 className="mt-2 mb-1">Sorry! No Result Found</h5>
+                <h5 className="mt-2 mb-1">Xin lỗi! Không Tìm Thấy Kết Quả</h5>
                 <p className="mb-0 text-slate-500 dark:text-zink-200">
-                  We've searched more than 199+ variation options. We did not find any
-                  variation options for your search.
+                  Chúng tôi đã tìm kiếm hơn 199+ giá trị biến thể. Chúng tôi không tìm thấy 
+                  giá trị biến thể nào phù hợp với tìm kiếm của bạn.
                 </p>
               </div>
             </div>
@@ -396,7 +408,7 @@ const VariationOption = () => {
           closeButtonClass="transition-all duration-200 ease-linear text-slate-400 hover:text-red-500"
         >
           <Modal.Title className="text-16">
-            {isEdit ? "Edit Variation Option" : isOverview ? "Variation Option Details" : "Add Variation Option"}
+            {isEdit ? "Chỉnh Sửa Giá Trị Biến Thể" : isOverview ? "Chi Tiết Giá Trị Biến Thể" : "Thêm Giá Trị Biến Thể"}
           </Modal.Title>
         </Modal.Header>
 
@@ -404,8 +416,12 @@ const VariationOption = () => {
           <form
             onSubmit={(e) => {
               e.preventDefault();
+              console.log("Form submitted, isOverview:", isOverview);
+              console.log("Current eventData:", eventData);
               if (!isOverview) {
+                console.log("Calling validation.handleSubmit()");
                 validation.handleSubmit();
+                return false;
               }
               return false;
             }}
@@ -413,12 +429,12 @@ const VariationOption = () => {
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
               <div className="xl:col-span-12">
                 <label htmlFor="value" className="inline-block mb-2 text-base font-medium">
-                  Value <span className="text-red-500 ml-1">*</span>
+                  Giá Trị <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
                   id="value"
                   className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Enter variation option value"
+                  placeholder="Nhập giá trị biến thể"
                   name="value"
                   onChange={validation.handleChange}
                   onBlur={validation.handleBlur}
@@ -432,7 +448,7 @@ const VariationOption = () => {
 
               <div className="xl:col-span-12">
                 <label htmlFor="variationId" className="inline-block mb-2 text-base font-medium">
-                  Variation <span className="text-red-500 ml-1">*</span>
+                  Biến Thể <span className="text-red-500 ml-1">*</span>
                 </label>
                 <select
                   id="variationId"
@@ -462,14 +478,14 @@ const VariationOption = () => {
                 className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10" 
                 onClick={toggle}
               >
-                {isOverview ? "Close" : "Cancel"}
+                {isOverview ? "Đóng" : "Hủy"}
               </button>
               {!isOverview && (
                 <button 
                   type="submit" 
                   className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
                 >
-                  {!!isEdit ? "Update" : "Add Variation Option"}
+                  {isEdit ? "Cập Nhật" : "Thêm"}
                 </button>
               )}
             </div>

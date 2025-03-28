@@ -221,6 +221,13 @@ class FirebaseAuthBackend {
     return this.uploadFileWithDirectory(file, "SPSS/Blog-Image");
   };
 
+  /**
+   * Upload account image to Firebase Storage
+   */
+  uploadAccountImage = async (file: File) => {
+    return this.uploadFileWithDirectory(file, "SPSS/Account-Image");
+  };
+
   //
   uploadPaymentMethodImage = async (file: File) => {
     return this.uploadFileWithDirectory(file, "SPSS/PaymentMethod-Image");
@@ -260,6 +267,20 @@ class FirebaseAuthBackend {
       console.error("Error uploading files:", error);
       throw error;
     }
+  };
+
+  /**
+   * Upload product images to Firebase Storage
+   */
+  uploadProductImages = async (files: File[]) => {
+    return this.uploadFiles(files, "SPSS/Product-Images");
+  };
+
+  /**
+   * Upload a single product image to Firebase Storage
+   */
+  uploadProductImage = async (file: File) => {
+    return this.uploadFileWithDirectory(file, "SPSS/Product-Images");
   };
 }
 

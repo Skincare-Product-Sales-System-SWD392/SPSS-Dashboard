@@ -21,7 +21,7 @@ export const getAllQuizSets = createAsyncThunk(
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to fetch quiz sets");
+        toast.error("Không thể tải bộ câu hỏi");
       }
       throw error;
     }
@@ -33,13 +33,13 @@ export const createQuizSet = createAsyncThunk(
   async (quizSet: any) => {
     try {
       const response = await createQuizSetApi(quizSet);
-      toast.success("Quiz set added successfully");
+      toast.success("Thêm bộ câu hỏi thành công");
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to add quiz set");
+        toast.error("Không thể thêm bộ câu hỏi");
       }
       throw error;
     }
@@ -51,13 +51,13 @@ export const updateQuizSet = createAsyncThunk(
   async (quizSet: { id: string, data: any }) => {
     try {
       const response = await updateQuizSetApi(quizSet.id, quizSet.data);
-      toast.success("Quiz set updated successfully");
+      toast.success("Cập nhật bộ câu hỏi thành công");
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to update quiz set");
+        toast.error("Không thể cập nhật bộ câu hỏi");
       }
       throw error;
     }
@@ -69,13 +69,13 @@ export const deleteQuizSet = createAsyncThunk(
   async (id: string) => {
     try {
       const response = await deleteQuizSetApi(id);
-      toast.success("Quiz set deleted successfully");
+      toast.success("Xóa bộ câu hỏi thành công");
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to delete quiz set");
+        toast.error("Không thể xóa bộ câu hỏi");
       }
       throw error;
     }
@@ -87,13 +87,13 @@ export const setQuizSetAsDefault = createAsyncThunk(
   async (id: string) => {
     try {
       const response = await setQuizSetAsDefaultApi(id);
-      toast.success("Quiz set set as default successfully");
+      toast.success("Đặt làm bộ câu hỏi mặc định thành công");
       return { id, response };
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to set quiz set as default");
+        toast.error("Không thể đặt làm bộ câu hỏi mặc định");
       }
       throw error;
     }

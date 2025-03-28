@@ -21,7 +21,7 @@ export const getAllBrands = createAsyncThunk(
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to fetch brands");
+        toast.error("Lấy danh sách thương hiệu thất bại");
       }
       throw error;
     }
@@ -33,13 +33,13 @@ export const addBrand = createAsyncThunk(
   async (brand: any) => {
     try {
       const response = await createBrandApi(brand);
-      toast.success("Brand added successfully");
+      toast.success("Thêm thương hiệu thành công");
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to add brand");
+        toast.error("Thêm thương hiệu thành công");
       }
       throw error;
     }
@@ -51,13 +51,13 @@ export const updateBrand = createAsyncThunk(
   async (brand: { id: string, data: any }) => {
     try {
       const response = await updateBrandApi(brand.id, brand.data);
-      toast.success("Brand updated successfully");
+      toast.success("Cập nhật thương hiệu thành công");
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to update brand");
+        toast.error("Cập nhật thương hiệu thất bại");
       }
       throw error;
     }
@@ -69,13 +69,13 @@ export const deleteBrand = createAsyncThunk(
   async (id: string) => {
     try {
       const response = await deleteBrandApi(id);
-      toast.success("Brand deleted successfully");
+      toast.success("Xóa thương hiệu thành công");
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to delete brand");
+        toast.error("Xóa thương hiệu thất bại");
       }
       throw error;
     }

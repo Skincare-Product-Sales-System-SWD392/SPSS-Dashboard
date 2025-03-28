@@ -2,36 +2,36 @@ import { MonitorDot, ShoppingBag } from "lucide-react";
 
 const menuData: any = [
     {
-        label: 'menu',
+        label: 'Menu',
         isTitle: true,
     },
     {
         id: "dashboard",
-        label: 'Dashboards',
+        label: 'Bảng Điều Khiển',
         link: "/#",
         icon: <MonitorDot />,
         subItems: [
             {
                 id: 'ecommercedashboard',
-                label: 'Ecommerce',
+                label: 'Thương Mại Điện Tử',
                 link: '/dashboard',
                 parentId: "dashboard"
             },
         ]
     },
     {
-        label: 'Apps',
+        label: 'Ứng Dụng',
         isTitle: true,
     },
     {
         id: "ecommerce",
-        label: 'Ecommerce',
+        label: 'Thương Mại Điện Tử',
         link: "/#",
         icon: <ShoppingBag />,
         subItems: [
             {
                 id: 'account',
-                label: 'Account',
+                label: 'Tài Khoản',
                 link: '/apps-ecommerce-account',
                 parentId: 'ecommerce'
             },
@@ -41,12 +41,12 @@ const menuData: any = [
             //     link: '/apps-ecommerce-blog',
             //     parentId: 'ecommerce'
             // },
-            // {
-            //     id: 'cancel reason',
-            //     label: 'Cancel Reason',
-            //     link: '/apps-ecommerce-cancel-reason',
-            //     parentId: 'ecommerce'
-            // },
+            {
+                id: 'cancel reason',
+                label: 'Lý Do Hủy Đơn',
+                link: '/apps-ecommerce-cancel-reason',
+                parentId: 'ecommerce'
+            },
             // {
             //     id: 'category',
             //     label: 'Category',
@@ -55,52 +55,58 @@ const menuData: any = [
             // },
             {
                 id: 'order',
-                label: 'Order',
+                label: 'Đơn Hàng',
                 link: '/apps-ecommerce-orders',
                 parentId: 'ecommerce'
             },
             {
                 id: 'payment-method',
-                label: 'Payment Method',
+                label: 'Phương Thức Thanh Toán',
                 link: '/apps-ecommerce-payment-method',
                 parentId: 'ecommerce'
             },
             {
                 id: 'product',
-                label: 'Products',
+                label: 'Sản Phẩm',
                 parentId: 'ecommerce',
                 link: "/apps-ecommerce-product-list",
             },
             {
                 id: 'reviews',
-                label: 'Reviews',
+                label: 'Đánh Giá',
                 link: '/apps-ecommerce-reviews',
                 parentId: 'ecommerce'
             },
             {
                 id: 'survey-question',
-                label: 'Survey Question',
+                label: 'Câu Hỏi Khảo Sát',
                 link: '/apps-ecommerce-survey-question',
                 parentId: 'ecommerce'
             },
             {
                 id: 'variation',
-                label: 'Variation',
+                label: 'Biến Thể',
                 link: '/apps-ecommerce-variation',
                 parentId: 'ecommerce'
             },
             {
                 id: 'variation-option',
-                label: 'Variation Option',
+                label: 'Tùy Chọn Biến Thể',
                 link : '/apps-ecommerce-variation-option',
                 parentId: 'ecommerce'
             },
             {
                 id: 'voucher',
-                label: 'Voucher',
+                label: 'Phiếu Giảm Giá',
                 link: '/apps-ecommerce-voucher',
                 parentId: 'ecommerce'
             },
+            {
+                id: 'brand',
+                label: 'Thương Hiệu',
+                link: '/apps-ecommerce-brand',
+                parentId: 'ecommerce'
+            }
         ]
     },
 ];

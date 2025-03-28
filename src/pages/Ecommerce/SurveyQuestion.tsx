@@ -141,50 +141,41 @@ const SurveyQuestion = () => {
     dispatch(getAllQuizSets(pagination) as any);
   }, [dispatch, pagination]);
 
-  // Fetch quiz questions when a set is selected
+  // Modify the useEffect for quiz questions to be more reliable
   useEffect(() => {
     if (selectedSet) {
       console.log("Selected set ID:", selectedSet);
-      // Reset expanded questions and selected question when changing sets
+      // Reset states
       setExpandedQuestions({});
       setSelectedQuestion(null);
-
-      // Clear the current questions before fetching new ones
       setLocalQuestions([]);
+      setIsLoading(true);
 
-      // Add a console log to track the API call
-      console.log("Fetching questions for set ID:", selectedSet);
+      // Add a small delay to ensure proper state reset
+      setTimeout(() => {
+        dispatch(getQuizQuestionsBySetId(selectedSet) as any)
+          .then((response: any) => {
+            console.log("API response for questions:", response);
+            setIsLoading(false);
 
-      // Dispatch the action to fetch questions for the selected set
-      dispatch(getQuizQuestionsBySetId(selectedSet) as any)
-        .then((response: any) => {
-          console.log("API response for questions:", response);
-
-          // Store the questions in local state as a backup
-          if (response && response.payload && response.payload.data) {
-            console.log(
-              "Setting local questions from payload.data:",
-              response.payload.data
-            );
-            setLocalQuestions(response.payload.data);
-          } else if (response && response.data) {
-            console.log("Setting local questions from data:", response.data);
-            setLocalQuestions(response.data);
-          } else if (Array.isArray(response)) {
-            console.log(
-              "Setting local questions from array response:",
-              response
-            );
-            setLocalQuestions(response);
-          } else {
-            console.error("Unexpected response format:", response);
+            if (response?.payload?.data) {
+              setLocalQuestions(response.payload.data);
+            } else if (response?.data) {
+              setLocalQuestions(response.data);
+            } else if (Array.isArray(response)) {
+              setLocalQuestions(response);
+            } else {
+              console.error("Unexpected response format:", response);
+              setLocalQuestions([]);
+            }
+          })
+          .catch((error: any) => {
+            console.error("Error fetching questions:", error);
+            setIsLoading(false);
             setLocalQuestions([]);
-          }
-        })
-        .catch((error: any) => {
-          console.error("Error fetching questions:", error);
-          setLocalQuestions([]);
-        });
+            toast.error("Không thể tải câu hỏi. Vui lòng thử lại sau.");
+          });
+      }, 100);
     }
   }, [selectedSet, dispatch]);
 
@@ -627,7 +618,7 @@ const SurveyQuestion = () => {
                     setOpenSetDialog(true);
                   }}
                 >
-                  <FileEdit className="size-3" /> Edit
+                  <FileEdit className="size-3" /> Chỉnh sửa
                 </button>
               </li>
               <li>
@@ -635,7 +626,7 @@ const SurveyQuestion = () => {
                   className="flex items-center gap-2 w-full p-2 text-sm font-medium text-slate-600 rounded hover:bg-slate-100 dark:text-zink-100 dark:hover:bg-zink-500"
                   onClick={() => onClickDelete("set", cell.row.original.id)}
                 >
-                  <Trash2 className="size-3" /> Delete
+                  <Trash2 className="size-3" /> Xóa
                 </button>
               </li>
             </ul>
@@ -700,7 +691,7 @@ const SurveyQuestion = () => {
     return (
       <div className="mt-4">
         <div className="flex justify-between items-center mb-3">
-          <h6 className="text-15">Options for Selected Question</h6>
+          <h6 className="text-15">Lựa Chọn Cho Câu Hỏi Đã Chọn</h6>
           <button
             type="button"
             className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
@@ -711,7 +702,7 @@ const SurveyQuestion = () => {
             }}
           >
             <Plus className="inline-block size-4 ltr:mr-1 rtl:ml-1" />{" "}
-            <span className="align-middle">Add Option</span>
+            <span className="align-middle">Thêm Lựa Chọn</span>
           </button>
         </div>
 
@@ -753,7 +744,10 @@ const SurveyQuestion = () => {
                   <button
                     type="button"
                     className="flex items-center justify-center size-[30px] p-0 text-slate-500 btn bg-slate-100 hover:text-white hover:bg-slate-600 focus:text-white focus:bg-slate-600 focus:ring focus:ring-slate-100 active:text-white active:bg-slate-600 active:ring active:ring-slate-100 dark:bg-slate-500/20 dark:text-slate-400 dark:hover:bg-slate-500 dark:hover:text-white dark:focus:bg-slate-500 dark:focus:text-white dark:active:bg-slate-500 dark:active:text-white dark:ring-slate-400/20"
-                    onClick={() => onClickDelete("option", option.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onClickDelete("option", option.id);
+                    }}
                   >
                     <Trash2 className="size-3.5" />
                   </button>
@@ -804,7 +798,7 @@ const SurveyQuestion = () => {
                 }}
               >
                 <Plus className="inline-block size-4 ltr:mr-1 rtl:ml-1" />{" "}
-                <span className="align-middle">Add Quiz Set</span>
+                <span className="align-middle">Thêm Bộ Câu Hỏi</span>
               </button>
             </div>
           </div>
@@ -861,7 +855,7 @@ const SurveyQuestion = () => {
                   }}
                 >
                   <Plus className="inline-block size-4 ltr:mr-1 rtl:ml-1" />{" "}
-                  <span className="align-middle">Add Question</span>
+                  <span className="align-middle">Thêm Câu Hỏi</span>
                 </button>
               </div>
             </div>
@@ -952,7 +946,7 @@ const SurveyQuestion = () => {
             closeButtonClass="transition-all duration-200 ease-linear text-slate-400 hover:text-red-500"
           >
             <Modal.Title className="text-16">
-              {isEditing ? "Edit Question" : "Add Question"}
+              {isEditing ? "Chỉnh Sửa Câu Hỏi" : "Thêm Câu Hỏi"}
             </Modal.Title>
           </Modal.Header>
 
@@ -995,13 +989,13 @@ const SurveyQuestion = () => {
                   className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10"
                   onClick={toggleQuestionDialog}
                 >
-                  Cancel
+                  Hủy
                 </button>
                 <button
                   type="submit"
                   className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
                 >
-                  {isEditing ? "Update" : "Add"}
+                  {isEditing ? "Cập Nhật" : "Thêm"}
                 </button>
               </div>
             </form>
@@ -1021,7 +1015,7 @@ const SurveyQuestion = () => {
             closeButtonClass="transition-all duration-200 ease-linear text-slate-400 hover:text-red-500"
           >
             <Modal.Title className="text-16">
-              {isEditing ? "Edit Option" : "Add Option"}
+              {isEditing ? "Chỉnh Sửa Lựa Chọn" : "Thêm Lựa Chọn"}
             </Modal.Title>
           </Modal.Header>
 
@@ -1086,13 +1080,13 @@ const SurveyQuestion = () => {
                   className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10"
                   onClick={toggleOptionDialog}
                 >
-                  Cancel
+                  Hủy
                 </button>
                 <button
                   type="submit"
                   className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
                 >
-                  {isEditing ? "Update" : "Add"}
+                  {isEditing ? "Cập Nhật" : "Thêm"}
                 </button>
               </div>
             </form>
@@ -1122,7 +1116,7 @@ const SurveyQuestion = () => {
               closeButtonClass="transition-all duration-200 ease-linear text-slate-400 hover:text-red-500"
             >
               <Modal.Title className="text-16">
-                {isEditing ? "Edit Quiz Set" : "Add Quiz Set"}
+                {isEditing ? "Chỉnh Sửa Bộ Câu Hỏi" : "Thêm Bộ Câu Hỏi Mới"}
               </Modal.Title>
             </Modal.Header>
 
@@ -1189,7 +1183,7 @@ const SurveyQuestion = () => {
                     type="submit"
                     className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
                   >
-                    {isEditing ? "Update" : "Add"}
+                    {isEditing ? "Cập Nhật" : "Thêm"}
                   </button>
                 </div>
               </form>

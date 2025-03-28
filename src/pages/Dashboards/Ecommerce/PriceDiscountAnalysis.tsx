@@ -12,7 +12,7 @@ const PriceDiscountAnalysis = () => {
             <div className="col-span-12 card lg:col-span-6 2xl:col-span-4">
                 <div className="card-body">
                     <div className="flex items-center mb-3">
-                        <h6 className="grow text-15">Product Discount Analysis</h6>
+                        <h6 className="grow text-15">Phân tích giảm giá sản phẩm</h6>
                     </div>
                     
                     {loading ? (
@@ -23,7 +23,7 @@ const PriceDiscountAnalysis = () => {
                         <PriceDiscountChart chartId="priceDiscountChart" products={products} />
                     ) : (
                         <div className="text-center py-4">
-                            <p>No product data available</p>
+                            <p>Không có dữ liệu sản phẩm</p>
                         </div>
                     )}
                 </div>

@@ -7,6 +7,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createSelector } from 'reselect';
 import { getProductById } from 'slices/product/thunk';
 
+const formatNumberWithSpaces = (num: number | undefined): string => {
+    if (num === undefined) return "0";
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+};
+
 const Overview = () => {
     const dispatch = useDispatch<any>();
     const location = useLocation();
@@ -78,7 +83,22 @@ const Overview = () => {
 
     return (
         <React.Fragment>
-            <BreadCrumb title='Overview' pageTitle='Products' />
+            <BreadCrumb title='Chi Tiết Sản Phẩm' pageTitle='Sản Phẩm' />
+
+            {/* Add Back to Products button */}
+            <div className="flex justify-between items-center mb-4">
+                <Link 
+                    to="/apps-ecommerce-product-list"
+                    className="py-2 px-4 text-sm font-medium rounded-md flex items-center gap-2
+                            bg-blue-500 text-white
+                            hover:bg-blue-600 transition-colors duration-200
+                            shadow-sm"
+                >
+                    <i className="ri-arrow-left-line text-16"></i>
+                    <span>Quay Lại Danh Sách</span>
+                </Link>
+            </div>
+
             <DeleteModal show={deleteModal} onHide={deleteToggle} onDelete={handleDelete} />
 
             {loading ? (
@@ -126,7 +146,7 @@ const Overview = () => {
                     <div className="xl:col-span-8">
                         <div className="card">
                             <div className="card-body">
-                                <span className="px-2.5 py-0.5 text-xs inline-block font-medium rounded border bg-sky-100 border-sky-100 text-sky-500 dark:bg-sky-400/20 dark:border-transparent">New Arrivals</span>
+                                <span className="px-2.5 py-0.5 text-xs inline-block font-medium rounded border bg-sky-100 border-sky-100 text-sky-500 dark:bg-sky-400/20 dark:border-transparent">Sản Phẩm Mới</span>
                                 <h5 className="mt-3 mb-1">
                                     {productData.name}
                                     {productData.specifications?.englishName && (
@@ -146,13 +166,13 @@ const Overview = () => {
 
                                 <ul className="flex flex-wrap items-center gap-4 mb-5 text-slate-500 dark:text-zink-200">
                                     {productData.brand && (
-                                        <li>Brand: <Link to="#!" className="font-medium">{productData.brand.name}</Link></li>
+                                        <li>Thương Hiệu: <Link to="#!" className="font-medium">{productData.brand.name}</Link></li>
                                     )}
-                                    <li>Sold: <span className="font-medium">{productData.soldCount || 0}</span></li>
+                                    <li>Đã Bán: <span className="font-medium">{productData.soldCount || 0}</span></li>
                                 </ul>
 
                                 <div className="flex flex-wrap items-center gap-3 mb-4">
-                                    {productData.rating && (
+                                    {productData.rating ? (
                                         <div className="flex items-center gap-2 text-yellow-500">
                                             {[...Array(Math.floor(productData.rating))].map((_, index) => (
                                                 <i key={index} className="ri-star-fill"></i>
@@ -164,17 +184,21 @@ const Overview = () => {
                                                 <h6>({productData.rating})</h6>
                                             </div>
                                         </div>
+                                    ) : (
+                                        <div className="flex items-center gap-2 text-slate-400">
+                                            <span className="text-sm">Chưa có đánh giá</span>
+                                        </div>
                                     )}
                                     
                                     {currentStock !== undefined && (
                                         <div className="shrink-0">
-                                            <h6>In Stock: {currentStock}</h6>
+                                            <h6>Còn Hàng: {formatNumberWithSpaces(currentStock)}</h6>
                                         </div>
                                     )}
                                 </div>
 
                                 <div className="mb-4">
-                                    <p className="mb-1 text-green-500">Special Price</p>
+                                    <p className="mb-1 text-green-500">Giá Đặc Biệt</p>
                                     <h4>
                                         {formatPrice(currentPrice !== undefined ? currentPrice : productData.price)}
                                         
@@ -186,7 +210,7 @@ const Overview = () => {
                                                     {formatPrice(productData.marketPrice)}
                                                 </small>
                                                 <small className="text-green-500 align-middle ml-2">
-                                                    {calculateDiscount(currentPrice !== undefined ? currentPrice : productData.price, productData.marketPrice)}% Off
+                                                    {calculateDiscount(currentPrice !== undefined ? currentPrice : productData.price, productData.marketPrice)}% Giảm
                                                 </small>
                                             </>
                                         )}
@@ -197,7 +221,7 @@ const Overview = () => {
                                 {productData.productItems && productData.productItems.length > 0 && (
                                     <div className="mb-4">
                                         <h6 className="mb-3 text-15">
-                                            {productData.productItems[0]?.configurations?.[0]?.variationName || "Select Variation"}
+                                            {productData.productItems[0]?.configurations?.[0]?.variationName || "Chọn Phiên Bản"}
                                         </h6>
                                         <div className="flex flex-wrap items-center gap-2">
                                             {productData.productItems.map((item: any) => {
@@ -229,7 +253,7 @@ const Overview = () => {
                                 {/* Skin Types */}
                                 {productData.skinTypes && productData.skinTypes.length > 0 && (
                                     <div className="mb-4">
-                                        <h6 className="mb-3 text-15">Skin Types</h6>
+                                        <h6 className="mb-3 text-15">Loại Da</h6>
                                         <div className="flex flex-wrap items-center gap-2">
                                             {productData.skinTypes.map((skinType: any) => (
                                                 <span key={skinType.id} className="px-2.5 py-0.5 text-xs inline-block font-medium rounded border bg-green-100 border-green-100 text-green-500 dark:bg-green-400/20 dark:border-transparent">
@@ -241,18 +265,42 @@ const Overview = () => {
                                 )}
 
                                 <div className="mt-5">
-                                    <h6 className="mb-3 text-15">Product Description:</h6>
-                                    <p className="text-slate-500 dark:text-zink-200">{productData.description}</p>
+                                    <h6 className="mb-3 text-15">Mô Tả Sản Phẩm:</h6>
+                                    <div 
+                                        className="text-slate-500 dark:text-zink-200 rich-text-content"
+                                        dangerouslySetInnerHTML={{ __html: productData.description || '' }}
+                                    />
                                 </div>
 
                                 <div className="mt-5">
-                                    <h6 className="mb-3 text-15">Specifications:</h6>
+                                    <h6 className="mb-3 text-15">Thông Số Kỹ Thuật:</h6>
                                     <div className="overflow-x-auto">
                                         <table className="w-full">
                                             <tbody>
                                                 {productData.specifications && Object.entries(productData.specifications).map(([key, value]) => {
-                                                    // Format the key for display
-                                                    const formattedKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1');
+                                                    // Format the key for display and translate common keys
+                                                    let formattedKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1');
+                                                    
+                                                    // Translate common keys
+                                                    const translations: {[key: string]: string} = {
+                                                        "Detailed Ingredients": "Thành Phần Chi Tiết",
+                                                        "Main Function": "Công Dụng Chính",
+                                                        "Texture": "Kết Cấu",
+                                                        "English Name": "Tên Tiếng Anh",
+                                                        "Key Active Ingredients": "Thành Phần Hoạt Chất Chính",
+                                                        "Storage Instruction": "Hướng Dẫn Bảo Quản",
+                                                        "Usage Instruction": "Hướng Dẫn Sử Dụng",
+                                                        "Expiry Date": "Hạn Sử Dụng",
+                                                        "Skin Issues": "Vấn Đề Da"
+                                                    };
+                                                    
+                                                    if (translations[formattedKey]) {
+                                                        formattedKey = translations[formattedKey];
+                                                    }
+                                                    
+                                                    // Check if the value might contain HTML (for rich text fields)
+                                                    const isRichText = typeof value === 'string' && 
+                                                        (value.includes('<p>') || value.includes('<span>') || value.includes('<div>'));
                                                     
                                                     return (
                                                         <tr key={key} className="border-b border-slate-200 dark:border-zink-500">
@@ -260,14 +308,18 @@ const Overview = () => {
                                                                 {formattedKey}
                                                             </th>
                                                             <td className="px-3.5 py-2.5">
-                                                                {value !== null && value !== undefined && value !== "" ? String(value) : "—"}
+                                                                {isRichText ? (
+                                                                    <div dangerouslySetInnerHTML={{ __html: value as string }} />
+                                                                ) : (
+                                                                    value !== null && value !== undefined && value !== "" ? String(value) : "—"
+                                                                )}
                                                             </td>
                                                         </tr>
                                                     );
                                                 })}
                                                 {!productData.specifications && (
                                                     <tr>
-                                                        <td colSpan={2} className="px-3.5 py-2.5 text-center text-slate-500">No specifications available</td>
+                                                        <td colSpan={2} className="px-3.5 py-2.5 text-center text-slate-500">Không có thông số kỹ thuật</td>
                                                     </tr>
                                                 )}
                                             </tbody>
@@ -282,7 +334,7 @@ const Overview = () => {
                 <div className="card">
                     <div className="card-body">
                         <div className="text-center py-6">
-                            <p className="text-slate-500">Product not found or failed to load.</p>
+                            <p className="text-slate-500">Không tìm thấy sản phẩm hoặc không thể tải dữ liệu.</p>
                         </div>
                     </div>
                 </div>

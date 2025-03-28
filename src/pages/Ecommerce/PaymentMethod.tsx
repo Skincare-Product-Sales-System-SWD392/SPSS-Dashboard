@@ -153,8 +153,8 @@ const PaymentMethod = () => {
       imageUrl: (eventData && eventData.imageUrl) || '',
     },
     validationSchema: Yup.object({
-      paymentType: Yup.string().required("Payment type is required"),
-      imageUrl: Yup.mixed().required("Image is required"),
+      paymentType: Yup.string().required("Loại thanh toán là bắt buộc"),
+      imageUrl: Yup.mixed().required("Hình ảnh là bắt buộc"),
     }),
     onSubmit: async (values) => {
       try {
@@ -255,7 +255,7 @@ const PaymentMethod = () => {
   // Define columns here, after handleOverviewClick is declared
   const columns = [
     {
-      header: "Payment Type",
+      header: "Loại Thanh Toán",
       accessorKey: "paymentType",
       enableColumnFilter: false,
       enableSorting: true,
@@ -271,7 +271,7 @@ const PaymentMethod = () => {
       size: 200,
     },
     {
-      header: () => <div className="text-center">Image</div>,
+      header: () => <div className="text-center">Hình ảnh</div>,
       accessorKey: "imageUrl",
       enableColumnFilter: false,
       enableSorting: false,
@@ -284,14 +284,14 @@ const PaymentMethod = () => {
               className="h-10 w-auto object-contain"
             />
           ) : (
-            <span className="text-slate-500">No image</span>
+            <span className="text-slate-500">Không có hình ảnh</span>
           )}
         </div>
       ),
       size: 150,
     },
     {
-      header: () => <div className="text-right pr-16">Action</div>,
+      header: () => <div className="text-right pr-16">Hành động</div>,
       accessorKey: "action",
       enableColumnFilter: false,
       enableSorting: false,
@@ -326,7 +326,7 @@ const PaymentMethod = () => {
 
   return (
     <React.Fragment>
-      <BreadCrumb title="Payment Methods" pageTitle="Payment Methods" />
+      <BreadCrumb title="Phương Thức Thanh Toán" pageTitle="Phương Thức Thanh Toán" />
       <DeleteModal 
         show={deleteModal} 
         onHide={deleteToggle}
@@ -341,23 +341,23 @@ const PaymentMethod = () => {
                 <input
                   type="text"
                   className="ltr:pl-8 rtl:pr-8 search form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Search for payment type..."
+                  placeholder="Tìm kiếm phương thức thanh toán..."
                   autoComplete="off"
                   onChange={(e) => filterSearchData(e)}
                 />
                 <Search className="inline-block size-4 absolute ltr:left-2.5 rtl:right-2.5 top-2.5 text-slate-500 dark:text-zink-200 fill-slate-100 dark:fill-zink-600" />
               </div>
             </div>
-            <div className="lg:col-span-2 ltr:lg:text-right rtl:lg:text-left xl:col-span-2 xl:col-start-11">
+            <div className="lg:col-span-2 ltr:lg:text-right rtl:lg:text-left xl:col-span-3 xl:col-start-10">
               <Link
                 to="#!"
                 data-modal-target="addPaymentMethodModal"
                 type="button"
-                className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
+                className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20 whitespace-nowrap"
                 onClick={toggle}
               >
                 <Plus className="inline-block size-4" />{" "}
-                <span className="align-middle">Add Payment Method</span>
+                <span className="align-middle">Thêm Phương Thức</span>
               </Link>
             </div>
           </div>
@@ -366,7 +366,7 @@ const PaymentMethod = () => {
           {loading ? (
             <div className="flex items-center justify-center py-10">
               <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status">
-                <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span>
+                <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Đang tải...</span>
               </div>
             </div>
           ) : data && data.length > 0 ? (
@@ -392,10 +392,10 @@ const PaymentMethod = () => {
             <div className="noresult">
               <div className="py-6 text-center">
                 <Search className="size-6 mx-auto mb-3 text-sky-500 fill-sky-100 dark:fill-sky-500/20" />
-                <h5 className="mt-2 mb-1">Sorry! No Result Found</h5>
+                <h5 className="mt-2 mb-1">Xin lỗi! Không Tìm Thấy Kết Quả</h5>
                 <p className="mb-0 text-slate-500 dark:text-zink-200">
-                  We've searched more than 199+ payment methods. We did not find any
-                  payment method for your search.
+                  Chúng tôi đã tìm kiếm hơn 199+ phương thức thanh toán. Chúng tôi không tìm thấy
+                  phương thức thanh toán nào cho tìm kiếm của bạn.
                 </p>
               </div>
             </div>
@@ -416,7 +416,7 @@ const PaymentMethod = () => {
           closeButtonClass="transition-all duration-200 ease-linear text-slate-400 hover:text-red-500"
         >
           <Modal.Title className="text-16">
-            {isOverview ? "Payment Method Details" : isEdit ? "Edit Payment Method" : "Add Payment Method"}
+            {isOverview ? "Chi Tiết Phương Thức Thanh Toán" : isEdit ? "Chỉnh Sửa Phương Thức Thanh Toán" : "Thêm Phương Thức Thanh Toán"}
           </Modal.Title>
         </Modal.Header>
 
@@ -429,13 +429,13 @@ const PaymentMethod = () => {
             <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
               <div className="xl:col-span-12">
                 <label htmlFor="paymentTypeInput" className="inline-block mb-2 text-base font-medium">
-                  Payment Type <span className="text-red-500 ml-1">*</span>
+                  Loại Thanh Toán <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
                   type="text"
                   id="paymentTypeInput"
                   className="form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Enter payment type"
+                  placeholder="Nhập loại thanh toán"
                   name="paymentType"
                   onChange={validation.handleChange}
                   onBlur={validation.handleBlur}
@@ -452,7 +452,7 @@ const PaymentMethod = () => {
                   htmlFor="paymentMethodLogo"
                   className="inline-block mb-2 text-base font-medium"
                 >
-                  Payment Method Logo <span className="text-red-500">*</span>
+                  Logo Phương Thức Thanh Toán <span className="text-red-500">*</span>
                 </label>
                 <Dropzone
                   onDrop={(acceptfiles: any) => {
@@ -472,8 +472,8 @@ const PaymentMethod = () => {
                           <UploadCloud className="block size-12 mx-auto text-slate-500 fill-slate-200 dark:text-zink-200 dark:fill-zink-500" />
                         </div>
                         <h5 className="mb-0 font-normal text-slate-500 dark:text-zink-200 text-15">
-                          Drag and drop your logo or <span className="text-custom-500">browse</span>{" "}
-                          your logo
+                          Kéo và thả logo của bạn hoặc <span className="text-custom-500">duyệt</span>{" "}
+                          logo của bạn
                         </h5>
                       </div>
                     </div>
@@ -529,7 +529,7 @@ const PaymentMethod = () => {
                                 }}
                                 type="button"
                               >
-                                Delete
+                                Xóa
                               </button>
                             </div>
                           )}
@@ -547,14 +547,14 @@ const PaymentMethod = () => {
                 className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10" 
                 onClick={toggle}
               >
-                {isOverview ? "Close" : "Cancel"}
+                {isOverview ? "Đóng" : "Hủy"}
               </button>
               {!isOverview && (
                 <button 
                   type="submit" 
                   className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
                 >
-                  {!!isEdit ? "Update" : "Add Payment Method"}
+                  {!!isEdit ? "Cập Nhật" : "Thêm Phương Thức Thanh Toán"}
                 </button>
               )}
             </div>

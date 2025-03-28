@@ -356,7 +356,7 @@ const ListView = () => {
   const columns = useMemo(
     () => [
       {
-        header: "Product Name",
+        header: "Tên Sản Phẩm",
         accessorKey: "name",
         enableColumnFilter: false,
         enableSorting: true,
@@ -384,17 +384,23 @@ const ListView = () => {
         ),
       },
       {
-        header: "Description",
+        header: "Mô Tả",
         accessorKey: "description",
         enableColumnFilter: false,
         cell: (cell: any) => (
-          <span className="description line-clamp-1 max-w-[250px]">
-            {cell.getValue()}
-          </span>
+          <span 
+            className="description line-clamp-1 max-w-[250px]"
+            dangerouslySetInnerHTML={{ 
+              __html: cell.getValue() ? 
+                // Strip out potentially dangerous tags and limit to plain text
+                cell.getValue().replace(/<(?!br\s*\/?)[^>]+>/g, '') : 
+                ''
+            }}
+          />
         ),
       },
       {
-        header: "Price",
+        header: "Giá",
         accessorKey: "price",
         enableColumnFilter: false,
         enableSorting: true,
@@ -405,7 +411,7 @@ const ListView = () => {
         ),
       },
       {
-        header: "Market Price",
+        header: "Giá Thị Trường",
         accessorKey: "marketPrice",
         enableColumnFilter: false,
         enableSorting: true,
@@ -416,7 +422,7 @@ const ListView = () => {
         ),
       },
       {
-        header: "Action",
+        header: "Thao Tác",
         accessorKey: "action",
         enableColumnFilter: false,
         cell: (cell: any) => (
@@ -482,7 +488,7 @@ const ListView = () => {
 
   return (
     <React.Fragment>
-      <BreadCrumb title="Products" pageTitle="Products" />
+      <BreadCrumb title="Sản phẩm" pageTitle="Sản phẩm" />
       <DeleteModal
         show={deleteModal}
         onHide={deleteToggle}
@@ -497,7 +503,7 @@ const ListView = () => {
                 <input
                   type="text"
                   className="ltr:pl-8 rtl:pr-8 search form-input border-slate-200 dark:border-zink-500 focus:outline-none focus:border-custom-500 disabled:bg-slate-100 dark:disabled:bg-zink-600 disabled:border-slate-300 dark:disabled:border-zink-500 dark:disabled:text-zink-200 disabled:text-slate-500 dark:text-zink-100 dark:bg-zink-700 dark:focus:border-custom-800 placeholder:text-slate-400 dark:placeholder:text-zink-200"
-                  placeholder="Search for product"
+                  placeholder="Tìm kiếm sản phẩm"
                   autoComplete="off"
                   onChange={filterSearchData}
                 />
@@ -513,7 +519,7 @@ const ListView = () => {
                   onClick={downloadExcelTemplate}
                 >
                   <Download className="inline-block size-4 ltr:mr-1 rtl:ml-1" />
-                  <span className="align-middle">Download Template</span>
+                  <span className="align-middle">Tải Template</span>
                 </button>
 
                 {/* Import Products Button */}
@@ -523,7 +529,7 @@ const ListView = () => {
                   onClick={importToggle}
                 >
                   <Upload className="inline-block size-4 ltr:mr-1 rtl:ml-1" />
-                  <span className="align-middle">Import Products</span>
+                  <span className="align-middle">Nhập Sản Phẩm</span>
                 </button>
 
                 {/* Add Product Button */}
@@ -532,7 +538,7 @@ const ListView = () => {
                   className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
                 >
                   <Plus className="inline-block size-4 ltr:mr-1 rtl:ml-1" />
-                  <span className="align-middle">Add Product</span>
+                  <span className="align-middle">Thêm Sản Phẩm</span>
                 </Link>
               </div>
             </div>
@@ -542,7 +548,7 @@ const ListView = () => {
           {loading ? (
             <div className="flex items-center justify-center py-10">
               <div className="spinner-border text-custom-500" role="status">
-                <span className="sr-only">Loading...</span>
+                <span className="sr-only">Đang tải...</span>
               </div>
             </div>
           ) : data && data.length > 0 ? (
@@ -641,10 +647,9 @@ const ListView = () => {
             <div className="noresult">
               <div className="py-6 text-center">
                 <Search className="size-6 mx-auto mb-3 text-sky-500 fill-sky-100 dark:fill-sky-500/20" />
-                <h5 className="mt-2 mb-1">Sorry! No Result Found</h5>
+                <h5 className="mt-2 mb-1">Không tìm thấy kết quả</h5>
                 <p className="mb-0 text-slate-500 dark:text-zink-200">
-                  We've searched more than 199+ product We did not find any
-                  product for you search.
+                  Chúng tôi đã tìm kiếm hơn 199+ sản phẩm, nhưng không tìm thấy kết quả phù hợp với tìm kiếm của bạn.
                 </p>
               </div>
             </div>
@@ -666,10 +671,10 @@ const ListView = () => {
         >
           <Modal.Title className="text-16">
             {isOverview
-              ? "Product Details"
+              ? "Chi Tiết Sản Phẩm"
               : isEdit
-              ? "Edit Product"
-              : "Add Product"}
+              ? "Chỉnh Sửa Sản Phẩm"
+              : "Thêm Sản Phẩm"}
           </Modal.Title>
         </Modal.Header>
 
@@ -692,15 +697,19 @@ const ListView = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
-                    <p className="text-sm text-slate-500">Description</p>
-                    <p>{eventData?.description}</p>
+                    <p className="text-sm text-slate-500">Mô Tả</p>
+                    <div 
+                      dangerouslySetInnerHTML={{ 
+                        __html: eventData?.description || '' 
+                      }}
+                    />
                   </div>
                   <div>
-                    <p className="text-sm text-slate-500">Price</p>
+                    <p className="text-sm text-slate-500">Giá</p>
                     <p>{eventData?.price?.toLocaleString()} VND</p>
                   </div>
                   <div>
-                    <p className="text-sm text-slate-500">Market Price</p>
+                    <p className="text-sm text-slate-500">Giá Thị Trường</p>
                     <p>{eventData?.marketPrice?.toLocaleString()} VND</p>
                   </div>
                 </div>
@@ -710,7 +719,7 @@ const ListView = () => {
             <div>
               {/* Form would go here - similar to the Promotion form */}
               <p className="text-center text-slate-500">
-                Product form would be implemented here
+                Form sản phẩm sẽ được thực hiện ở đây
               </p>
             </div>
           )}
@@ -722,14 +731,14 @@ const ListView = () => {
             className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10"
             onClick={toggle}
           >
-            {isOverview ? "Close" : "Cancel"}
+            {isOverview ? "Đóng" : "Hủy"}
           </button>
           {!isOverview && (
             <button
               type="button"
               className="text-white btn bg-custom-500 border-custom-500 hover:text-white hover:bg-custom-600 hover:border-custom-600 focus:text-white focus:bg-custom-600 focus:border-custom-600 focus:ring focus:ring-custom-100 active:text-white active:bg-custom-600 active:border-custom-600 active:ring active:ring-custom-100 dark:ring-custom-400/20"
             >
-              {!!isEdit ? "Update" : "Add Product"}
+              {!!isEdit ? "Cập Nhật" : "Thêm Sản Phẩm"}
             </button>
           )}
         </Modal.Footer>
@@ -747,21 +756,21 @@ const ListView = () => {
           className="flex items-center justify-between p-4 border-b dark:border-zink-500"
           closeButtonClass="transition-all duration-200 ease-linear text-slate-400 hover:text-red-500"
         >
-          <Modal.Title className="text-16">Import Products</Modal.Title>
+          <Modal.Title className="text-16">Nhập Sản Phẩm</Modal.Title>
         </Modal.Header>
 
         <Modal.Body className="p-4">
           <div className="text-center mb-4">
             <Upload className="size-12 mx-auto text-purple-500" />
-            <h5 className="mt-2 mb-1">Upload Excel File</h5>
+            <h5 className="mt-2 mb-1">Tải Lên File Excel</h5>
             <p className="text-slate-500 dark:text-zink-200">
-              Upload an Excel file with your product data
+              Tải lên tệp Excel với dữ liệu sản phẩm của bạn
             </p>
           </div>
 
           <div className="mt-4">
             <label className="inline-block mb-2 text-base font-medium">
-              Select File
+              Chọn File
             </label>
             <input
               type="file"
@@ -770,7 +779,7 @@ const ListView = () => {
               onChange={handleFileChange}
             />
             <p className="mt-1 text-xs text-slate-500">
-              Accepted formats: .xlsx, .xls (Max 5MB)
+              Định dạng chấp nhận: .xlsx, .xls (Max 5MB)
             </p>
 
             {importFile && (
@@ -791,14 +800,13 @@ const ListView = () => {
 
           <div className="mt-4">
             <p className="text-sm text-slate-500 dark:text-zink-200">
-              <span className="font-medium">Note:</span> Make sure your Excel
-              file follows the template format.
+              <span className="font-medium">Lưu ý:</span> Đảm bảo tệp Excel của bạn tuân theo định dạng mẫu.
               <button
                 type="button"
                 className="text-custom-500 underline ml-1"
                 onClick={downloadExcelTemplate}
               >
-                Download template
+                Tải Template
               </button>
             </p>
           </div>
@@ -810,7 +818,7 @@ const ListView = () => {
             className="text-red-500 bg-white btn hover:text-red-500 hover:bg-red-100 focus:text-red-500 focus:bg-red-100 active:text-red-500 active:bg-red-100 dark:bg-zink-600 dark:hover:bg-red-500/10 dark:focus:bg-red-500/10 dark:active:bg-red-500/10"
             onClick={importToggle}
           >
-            Cancel
+            Hủy
           </button>
           <button
             type="button"
@@ -818,7 +826,7 @@ const ListView = () => {
             onClick={handleImportProducts}
             disabled={!importFile}
           >
-            Import Products
+            Nhập Sản Phẩm
           </button>
         </Modal.Footer>
       </Modal>
