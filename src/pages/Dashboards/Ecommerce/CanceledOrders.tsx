@@ -1,205 +1,225 @@
 import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from 'slices/store';
-import { fetchCanceledOrders } from 'slices/dashboard/reducer';
 import moment from 'moment';
 import { Link } from 'react-router-dom';
 import { Eye, Download } from 'lucide-react';
+import axios from 'axios';
 import * as XLSX from 'xlsx';
 
+// Define the CanceledOrder interface
+interface CanceledOrder {
+  orderId: string;
+  userId: string;
+  username: string;
+  fullname: string;
+  total: number;
+  refundTime: string;
+  refundReason: string;
+  refundRate: number;
+  refundAmount: number;
+}
+
 const CanceledOrders = () => {
-    const dispatch = useDispatch<AppDispatch>();
-    const { canceledOrders, loading, error } = useSelector((state: RootState) => state.dashboard);
-    const [isLoaded, setIsLoaded] = useState(false);
-    
+    // Local state to manage the data
+    const [orders, setOrders] = useState<CanceledOrder[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // Fetch data directly in the component
     useEffect(() => {
-        // Add console logs to debug
-        console.log('CanceledOrders component mounted');
-        
-        dispatch(fetchCanceledOrders({ pageNumber: 1, pageSize: 10 }))
-            .unwrap()
-            .then(data => {
-                console.log('Canceled orders loaded successfully:', data);
-                setIsLoaded(true);
-            })
-            .catch(err => {
-                console.error('Error loading canceled orders:', err);
-                setIsLoaded(true);
-            });
-    }, [dispatch]);
-    
-    // Debug logs
-    useEffect(() => {
-        console.log('Current canceledOrders state:', canceledOrders);
-        console.log('Loading state:', loading);
-        console.log('Error state:', error);
-    }, [canceledOrders, loading, error]);
-    
+        const fetchCanceledOrders = async () => {
+            try {
+                setLoading(true);
+                console.log('Fetching canceled orders...');
+                
+                const response = await axios.get('http://localhost:5041/api/orders/canceled-orders');
+                console.log('Raw API Response:', response);
+                console.log('API Response data:', response.data);
+                
+                // More lenient check for valid data
+                if (response.data) {
+                    if (response.data.success && Array.isArray(response.data.data)) {
+                        console.log('Found data array in response.data.data:', response.data.data);
+                        setOrders(response.data.data);
+                    } else if (Array.isArray(response.data)) {
+                        console.log('Response data is directly an array:', response.data);
+                        setOrders(response.data);
+                    } else if (response.data.data && typeof response.data.data === 'object') {
+                        console.log('Response data is an object:', response.data.data);
+                        setOrders([response.data.data]);
+                    } else {
+                        console.error('Could not find valid data array in response:', response.data);
+                        setError('Invalid response format - could not find data array');
+                    }
+                } else {
+                    setError('Empty response from API');
+                    console.error('Empty response from API');
+                }
+            } catch (err: any) {
+                setError(err.message || 'Failed to fetch canceled orders');
+                console.error('Error fetching canceled orders:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCanceledOrders();
+    }, []);
+
     // Format currency
     const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('vi-VN', { 
-            style: 'currency', 
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
             currency: 'VND',
             maximumFractionDigits: 0
         }).format(amount);
     };
-    
+
     // Format date
     const formatDate = (dateString: string) => {
         return moment(dateString).format('DD/MM/YYYY HH:mm');
     };
-    
+
     // Export to Excel function
     const exportToExcel = () => {
-        if (!canceledOrders || canceledOrders.length === 0) return;
+        // Create a new workbook
+        const workbook = XLSX.utils.book_new();
         
-        try {
-            // Create workbook and worksheet
-            const workbook = XLSX.utils.book_new();
-            const worksheet = XLSX.utils.aoa_to_sheet([]);
-            
-            // Add title and timestamp
-            XLSX.utils.sheet_add_aoa(worksheet, [
-                ["BÁO CÁO ĐƠN HÀNG BỊ HỦY"],
-                [`Xuất dữ liệu lúc: ${new Date().toLocaleString('vi-VN')}`],
-                [""]
-            ], { origin: "A1" });
-            
-            // Add headers
-            XLSX.utils.sheet_add_aoa(worksheet, [
-                ["STT", "Mã đơn", "Khách hàng", "Tổng tiền", "Thời gian hoàn tiền", "Lý do hủy", "Tỷ lệ hoàn tiền", "Số tiền hoàn"]
-            ], { origin: "A4" });
-            
-            // Add data rows
-            canceledOrders.forEach((order, index) => {
-                const rowIndex = index + 5;
-                
-                XLSX.utils.sheet_add_aoa(worksheet, [[
-                    index + 1,
-                    order.orderId,
-                    order.fullname,
-                    order.total.toLocaleString('vi-VN'),
-                    formatDate(order.refundTime),
-                    order.refundReason,
-                    `${order.refundRate}%`,
-                    order.refundAmount.toLocaleString('vi-VN')
-                ]], { origin: `A${rowIndex}` });
-            });
-            
-            // Set column widths
-            worksheet['!cols'] = [
-                { wch: 5 },    // STT
-                { wch: 40 },   // Mã đơn
-                { wch: 25 },   // Khách hàng
-                { wch: 15 },   // Tổng tiền
-                { wch: 20 },   // Thời gian hoàn tiền
-                { wch: 30 },   // Lý do hủy
-                { wch: 15 },   // Tỷ lệ hoàn tiền
-                { wch: 15 }    // Số tiền hoàn
-            ];
-            
-            // Add the worksheet to the workbook
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'Đơn hàng bị hủy');
-            
-            // Generate Excel file and download
-            XLSX.writeFile(workbook, 'don_hang_bi_huy.xlsx');
-            
-        } catch (error) {
-            console.error('Error exporting to Excel:', error);
-            alert('Có lỗi khi xuất Excel. Vui lòng thử lại sau.');
-        }
+        // Format the data for Excel
+        const excelData = orders.map((order, index) => ({
+            'STT': index + 1,
+            'Mã đơn hàng': order.orderId,
+            'Mã khách hàng': order.userId,
+            'Tên đăng nhập': order.username,
+            'Họ và tên': order.fullname,
+            'Tổng tiền đơn hàng': formatCurrency(order.total),
+            'Thời gian hoàn tiền': formatDate(order.refundTime),
+            'Lý do hủy đơn': order.refundReason,
+            'Tỷ lệ hoàn tiền (%)': order.refundRate,
+            'Số tiền hoàn trả': formatCurrency(order.refundAmount)
+        }));
+        
+        // Create a worksheet
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
+        
+        // Set column widths for better readability
+        const columnWidths = [
+            { wch: 5 },  // STT
+            { wch: 40 }, // Mã đơn hàng
+            { wch: 40 }, // Mã khách hàng
+            { wch: 15 }, // Tên đăng nhập
+            { wch: 25 }, // Họ và tên
+            { wch: 15 }, // Tổng tiền đơn hàng
+            { wch: 20 }, // Thời gian hoàn tiền
+            { wch: 30 }, // Lý do hủy đơn
+            { wch: 20 }, // Tỷ lệ hoàn tiền
+            { wch: 15 }  // Số tiền hoàn trả
+        ];
+        worksheet['!cols'] = columnWidths;
+        
+        // Add the worksheet to the workbook
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Đơn hàng bị hủy');
+        
+        // Generate Excel file and trigger download
+        const currentDate = moment().format('DDMMYYYY_HHmmss');
+        XLSX.writeFile(workbook, `Danh_sach_don_hang_bi_huy_${currentDate}.xlsx`);
     };
-    
+
+    console.log('Rendering component with:', { loading, error, ordersLength: orders.length });
+
     return (
-        <React.Fragment>
-            <div className="col-span-12 card">
-                <div className="card-body">
-                    <div className="flex items-center mb-3">
-                        <h6 className="grow text-15">Đơn hàng bị hủy gần đây</h6>
-                        {!loading && canceledOrders && canceledOrders.length > 0 && (
-                            <button 
-                                onClick={exportToExcel}
-                                className="flex items-center px-3 py-1.5 text-sm font-medium text-white bg-custom-500 border border-transparent rounded-md hover:bg-custom-600 focus:outline-none"
-                            >
-                                <Download className="size-4 mr-1.5" />
-                                Xuất Excel
-                            </button>
-                        )}
-                    </div>
+        <div className="card">
+            <div className="card-body">
+                <div className="flex justify-between items-center mb-4">
+                    <h6 className="text-15">Đơn hàng bị hủy gần đây</h6>
                     
-                    {loading ? (
-                        <div className="flex justify-center py-10">
-                            <div className="animate-spin size-6 border-2 border-slate-200 dark:border-zink-500 rounded-full border-t-custom-500 dark:border-t-custom-500"></div>
-                        </div>
-                    ) : error ? (
-                        <div className="text-center py-4 text-red-500">
-                            <p>Lỗi tải dữ liệu: {error}</p>
-                            <button 
-                                className="mt-2 px-4 py-2 bg-primary-500 text-white rounded"
-                                onClick={() => dispatch(fetchCanceledOrders({ pageNumber: 1, pageSize: 10 }))}
-                            >
-                                Thử lại
-                            </button>
-                        </div>
-                    ) : isLoaded && (!canceledOrders || canceledOrders.length === 0) ? (
-                        <div className="text-center py-10 bg-slate-50 dark:bg-zink-600 rounded-md">
-                            <p className="text-slate-500 dark:text-zink-200">Không có đơn hàng bị hủy</p>
-                        </div>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full whitespace-nowrap">
-                                <thead className="text-left bg-slate-100 dark:bg-zink-600">
-                                    <tr>
-                                        <th className="px-3.5 py-2.5 font-semibold border-b border-slate-200 dark:border-zink-500">Mã đơn</th>
-                                        <th className="px-3.5 py-2.5 font-semibold border-b border-slate-200 dark:border-zink-500">Khách hàng</th>
-                                        <th className="px-3.5 py-2.5 font-semibold border-b border-slate-200 dark:border-zink-500">Tổng tiền</th>
-                                        <th className="px-3.5 py-2.5 font-semibold border-b border-slate-200 dark:border-zink-500">Lý do hủy</th>
-                                        <th className="px-3.5 py-2.5 font-semibold border-b border-slate-200 dark:border-zink-500">Thời gian hoàn tiền</th>
-                                        <th className="px-3.5 py-2.5 font-semibold border-b border-slate-200 dark:border-zink-500">Chi tiết</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {canceledOrders && canceledOrders.map((order, index) => (
-                                        <tr 
-                                            key={order.orderId} 
-                                            className={`${index % 2 === 0 ? "bg-white dark:bg-zink-700" : "bg-slate-50 dark:bg-zink-600"} hover:bg-slate-100 dark:hover:bg-zink-500 transition-colors duration-200`}
-                                        >
-                                            <td className="px-3.5 py-2.5 border-y border-slate-200 dark:border-zink-500">
-                                                <span className="text-slate-800 dark:text-zink-50">{order.orderId.substring(0, 8)}...</span>
-                                            </td>
-                                            <td className="px-3.5 py-2.5 border-y border-slate-200 dark:border-zink-500">
-                                                <div className="flex items-center">
-                                                    <span className="text-slate-800 dark:text-zink-50">{order.fullname}</span>
-                                                    <span className="text-slate-500 dark:text-zink-200 ml-1">({order.username})</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-3.5 py-2.5 border-y border-slate-200 dark:border-zink-500">
-                                                <span className="font-medium text-custom-500">{formatCurrency(order.total)}</span>
-                                            </td>
-                                            <td className="px-3.5 py-2.5 border-y border-slate-200 dark:border-zink-500">
-                                                <span className="text-slate-800 dark:text-zink-50">{order.refundReason}</span>
-                                            </td>
-                                            <td className="px-3.5 py-2.5 border-y border-slate-200 dark:border-zink-500">
-                                                <span className="text-slate-800 dark:text-zink-50">{formatDate(order.refundTime)}</span>
-                                            </td>
-                                            <td className="px-3.5 py-2.5 border-y border-slate-200 dark:border-zink-500">
-                                                <Link 
-                                                    to={`/apps-ecommerce-order-overview?id=${order.orderId}`} 
-                                                    className="inline-flex items-center text-custom-500 hover:underline"
-                                                >
-                                                    <Eye className="size-4 mr-1" />
-                                                    Xem
-                                                </Link>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                    {orders.length > 0 && (
+                        <button 
+                            onClick={exportToExcel}
+                            className="flex items-center px-3 py-1.5 text-sm bg-custom-500 text-white rounded hover:bg-custom-600 transition-colors"
+                        >
+                            <Download className="size-4 mr-1" />
+                            Xuất Excel
+                        </button>
                     )}
                 </div>
+                
+                {loading ? (
+                    <div className="flex justify-center items-center h-40">
+                        <div className="animate-spin size-6 border-2 border-slate-200 rounded-full border-t-custom-500"></div>
+                    </div>
+                ) : error ? (
+                    <div className="text-center py-4 text-red-500">
+                        <p>Lỗi tải dữ liệu: {error}</p>
+                        <button 
+                            className="mt-2 px-4 py-2 bg-custom-500 text-white rounded"
+                            onClick={() => window.location.reload()}
+                        >
+                            Thử lại
+                        </button>
+                    </div>
+                ) : orders.length > 0 ? (
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="text-left bg-slate-100">
+                                <tr>
+                                    <th className="px-3.5 py-2.5 font-semibold border-b border-slate-200">Mã đơn</th>
+                                    <th className="px-3.5 py-2.5 font-semibold border-b border-slate-200">Khách hàng</th>
+                                    <th className="px-3.5 py-2.5 font-semibold border-b border-slate-200">Tổng tiền</th>
+                                    <th className="px-3.5 py-2.5 font-semibold border-b border-slate-200">Thời gian hoàn tiền</th>
+                                    <th className="px-3.5 py-2.5 font-semibold border-b border-slate-200">Lý do hủy</th>
+                                    <th className="px-3.5 py-2.5 font-semibold border-b border-slate-200">Chi tiết</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {orders.map((order, index) => (
+                                    <tr key={order.orderId} className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                                        <td className="px-3.5 py-2.5 border-y border-slate-200">
+                                            <span className="font-medium text-slate-800">
+                                                {order.orderId.substring(0, 8)}...
+                                            </span>
+                                        </td>
+                                        <td className="px-3.5 py-2.5 border-y border-slate-200">
+                                            <div className="flex flex-col">
+                                                <span className="font-medium text-slate-800">{order.fullname}</span>
+                                                <span className="text-xs text-slate-500">@{order.username}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-3.5 py-2.5 border-y border-slate-200">
+                                            <span className="font-medium text-slate-800">
+                                                {formatCurrency(order.total)}
+                                            </span>
+                                        </td>
+                                        <td className="px-3.5 py-2.5 border-y border-slate-200">
+                                            <span className="text-slate-800">
+                                                {formatDate(order.refundTime)}
+                                            </span>
+                                        </td>
+                                        <td className="px-3.5 py-2.5 border-y border-slate-200">
+                                            <span className="text-slate-800">
+                                                {order.refundReason}
+                                            </span>
+                                        </td>
+                                        <td className="px-3.5 py-2.5 border-y border-slate-200">
+                                            <Link 
+                                                to={`/apps-ecommerce-order-overview?id=${order.orderId}`} 
+                                                className="inline-flex items-center text-custom-500 hover:underline"
+                                            >
+                                                <Eye className="size-4 mr-1" />
+                                                Xem
+                                            </Link>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <div className="text-center py-10 bg-slate-50 rounded-md">
+                        <p className="text-slate-500">Không có đơn hàng bị hủy</p>
+                    </div>
+                )}
             </div>
-        </React.Fragment>
+        </div>
     );
 };
 

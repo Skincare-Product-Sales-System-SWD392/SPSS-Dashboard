@@ -449,7 +449,7 @@ const ListView = () => {
                   }}
                 >
                   <Eye className="inline-block size-3 ltr:mr-1 rtl:ml-1" />{" "}
-                  <span className="align-middle">Overview</span>
+                  <span className="align-middle">Xem chi tiết</span>
                 </Link>
               </li>
               <li>
@@ -462,7 +462,7 @@ const ListView = () => {
                   }}
                 >
                   <FileEdit className="inline-block size-3 ltr:mr-1 rtl:ml-1" />{" "}
-                  <span className="align-middle">Edit</span>
+                  <span className="align-middle">Chỉnh sửa</span>
                 </Link>
               </li>
               <li>
@@ -475,7 +475,7 @@ const ListView = () => {
                   }}
                 >
                   <Trash2 className="inline-block size-3 ltr:mr-1 rtl:ml-1" />{" "}
-                  <span className="align-middle">Delete</span>
+                  <span className="align-middle">Xóa</span>
                 </Link>
               </li>
             </Dropdown.Content>

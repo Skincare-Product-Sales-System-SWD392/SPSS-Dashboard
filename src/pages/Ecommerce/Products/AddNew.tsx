@@ -10,6 +10,7 @@ import { getFirebaseBackend } from "../../../helpers/firebase_helper";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Editor } from '@tinymce/tinymce-react';
+import { useNavigate } from 'react-router-dom';
 
 // Define interfaces
 interface ProductImage {
@@ -88,6 +89,7 @@ export default function AddNew() {
   const [productItemImages, setProductItemImages] = useState<{[key: number]: ProductImage | null}>({});
   const [productItemErrors, setProductItemErrors] = useState<{ [key: number]: { [key: string]: string } }>({});
   const [availableVariations, setAvailableVariations] = useState<Variation[]>([]);
+  const navigate = useNavigate();
 
   const handleProductImageUpload = (files: File[]) => {
     if (files && files.length > 0) {
@@ -525,7 +527,7 @@ export default function AddNew() {
             
             // Redirect to list view after successful submission
             setTimeout(() => {
-              window.location.href = "/apps-ecommerce-product-list";
+              navigate('/apps-ecommerce-product-list');
             }, 2000);
             return;
           } else {
@@ -706,6 +708,10 @@ export default function AddNew() {
     setProductItemErrors(newErrors);
   };
 
+  const handleBackToList = () => {
+    navigate('/apps-ecommerce-product-list');
+  };
+
   return (
     <React.Fragment>
       <BreadCrumb title="Thêm Sản Phẩm" pageTitle="Sản Phẩm" />
@@ -718,9 +724,7 @@ export default function AddNew() {
                 <h6 className="text-15">Thêm Sản Phẩm</h6>
                 <button
                   type="button"
-                  onClick={() => {
-                    window.location.href = "/apps-ecommerce-product-list";
-                  }}
+                  onClick={handleBackToList}
                   className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none"
                 >
                   Trở Lại Danh Sách

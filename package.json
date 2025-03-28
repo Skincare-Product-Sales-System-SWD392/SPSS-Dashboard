@@ -50,6 +50,7 @@
     "formik": "^2.4.5",
     "google-maps-react": "^2.0.6",
     "html2canvas": "^1.4.1",
+    "html2pdf.js": "^0.10.3",
     "i18next": "^23.7.19",
     "i18next-browser-languagedetector": "^7.2.0",
     "jsonwebtoken": "^9.0.2",

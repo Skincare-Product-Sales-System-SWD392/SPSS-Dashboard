@@ -26,7 +26,7 @@ const Ecommerce = () => {
             .catch(err => console.error('Error loading pending orders:', err));
             
         // Fetch canceled orders
-        dispatch(fetchCanceledOrders({ pageNumber: 1, pageSize: 10 }));
+        dispatch(fetchCanceledOrders());
     }, [dispatch]);
 
     return (
