@@ -34,6 +34,7 @@ interface PendingOrdersResponse {
   totalPages: number;
 }
 
+const baseUrl = "https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api";
 const PendingOrders = () => {
     const [pendingOrders, setPendingOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -45,7 +46,7 @@ const PendingOrders = () => {
                 setLoading(true);
                 
                 // Use fetch instead of axios to avoid potential issues
-                const response = await fetch('http://localhost:5041/api/dashboards/top-pending?topCount=10');
+                const response = await fetch(`${baseUrl}/dashboards/top-pending?topCount=10`);
                 const data = await response.json();
                 
                 console.log('API response using fetch:', data);

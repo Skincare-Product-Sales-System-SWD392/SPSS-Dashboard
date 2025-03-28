@@ -125,14 +125,14 @@ const initialState: DashboardState = {
   loading: false,
   error: null
 };
-
+const baseUrl = "https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api";
 // Thunk actions
 export const fetchTotalRevenue = createAsyncThunk(
   'dashboard/fetchTotalRevenue',
   async ({ pageNumber = 1, pageSize = 10 }: { pageNumber?: number; pageSize?: number }) => {
     try {
       const { data } = await axios.get<RevenueResponse>(
-        'http://localhost:5041/api/dashboards/total-revenue',
+        `${baseUrl}/dashboards/total-revenue`,
         { params: { pageNumber, pageSize } }
       );
       return data.data.items[0]?.totalRevenue ?? 0;
@@ -148,7 +148,7 @@ export const fetchBestSellers = createAsyncThunk(
   async ({ pageNumber = 1, pageSize = 10 }: { pageNumber?: number; pageSize?: number }) => {
     try {
       const response = await axios.get(
-        `http://localhost:5041/api/dashboards/best-sellers`,
+        `${baseUrl}/dashboards/best-sellers`,
         {
           params: { pageNumber, pageSize }
         }
@@ -198,7 +198,7 @@ export const fetchNewProducts = createAsyncThunk(
   async ({ pageNumber = 1, pageSize = 10 }: { pageNumber?: number; pageSize?: number }) => {
     try {
       const response = await axios.get(
-        `http://localhost:5041/api/products`,
+        `${baseUrl}/products`,
         {
           params: { pageNumber, pageSize, sortBy: 'news' }
         }
@@ -236,9 +236,9 @@ export const fetchPendingOrders = createAsyncThunk(
   'dashboard/fetchPendingOrders',
   async ({ topCount }: { topCount: number }, { rejectWithValue }) => {
     try {
-      console.log('Fetching pending orders with URL:', `http://localhost:5041/api/dashboards/top-pending?topCount=${topCount}`);
+      console.log('Fetching pending orders with URL:', `${baseUrl}/dashboards/top-pending?topCount=${topCount}`);
       
-      const response = await axios.get(`http://localhost:5041/api/dashboards/top-pending?topCount=${topCount}`);
+      const response = await axios.get(`${baseUrl}/dashboards/top-pending?topCount=${topCount}`);
       
       console.log('Pending orders raw response:', response);
       console.log('Pending orders API response data:', response.data);
@@ -273,9 +273,9 @@ export const fetchCanceledOrders = createAsyncThunk(
   'dashboard/fetchCanceledOrders',
   async (_, { rejectWithValue }) => {
     try {
-      console.log('Fetching canceled orders with URL:', `http://localhost:5041/api/orders/canceled-orders`);
+      console.log('Fetching canceled orders with URL:', `${baseUrl}/orders/canceled-orders`);
       
-      const response = await axios.get(`http://localhost:5041/api/orders/canceled-orders`);
+      const response = await axios.get(`${baseUrl}/orders/canceled-orders`);
       
       console.log('Canceled orders API response:', response.data);
       
