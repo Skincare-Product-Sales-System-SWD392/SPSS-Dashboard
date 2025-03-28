@@ -20,7 +20,7 @@ export const getAllUsers = createAsyncThunk(
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to fetch users");
+        toast.error("Không thể lấy danh sách người dùng");
       }
       throw error;
     }
@@ -32,7 +32,7 @@ export const addUser = createAsyncThunk(
   async (user: any) => {
     try {
       const response = await createUserApi(user);
-      toast.success("User added successfully");
+      toast.success("Thêm người dùng thành công");
       return response;
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || "Email, số điện thoại hoặc tên người dùng này có thể đã được sử dụng. Vui lòng kiểm tra lại thông tin và thử lại.";
@@ -47,7 +47,7 @@ export const updateUser = createAsyncThunk(
   async (user: { id: string, data: any }) => {
     try {
       const response = await updateUserApi(user.id, user.data);
-      toast.success("User updated successfully");
+      toast.success("Cập nhật người dùng thành công");
       return response;
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || "Email, số điện thoại hoặc tên người dùng này có thể đã được sử dụng. Vui lòng kiểm tra lại thông tin và thử lại.";
@@ -62,13 +62,13 @@ export const deleteUser = createAsyncThunk(
   async (id: string) => {
     try {
       const response = await deleteUserApi(id);
-      toast.success("User deleted successfully");
+      toast.success("Xóa người dùng thành công");
       return response;
     } catch (error: any) {
       if (error.response?.data?.data) {
         toast.error(error.response.data.data);
       } else {
-        toast.error("Failed to delete user");
+        toast.error("Không thể xóa người dùng");
       }
       throw error;
     }
