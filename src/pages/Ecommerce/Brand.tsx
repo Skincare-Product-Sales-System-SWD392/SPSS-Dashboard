@@ -659,7 +659,7 @@ const Brand = () => {
                 ) : (
                   <Editor
                     id="descriptionEditor"
-                    apiKey={TINYMCE_API_KEY}
+                    apiKey="8wmapg650a8xkqj2cwz4qgka67mscn8xm3uaijvcyoh70b1g"
                     value={validation.values.description || ""}
                     init={{
                       height: 300,
