@@ -343,7 +343,6 @@ export default function AddNew() {
     validationSchema: Yup.object({
       title: Yup.string()
         .required('Tên sản phẩm là bắt buộc')
-        .max(20, 'Tên không được vượt quá 20 ký tự')
         .matches(
           /^[a-zA-Z0-9\s\u00C0-\u1EF9]+$/,
           'Tên sản phẩm không được chứa ký tự đặc biệt'
