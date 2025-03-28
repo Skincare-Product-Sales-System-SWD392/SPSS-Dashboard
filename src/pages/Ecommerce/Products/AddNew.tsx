@@ -820,7 +820,7 @@ export default function AddNew() {
                     </label>
                     <Editor
                       id="description"
-                      apiKey={TINYMCE_API_KEY}
+                      apiKey="8wmapg650a8xkqj2cwz4qgka67mscn8xm3uaijvcyoh70b1g"
                       init={editorConfig}
                       value={productFormik.values.description}
                       onEditorChange={(content : any) => {
@@ -1248,7 +1248,7 @@ export default function AddNew() {
                       </label>
                       <Editor
                         id="detailedIngredients"
-                        apiKey={TINYMCE_API_KEY}
+                        apiKey="8wmapg650a8xkqj2cwz4qgka67mscn8xm3uaijvcyoh70b1g"
                         init={editorConfig}
                         value={productFormik.values.detailedIngredients}
                         onEditorChange={(content : any) => {
@@ -1345,7 +1345,7 @@ export default function AddNew() {
                       </label>
                       <Editor
                         id="storageInstruction"
-                        apiKey={TINYMCE_API_KEY}
+                        apiKey="8wmapg650a8xkqj2cwz4qgka67mscn8xm3uaijvcyoh70b1g"
                         init={editorConfig}
                         value={productFormik.values.storageInstruction}
                         onEditorChange={(content : any) => {
@@ -1364,7 +1364,7 @@ export default function AddNew() {
                       </label>
                       <Editor
                         id="usageInstruction"
-                        apiKey={TINYMCE_API_KEY}
+                        apiKey="8wmapg650a8xkqj2cwz4qgka67mscn8xm3uaijvcyoh70b1g"
                         init={editorConfig}
                         value={productFormik.values.usageInstruction}
                         onEditorChange={(content : any) => {
