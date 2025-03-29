@@ -134,6 +134,13 @@ const OrderOverview = () => {
 
   // Format currency
   const formatCurrency = (amount: number) => {
+    // Check if amount is a valid number before formatting
+    if (amount === undefined || amount === null || isNaN(amount)) {
+      return new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+      }).format(0);
+    }
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
@@ -242,6 +249,12 @@ const OrderOverview = () => {
       .toString(36)
       .substring(2, 7)
       .toUpperCase()}-${Math.floor(Math.random() * 10000)}`;
+
+    // Ensure all values are valid numbers before formatting
+    const orderTotal = currentOrder.orderTotal || 0;
+    const discountAmount = currentOrder.discountAmount || 0;
+    const originalOrderTotal = currentOrder.originalOrderTotal || orderTotal;
+    const discountedOrderTotal = currentOrder.discountedOrderTotal || orderTotal;
 
     return `
             <div style="font-family: 'Helvetica', 'Arial', sans-serif; width: 210mm; padding: 20mm; color: #333; box-sizing: border-box;">
@@ -353,41 +366,48 @@ const OrderOverview = () => {
                               currentOrder.orderDetails &&
                               currentOrder.orderDetails
                                 .map(
-                                  (item: any, index: number) => `
+                                  (item: any, index: number) => {
+                                    // Ensure price and quantity are valid numbers
+                                    const price = item.price || 0;
+                                    const quantity = item.quantity || 0;
+                                    const total = price * quantity;
+                                    
+                                    return `
                                 <tr>
                                     <td style="padding: 10px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px;">
                                         <div style="display: flex; align-items: center;">
                                             <div style="margin-right: 10px;">
                                                 <img src="${
-                                                  item.productImage
+                                                  item.productImage || ""
                                                 }" alt="" style="width: 40px; height: 40px; object-fit: contain; background-color: #f9f9f9; border-radius: 4px;">
                                             </div>
                                             <div>
                                                 <p style="margin: 0; font-weight: 500;">${
-                                                  item.productName
+                                                  item.productName || "Sản phẩm"
                                                 }</p>
                                                 <p style="margin: 3px 0 0 0; color: #777; font-size: 12px;">
                                                     ${
                                                       item.variationOptionValues &&
-                                                      item.variationOptionValues.join(
-                                                        ", "
-                                                      )
+                                                      item.variationOptionValues.length > 0 
+                                                        ? item.variationOptionValues.join(", ")
+                                                        : ""
                                                     }
                                                 </p>
                                             </div>
                                         </div>
                                     </td>
                                     <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee; font-size: 14px;">${formatCurrency(
-                                      item.price
+                                      price
                                     )}</td>
                                     <td style="padding: 10px; text-align: center; border-bottom: 1px solid #eee; font-size: 14px;">${
-                                      item.quantity
+                                      quantity
                                     }</td>
                                     <td style="padding: 10px; text-align: right; border-bottom: 1px solid #eee; font-size: 14px; font-weight: 500;">${formatCurrency(
-                                      item.price * item.quantity
+                                      total
                                     )}</td>
                                 </tr>
-                            `
+                            `;
+                                  }
                                 )
                                 .join("")
                             }
@@ -402,13 +422,13 @@ const OrderOverview = () => {
                             <tr>
                                 <td style="padding: 8px 0; text-align: left; font-size: 14px;">Tổng phụ:</td>
                                 <td style="padding: 8px 0; text-align: right; font-size: 14px;">${formatCurrency(
-                                  currentOrder.orderTotal
+                                  originalOrderTotal
                                 )}</td>
                             </tr>
                             <tr>
                                 <td style="padding: 8px 0; text-align: left; font-size: 14px;">Giảm giá:</td>
                                 <td style="padding: 8px 0; text-align: right; font-size: 14px;">${formatCurrency(
-                                  0
+                                  discountAmount
                                 )}</td>
                             </tr>
                             <tr>
@@ -426,7 +446,7 @@ const OrderOverview = () => {
                             <tr style="font-weight: bold; border-top: 2px solid #eee;">
                                 <td style="padding: 8px 0; text-align: left; font-size: 16px;">Tổng cộng:</td>
                                 <td style="padding: 8px 0; text-align: right; font-size: 16px;">${formatCurrency(
-                                  currentOrder.orderTotal
+                                  discountedOrderTotal
                                 )}</td>
                             </tr>
                         </table>
@@ -533,6 +553,18 @@ const OrderOverview = () => {
         width: 793, // A4 width in pixels at 96 DPI
         height: 1122, // A4 height in pixels at 96 DPI
         backgroundColor: "#ffffff",
+        onclone: (document) => {
+          // This callback allows us to modify the cloned document before rendering
+          // We can use it to ensure all images are loaded properly
+          const images = document.getElementsByTagName('img');
+          for (let i = 0; i < images.length; i++) {
+            const img = images[i];
+            if (!img.complete) {
+              // Replace with a placeholder if image is not loaded
+              img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+            }
+          }
+        }
       }).then((canvas) => {
         const imgData = canvas.toDataURL("image/png");
 
