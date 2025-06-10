@@ -1,5 +1,5 @@
 import { postJwtLogin } from "helpers/fakebackend_helper";
-import { loginError, loginSuccess, logoutSuccess } from "./reducer";
+import { clearLoginError, loginError, loginSuccess, logoutSuccess } from "./reducer";
 import { ThunkAction } from "redux-thunk";
 import { Action, Dispatch } from "redux";
 import { RootState } from "slices";
@@ -7,48 +7,59 @@ import { getFirebaseBackend } from "helpers/firebase_helper";
 import axios from "axios";
 import { decodeJWT } from "helpers/jwtDecode";
 import { setAuthorization } from "helpers/api_helper";
+import { API_CONFIG } from "config/api";
 
 interface User {
   email: string;
   password: string;
 }
-
-const baseUrl = "https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api";
 export const loginUser =
   (
     user: User,
     history: any  
   ): ThunkAction<void, RootState, unknown, Action<string>> =>
   async (dispatch: Dispatch) => {
+    // Clear any previous errors
+    dispatch(clearLoginError());
+    
     axios
-      .post(`${baseUrl}/authentications/login`, {
+      .post(`${API_CONFIG.BASE_URL}/authentications/login`, {
         usernameOrEmail: user.email,
         password: user.password,
       })
-      .then((res: any) => {
-        console.log("res", res);
-        const decodedToken = decodeJWT(res.accessToken);
+      .then((response: any) => {
+        console.log("Login response:", response);
+        // Since we disabled unwrapping for login endpoint, response.data contains the actual data
+        const { accessToken, refreshToken } = response.data;
+        
+        if (!accessToken) {
+          throw new Error("No access token received");
+        }
+        
+        const decodedToken = decodeJWT(accessToken);
         console.log("decodedToken", decodedToken);
 
         dispatch(loginSuccess("ok"));
         localStorage.setItem(
           "authUser",
           JSON.stringify({
-            accessToken: res.accessToken,
-            token: res.accessToken,
-            refreshToken: res.refreshToken,
+            accessToken: accessToken,
+            token: accessToken,
+            refreshToken: refreshToken,
             imageUrl: decodedToken?.AvatarUrl,
             name: decodedToken?.UserName,
             role: decodedToken?.Role,
           })
         );
         
-        setAuthorization(res.accessToken);
+        setAuthorization(accessToken);
         
         history("/dashboard");
       })
       .catch((error) => {
-        dispatch(loginError(error));
+        console.error("Login error:", error);
+        console.error("Error response:", error.response);
+        dispatch(loginError(error.response?.data?.message || error.message || "Đăng nhập thất bại"));
       });
     // try {
     //   if (process.env.REACT_APP_DEFAULTAUTH === "fake") {

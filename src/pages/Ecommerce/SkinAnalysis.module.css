@@ -1,0 +1,579 @@
+/* Simple Skin Analysis Table Styling */
+.pageContainer {
+  background: #f8fafc;
+  min-height: 100vh;
+  padding: 1rem 0;
+}
+
+.headerCard {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+  border: none;
+}
+
+.headerContent {
+  padding: 2rem;
+  color: white;
+}
+
+.pageTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: linear-gradient(45deg, #ffffff, #e0f2fe, #f0f9ff, #fef7cd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  filter: brightness(1.1);
+}
+
+.pageSubtitle {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin-bottom: 0;
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.statCard {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.statNumber {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  display: block;
+}
+
+.statLabel {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 0.25rem;
+}
+
+.contentCard {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: none;
+  overflow: hidden;
+}
+
+.cardHeader {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: white;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.controlsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.searchInput {
+  position: relative;
+  min-width: 250px;
+}
+
+.searchInput input {
+  padding-left: 2.5rem;
+  border-radius: 8px;
+  border: 2px solid #e2e8f0;
+  transition: border-color 0.2s;
+}
+
+.searchInput input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pageSize {
+  border-radius: 8px;
+  border: 2px solid #e2e8f0;
+  padding: 0.5rem 1rem;
+}
+
+.viewToggle {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.viewButton {
+  border: 2px solid #e2e8f0;
+  background: white;
+  padding: 0.5rem 0.75rem;
+  transition: all 0.2s;
+}
+
+.viewButton:hover {
+  background: #f1f5f9;
+}
+
+.viewButton.active {
+  background: #667eea;
+  border-color: #667eea;
+  color: white;
+}
+
+.tableContainer {
+  overflow-x: auto;
+}
+
+.analysisTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.analysisTable th {
+  background: #f8fafc;
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.analysisTable td {
+  padding: 1.25rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.analysisTable tr:hover {
+  background: #f8fafc;
+}
+
+.imageCell {
+  width: 80px;
+}
+
+.analysisImage {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.skinTypeCell {
+  min-width: 120px;
+}
+
+.skinTypeTag {
+  display: inline-block;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.scoresCell {
+  min-width: 200px;
+}
+
+.scoreGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  font-size: 0.8rem;
+}
+
+.scoreItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.scoreLabel {
+  color: #64748b;
+}
+
+.scoreValue {
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  color: white;
+  font-size: 0.75rem;
+  min-width: 32px;
+  text-align: center;
+  display: inline-block;
+}
+
+.scoreAcne { background: #ef4444; }
+.scoreWrinkle { background: #3b82f6; }
+.scoreDarkCircle { background: #f59e0b; }
+.scoreDarkSpot { background: #6b7280; }
+
+.healthScoreCell {
+  min-width: 100px;
+  text-align: center;
+}
+
+.healthScore {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  line-height: 1;
+}
+
+.healthScore.excellent { color: #10b981; }
+.healthScore.good { color: #f59e0b; }
+.healthScore.fair { color: #f97316; }
+.healthScore.poor { color: #ef4444; }
+
+.healthStatus {
+  font-size: 0.7rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.issuesCell {
+  min-width: 150px;
+}
+
+.issuesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.issueTag {
+  font-size: 0.7rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  color: white;
+  font-weight: 500;
+}
+
+.issueSeverityHigh { background: #ef4444; }
+.issueSeverityMedium { background: #f59e0b; }
+.issueSeverityLow { background: #10b981; }
+
+.actionsCell {
+  min-width: 120px;
+  text-align: center;
+}
+
+.detailButton {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.detailButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  color: white;
+}
+
+.gridView {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+.gridCard {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s;
+  border: 1px solid #f1f5f9;
+}
+
+.gridCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.gridCardImage {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  position: relative;
+}
+
+.gridCardContent {
+  padding: 1.5rem;
+}
+
+.gridCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.gridHealthScore {
+  text-align: center;
+}
+
+.gridScores {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.gridScoreItem {
+  text-align: center;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.gridScoreValue {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.gridScoreLabel {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.gridIssues {
+  margin: 1rem 0;
+}
+
+.gridIssuesTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #374151;
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.paginationInfo {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.paginationControls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.paginationButton {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 6px;
+  color: #64748b;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.paginationButton:hover:not(:disabled) {
+  background: #667eea;
+  border-color: #667eea;
+  color: white;
+}
+
+.paginationButton.active {
+  background: #667eea;
+  border-color: #667eea;
+  color: white;
+}
+
+.paginationButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.loadingState {
+  text-align: center;
+  padding: 3rem;
+  color: #64748b;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+  color: #64748b;
+}
+
+.emptyIcon {
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+/* Enhanced Detail Modal - keep this beautiful */
+.detailModal {
+  border: none;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+  max-height: 95vh;
+}
+
+.modalHeader {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: none;
+  padding: 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.modalTitle {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0;
+}
+
+.modalBodyScrollable {
+  max-height: calc(95vh - 100px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #667eea #f1f5f9;
+}
+
+.modalBodyScrollable::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modalBodyScrollable::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.modalBodyScrollable::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 4px;
+}
+
+.modalBodyScrollable::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #5a67d8, #6b46c1);
+}
+
+.adviceList {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 1rem 0;
+}
+
+.adviceItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.adviceItem:last-child {
+  border-bottom: none;
+}
+
+.adviceText {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #475569;
+}
+
+.priorityBadge {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .pageTitle {
+    font-size: 1.5rem;
+  }
+  
+  .controlsRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .searchInput {
+    min-width: unset;
+  }
+  
+  .tableContainer {
+    font-size: 0.8rem;
+  }
+  
+  .analysisTable th,
+  .analysisTable td {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .gridView {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+} 

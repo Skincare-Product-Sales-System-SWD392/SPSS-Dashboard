@@ -48,6 +48,8 @@ import VariationOption from "pages/Ecommerce/VariationOption";
 import Account from "pages/Ecommerce/Account";
 import EditProduct from "pages/Ecommerce/Products/EditProduct";
 import Brand from "pages/Ecommerce/Brand";
+import SkinAnalysis from "pages/Ecommerce/SkinAnalysis";
+import SkinAnalysisDetails from "pages/Ecommerce/SkinAnalysisDetails";
 interface RouteObject {
   path: string;
   component: React.ComponentType<any>; // Use React.ComponentType to specify the type of the component
@@ -98,7 +100,9 @@ const authProtectedRoutes: Array<RouteObject> = [
   { path: "/apps-ecommerce-variation-option", component: VariationOption },
   { path: "/apps-ecommerce-account", component: Account },
   { path: "/apps-ecommerce-product-edit", component: EditProduct },
-  {path: "/apps-ecommerce-brand", component: Brand },
+  { path: "/apps-ecommerce-brand", component: Brand },
+  { path: "/apps-ecommerce-skin-analysis", component: SkinAnalysis },
+  { path: "/apps-ecommerce-skin-analysis-details", component: SkinAnalysisDetails },
 
   // profile
   { path: "/user-profile", component: UserProfile },

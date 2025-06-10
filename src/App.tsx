@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './assets/scss/themes.scss';
 import RouteIndex from 'Routes/Index';
 
 import fakeBackend from "./helpers/AuthType/fakeBackend";
 import { initFirebaseBackend } from "./helpers/firebase_helper";
+import { loadAuthToken } from "./helpers/api_helper";
 
 
 // Activating fake backend
@@ -26,6 +27,11 @@ const firebaseConfig = {
 initFirebaseBackend(firebaseConfig);
 
 function App() {
+  useEffect(() => {
+    // Load auth token when app starts
+    loadAuthToken();
+  }, []);
+
   return (
     <RouteIndex />
   );

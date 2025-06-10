@@ -106,6 +106,12 @@ const menuData: any = [
                 label: 'Thương Hiệu',
                 link: '/apps-ecommerce-brand',
                 parentId: 'ecommerce'
+            },
+            {
+                id: 'skin-analysis',
+                label: 'Phân Tích Da',
+                link: '/apps-ecommerce-skin-analysis',
+                parentId: 'ecommerce'
             }
         ]
     },

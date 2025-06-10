@@ -9,6 +9,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { Editor } from "@tinymce/tinymce-react";
 import { getFirebaseBackend } from "../../helpers/firebase_helper";
 import axios from "axios";
+import { API_CONFIG } from "config/api";
 
 // Import your action creators
 import { getAllBrands, addBrand, updateBrand, deleteBrand } from "../../slices/brand/thunk";
@@ -23,7 +24,6 @@ import { Plus, Search, Eye, FileEdit, Trash2, MoreHorizontal } from "lucide-reac
 import { Dropdown } from "Common/Components/Dropdown";
 
 const TINYMCE_API_KEY = process.env.REACT_APP_TINYMCE_API_KEY || "8wmapg650a8xkqj2cwz4qgka67mscn8xm3uaijvcyoh70b1g";
-const baseUrl = "https://spssapi-hxfzbchrcafgd2hg.southeastasia-01.azurewebsites.net/api";
 
 const Brand = () => {
   const dispatch = useDispatch<any>();
@@ -65,7 +65,7 @@ const Brand = () => {
   useEffect(() => {
     const fetchCountries = async () => {
       try {
-        const response = await axios.get(`${baseUrl}/countries`);
+        const response = await axios.get(`${API_CONFIG.BASE_URL}/countries`);
         console.log("Countries API response:", response.data);
         
         // Check if response.data is an array directly
