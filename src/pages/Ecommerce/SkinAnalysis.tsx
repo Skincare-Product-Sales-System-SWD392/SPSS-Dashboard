@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useState } from "react";
 import BreadCrumb from "Common/BreadCrumb";
-import { Search, Eye, BarChart3, Camera, ShoppingBag, Target, Shield, AlertTriangle, CheckCircle, XCircle, Grid, List, Star, Award, TrendingUp } from 'lucide-react';
+import { Search, BarChart3, Camera, ShoppingBag, Target, Shield, AlertTriangle, CheckCircle, XCircle, Grid, List, Star, Award, TrendingUp, Filter, Calendar } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios';
 import { API_CONFIG } from 'config/api';
 import { analyzeToken } from 'helpers/tokenHelper';
-import { useNavigate } from 'react-router-dom';
+
 import styles from './SkinAnalysis.module.css';
 
 // Types
@@ -38,6 +38,8 @@ interface Product {
 interface SkinAnalysisItem {
   id: string;
   imageUrl: string;
+  username: string;
+  userName: string;
   skinCondition: SkinCondition;
   skinIssues: SkinIssue[];
   recommendedProducts: Product[];
@@ -99,7 +101,6 @@ const formatDate = (dateString: string) => {
 };
 
 const SkinAnalysis = () => {
-  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(false);
@@ -108,30 +109,78 @@ const SkinAnalysis = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+  
+  // New filter states
+  const [filters, setFilters] = useState({
+    skinType: '',
+    fromDate: '',
+    toDate: ''
+  });
+  const [showFilters, setShowFilters] = useState(false);
 
   // Fetch skin analysis data
-  const fetchSkinAnalysis = useCallback(async (page: number, size: number) => {
+  const fetchSkinAnalysis = useCallback(async (page: number, size: number, searchFilters?: any) => {
     setLoading(true);
     try {
       const authUser = localStorage.getItem("authUser");
       const token = authUser ? JSON.parse(authUser).accessToken : null;
       
+      console.log('🔍 [SkinAnalysis] Debug Info:', {
+        authUser: authUser ? 'found' : 'not found',
+        token: token ? token.substring(0, 20) + '...' : 'no token',
+        currentAxiosAuth: axios.defaults.headers.common["Authorization"] ? 'set' : 'not set'
+      });
+      
       if (token) {
         analyzeToken(token);
+      } else {
+        console.error('❌ [SkinAnalysis] No token found!');
+        toast.error('Không tìm thấy token xác thực. Vui lòng đăng nhập lại.');
+        return;
       }
       
-      const response: AxiosApiResponse = await axios.get(
-        `${API_CONFIG.BASE_URL}/skin-analysis/user/paged`,
-        {
-          params: {
-            pageNumber: page,
-            pageSize: size
-          },
-          headers: {
-            'Authorization': token ? `Bearer ${token}` : undefined
-          }
-        }
-      );
+      // Build query parameters
+      const params: any = {
+        pageNumber: page,
+        pageSize: size
+      };
+      
+      // Add search filters if provided
+      const activeFilters = searchFilters || filters;
+      if (activeFilters.skinType) {
+        params.skinType = activeFilters.skinType;
+      }
+      if (activeFilters.fromDate) {
+        params.fromDate = activeFilters.fromDate;
+      }
+      if (activeFilters.toDate) {
+        params.toDate = activeFilters.toDate;
+      }
+      
+      // ===== DEBUG: Try multiple approaches =====
+      console.log('🔍 [SkinAnalysis] Debug Info:');
+      console.log('- Token:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
+      console.log('- axios.defaults.headers.common["Authorization"]:', axios.defaults.headers.common["Authorization"]);
+      console.log('- Request URL:', `${API_CONFIG.BASE_URL}/skin-analysis/all`);
+      console.log('- Request params:', params);
+      
+      // Try approach 1: Manual header (most reliable)
+      const authHeaders = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+      
+      console.log('📡 [SkinAnalysis] Using manual headers (Customer role):', authHeaders);
+      // Try original endpoint first since that might have different permissions
+      let response: AxiosApiResponse;
+      
+      // Use the /all endpoint as requested
+      console.log('📡 [SkinAnalysis] Using /all endpoint: /skin-analysis/all');
+      response = await axios.get(`${API_CONFIG.BASE_URL}/skin-analysis/all`, {
+        params,
+        headers: authHeaders
+      });
+      console.log('✅ [SkinAnalysis] /all endpoint success!');
       
       let apiData: ApiResponse;
       
@@ -164,19 +213,30 @@ const SkinAnalysis = () => {
         toast.error('Không thể tải dữ liệu phân tích da');
       }
     } catch (error: any) {
-      console.error('Error fetching skin analysis:', error);
+      console.error('❌ [SkinAnalysis] Error details:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        headers: error.response?.headers,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          headers: error.config?.headers
+        }
+      });
       
       if (error.response?.status === 401) {
         toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại');
       } else if (error.response?.status === 403) {
-        toast.error('Không có quyền truy cập');
+        toast.error('Không có quyền truy cập. Chi tiết: ' + (error.response?.data?.message || 'Forbidden'));
       } else {
-        toast.error('Có lỗi xảy ra khi tải dữ liệu');
+        toast.error('Có lỗi xảy ra khi tải dữ liệu: ' + (error.response?.data?.message || error.message));
       }
     } finally {
       setLoading(false);
     }
-  }, [currentPage]);
+  }, [currentPage, filters]);
 
   useEffect(() => {
     fetchSkinAnalysis(currentPage, pageSize);
@@ -193,17 +253,44 @@ const SkinAnalysis = () => {
     setCurrentPage(1);
   };
 
-  // Navigate to skin analysis details page
-  const handleViewDetails = (item: SkinAnalysisItem) => {
-    // Use the actual ID from the API
-    navigate(`/apps-ecommerce-skin-analysis-details?id=${item.id}`);
+  // Handle filter changes
+  const handleFilterChange = (filterName: string, value: string) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterName]: value
+    }));
   };
+
+  // Apply filters
+  const applyFilters = () => {
+    setCurrentPage(1);
+    fetchSkinAnalysis(1, pageSize, filters);
+  };
+
+  // Clear filters
+  const clearFilters = () => {
+    const clearedFilters = {
+      skinType: '',
+      fromDate: '',
+      toDate: ''
+    };
+    setFilters(clearedFilters);
+    setCurrentPage(1);
+    fetchSkinAnalysis(1, pageSize, clearedFilters);
+  };
+
+
+
+
 
   // Filter data based on search term
   const filteredData = skinAnalysisData.filter(item => {
     if (!searchTerm) return true;
     
     const searchLower = searchTerm.toLowerCase();
+    
+    // Search in username
+    if (item.userName?.toLowerCase().includes(searchLower)) return true;
     
     // Search in skin type
     if (item.skinCondition?.skinType?.toLowerCase().includes(searchLower)) return true;
@@ -259,26 +346,16 @@ const SkinAnalysis = () => {
                 <div className={styles.statCard}>
                   <ShoppingBag size={20} className="mb-2 text-white" />
                   <span className={styles.statNumber}>
-                    {skinAnalysisData.reduce((sum, item) => sum + (item.recommendedProducts?.length || 0), 0)}
+                    {new Set(skinAnalysisData.map(item => item.userName)).size}
                   </span>
-                  <span className={styles.statLabel}>Sản phẩm đề xuất</span>
+                  <span className={styles.statLabel}>Số người đã phân tích</span>
                 </div>
                 <div className={styles.statCard}>
                   <Target size={20} className="mb-2 text-white" />
                   <span className={styles.statNumber}>
-                    {skinAnalysisData.length > 0 ? 
-                      Math.round(skinAnalysisData.reduce((sum, item) => sum + (item.skinCondition?.healthScore || 0), 0) / skinAnalysisData.length) 
-                      : 0
-                    }
+                    {formatCurrency(totalCount * 20000)}
                   </span>
-                  <span className={styles.statLabel}>Điểm TB</span>
-                </div>
-                <div className={styles.statCard}>
-                  <Shield size={20} className="mb-2 text-white" />
-                  <span className={styles.statNumber}>
-                    {skinAnalysisData.reduce((sum, item) => sum + (item.skinCareAdvice?.length || 0), 0)}
-                  </span>
-                  <span className={styles.statLabel}>Lời khuyên</span>
+                  <span className={styles.statLabel}>Số tiền thu được</span>
                 </div>
               </div>
             </div>
@@ -298,12 +375,20 @@ const SkinAnalysis = () => {
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="Tìm kiếm phân tích..."
+                      placeholder="Tìm kiếm theo tên người dùng, loại da, vấn đề..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                     <Search className={styles.searchIcon} size={16} />
                   </div>
+                  
+                  <button
+                    className={`btn btn-outline-primary ${showFilters ? 'active' : ''}`}
+                    onClick={() => setShowFilters(!showFilters)}
+                  >
+                    <Filter size={16} />
+                    Bộ lọc
+                  </button>
                   
                   <select
                     className={styles.pageSize}
@@ -332,6 +417,70 @@ const SkinAnalysis = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Filters Panel */}
+              {showFilters && (
+                <div className="mt-4 p-4 border rounded-lg bg-slate-50 dark:bg-zink-700 dark:border-zink-500">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-zink-200 mb-2">
+                        Loại da
+                      </label>
+                      <select
+                        className="form-control"
+                        value={filters.skinType}
+                        onChange={(e) => handleFilterChange('skinType', e.target.value)}
+                      >
+                        <option value="">Tất cả</option>
+                        <option value="Da khô">Da khô</option>
+                        <option value="Da dầu">Da dầu</option>
+                        <option value="Da hỗn hợp">Da hỗn hợp</option>
+                        <option value="Da nhạy cảm">Da nhạy cảm</option>
+                        <option value="Da thường">Da thường</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-zink-200 mb-2">
+                        Từ ngày
+                      </label>
+                      <input
+                        type="datetime-local"
+                        className="form-control"
+                        value={filters.fromDate}
+                        onChange={(e) => handleFilterChange('fromDate', e.target.value)}
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-zink-200 mb-2">
+                        Đến ngày
+                      </label>
+                      <input
+                        type="datetime-local"
+                        className="form-control"
+                        value={filters.toDate}
+                        onChange={(e) => handleFilterChange('toDate', e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="flex items-end gap-2">
+                      <button
+                        className="btn btn-primary flex-1"
+                        onClick={applyFilters}
+                      >
+                        Áp dụng
+                      </button>
+                      <button
+                        className="btn btn-outline-secondary"
+                        onClick={clearFilters}
+                      >
+                        Xóa
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {loading ? (
@@ -352,13 +501,12 @@ const SkinAnalysis = () => {
                 <table className={styles.analysisTable}>
                   <thead>
                     <tr>
-                      <th>Ảnh</th>
+                      <th>Người dùng</th>
                       <th>Loại da</th>
                       <th>Điểm số</th>
                       <th>Sức khỏe da</th>
                       <th>Vấn đề chính</th>
                       <th>Ngày tạo</th>
-                      <th>Hành động</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -366,12 +514,12 @@ const SkinAnalysis = () => {
                       const healthConfig = getHealthScoreConfig(item.skinCondition.healthScore);
                       return (
                         <tr key={item.id}>
-                          <td className={styles.imageCell}>
-                            <img 
-                              src={item.imageUrl} 
-                              alt="Skin Analysis" 
-                              className={styles.analysisImage}
-                            />
+                          <td className={styles.usernameCell}>
+                            <div className={styles.usernameContainer}>
+                              <span className={styles.username}>
+                                {item.userName}
+                              </span>
+                            </div>
                           </td>
                           <td className={styles.skinTypeCell}>
                             <span className={styles.skinTypeTag}>
@@ -440,15 +588,6 @@ const SkinAnalysis = () => {
                           <td className="px-6 py-4 text-sm text-slate-500 dark:text-zink-200">
                             {formatDate(item.createdTime)}
                           </td>
-                          <td className={styles.actionsCell}>
-                            <button
-                              onClick={() => handleViewDetails(item)}
-                              className={styles.detailButton}
-                            >
-                              <Eye size={14} />
-                              Chi tiết
-                            </button>
-                          </td>
                         </tr>
                       );
                     })}
@@ -461,13 +600,12 @@ const SkinAnalysis = () => {
                   const healthConfig = getHealthScoreConfig(item.skinCondition.healthScore);
                   return (
                     <div key={item.id} className={styles.gridCard}>
-                      <img 
-                        src={item.imageUrl} 
-                        alt="Skin Analysis" 
-                        className={styles.gridCardImage}
-                      />
                       <div className={styles.gridCardContent}>
                         <div className={styles.gridCardHeader}>
+                          <div className={styles.gridUsername}>
+                            <span className={styles.usernameLabel}>Người dùng:</span>
+                            <span className={styles.username}>{item.userName}</span>
+                          </div>
                           <span className={styles.skinTypeTag}>
                             {item.skinCondition.skinType}
                           </span>
@@ -524,13 +662,7 @@ const SkinAnalysis = () => {
                           </div>
                         </div>
                         
-                        <button
-                          onClick={() => handleViewDetails(item)}
-                          className={`${styles.detailButton} w-100 mt-3`}
-                        >
-                          <Eye size={14} />
-                          Xem chi tiết phân tích
-                        </button>
+
                       </div>
                     </div>
                   );

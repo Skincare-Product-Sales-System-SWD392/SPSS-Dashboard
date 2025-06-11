@@ -112,6 +112,12 @@ const menuData: any = [
                 label: 'Phân Tích Da',
                 link: '/apps-ecommerce-skin-analysis',
                 parentId: 'ecommerce'
+            },
+            {
+                id: 'transaction-management',
+                label: 'Quản Lý Giao Dịch',
+                link: '/apps-ecommerce-transaction-management',
+                parentId: 'ecommerce'
             }
         ]
     },

@@ -50,6 +50,7 @@ import EditProduct from "pages/Ecommerce/Products/EditProduct";
 import Brand from "pages/Ecommerce/Brand";
 import SkinAnalysis from "pages/Ecommerce/SkinAnalysis";
 import SkinAnalysisDetails from "pages/Ecommerce/SkinAnalysisDetails";
+import TransactionManagement from "pages/Ecommerce/TransactionManagement";
 interface RouteObject {
   path: string;
   component: React.ComponentType<any>; // Use React.ComponentType to specify the type of the component
@@ -103,6 +104,7 @@ const authProtectedRoutes: Array<RouteObject> = [
   { path: "/apps-ecommerce-brand", component: Brand },
   { path: "/apps-ecommerce-skin-analysis", component: SkinAnalysis },
   { path: "/apps-ecommerce-skin-analysis-details", component: SkinAnalysisDetails },
+  { path: "/apps-ecommerce-transaction-management", component: TransactionManagement },
 
   // profile
   { path: "/user-profile", component: UserProfile },
